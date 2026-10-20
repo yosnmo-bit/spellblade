@@ -207,6 +207,16 @@ button:disabled{cursor:default}
 .bossann.k-dead{border-color:#ffd36b}
 @media (prefers-reduced-motion: reduce){.bossann{transition:none}}
 
+.selwrap{height:100%;overflow-y:auto;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;padding:20px 18px}
+.selmsg{margin:0;min-height:1.2em;text-align:center;color:var(--ink-soft);font-size:.9rem;max-width:340px}
+.selmsg.away{color:var(--bad);font-weight:600}
+.selcard{width:100%;max-width:340px;border-radius:18px;overflow:hidden;border:1px solid var(--line);background:var(--panel)}
+#selCv{display:block;width:100%;height:300px;background:radial-gradient(circle at 50% 78%,#3d5a48,#1c2a24 72%);touch-action:none;cursor:grab}
+.selinfo{display:flex;flex-direction:column;align-items:center;gap:2px;padding:10px 12px 12px;font-size:.85rem;color:var(--ink-soft)}
+.selinfo b{font-size:1.15rem;color:var(--ink)}
+.selwrap .btn-main{width:100%;max-width:340px}
+.selacts{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
+
 /* sheet */
 .sheet-wrap{position:fixed;inset:0;z-index:30;display:flex;flex-direction:column;justify-content:flex-end;background:rgba(5,8,15,.28)}
 .sheet-wrap[hidden]{display:none}
@@ -312,6 +322,19 @@ details.box summary{font-weight:700;cursor:pointer}
       </div>
       <button class="btn-main" id="createBtn" disabled>สร้างตัวละคร</button>
       <p class="fine">เริ่มต้นเป็น Novice และเปลี่ยนอาชีพได้เมื่อ Base Lv 10 กับ Job Lv 10</p>
+    </div>
+  </section>
+
+  <section class="screen" id="scrSelect" hidden>
+    <div class="selwrap">
+      <div class="logo">ตำนานดาบเวท</div>
+      <p class="selmsg" id="selMsg" role="status"></p>
+      <div class="selcard">
+        <canvas id="selCv" aria-label="ตัวละครของคุณ ลากเพื่อหมุน"></canvas>
+        <div class="selinfo"><b id="selName"></b><span id="selJob"></span><span id="selMap"></span></div>
+      </div>
+      <button class="btn-main" id="selEnter">เข้าสู่เกม</button>
+      <div class="selacts"><button class="mini warn" id="selNew">สร้างตัวละครใหม่</button><button class="mini" id="selOut" hidden>ออกจากระบบ</button></div>
     </div>
   </section>
 
@@ -463,6 +486,7 @@ window.__NET_RATE = 250;
       });
     } catch (e) { console.warn('firebase init failed', e); resolveReady(null); }
   } else resolveReady(null);
+  window.__fbLogout = () => { if (auth) auth.signOut(); };
   window.__fbAccount = (body, el, rerender, toast) => {
     const u = auth && auth.currentUser; if (!u) return;
     const google = (u.providerData || []).some((p) => p.providerId === 'google.com');
@@ -692,8 +716,8 @@ function MON(id, name, arch, color, lv, extra) {
 }
 
 const DEFAULT_CONFIG = {
-  version: '2.3.0',
-  patchNotes: 'อัปเดต 2.3: บอสเกิดตามเวลา\n• บอสตายแล้วเกิดใหม่ทุก 30 นาที (GM ปรับได้)\n• แถบนับถอยหลังด้านบนจอในแมพที่มีบอส แตะเพื่อเล็งเป้าบอส\n• ประกาศเตือนก่อนเกิด 5 นาทีและ 1 นาที ประกาศตอนบอสปรากฏตัวและตอนถูกโค่น\n• หน้าแผนที่บอกเวลาเกิดบอสของทุกแมพ',
+  version: '2.4.0',
+  patchNotes: 'อัปเดต 2.4: หน้าเลือกตัวละคร\n• เปิดเกมจะเริ่มที่หน้าเลือกตัวละคร\n• ถ้าพับจอหรือสลับแอปเกิน 20 วินาที ตัวละครจะออกจากโลก กลับมาแล้วกดเข้าสู่เกมเพื่อเล่นต่อ\n• ผู้เล่นที่ไม่อยู่หน้าจอจะหายจากแผนที่และรายชื่อออนไลน์\n• แก้บั๊กบอสไม่ตีและมอนตายแล้วเลือดเด้งกลับ',
   announcement: 'ยินดีต้อนรับสู่ช่วงทดสอบ! เจอบั๊กบอก GM ได้เลย',
   rates: { bexp: 1, jexp: 1, gold: 1, drop: 1 },
   deathPenalty: 1,
@@ -1388,8 +1412,8 @@ function enterMap(id, silent) {
   buildGround();
   const b = bounds();
   P.x = WORLD.w / 2; P.y = WORLD.h * 0.62; P.target = null; P.tx = null; P.queued = null; W.cam2 = null; R3.camSnap = true;
-  NET.mapT = Date.now(); NET.kd = []; NET.hostRef = null;
-  const hostThere = [...ONLINE.others.values()].some((o) => o.map === map.id);
+  NET.mapT = Date.now(); NET.kd = []; NET.hostRef = null; NET.dmg.clear(); NET.dmgT.clear(); NET.dmgBase.clear();
+  const hostThere = activeOthers().some((o) => o.map === map.id && isLive(o));
   NET.isHost = !hostThere;
   if (!hostThere) for (let i = 0; i < monCount(map); i++) spawnMon();
   updAutoBadge(); bossEnterMap(map);
@@ -3495,9 +3519,9 @@ function drawEquipPreview(now) {
   else { const c = EQ.cv.getContext('2d'), w = EQ.cv.width, hh = EQ.cv.height; c.setTransform(1, 0, 0, 1, 0, 0); c.clearRect(0, 0, w, hh); drawHero(c, w / 2, hh * 0.85, hh / 80, S.hero.look, S.hero.job, { t: now, wstyle: S.hero.wstyle }); }
 }
 /* =================== ONLINE: shared world, party, chat =================== */
-const ONLINE = { room: null, peers: [], others: new Map(), lastSend: 0, sig: '', swc: 0, lastSwing: -9, ready: false };
+const ONLINE = { room: null, peers: [], others: new Map(), lastSend: 0, sig: '', swc: 0, lastSwing: -9, ready: false, hb: 0, last: null };
 const NET = { me: null, host: null, isHost: true, mapT: Date.now(), hitSeq: 0, hits: [], kdSeq: 0, kd: [], seenHit: new Map(), seenKd: new Map(),
-  atkSeen: new Map(), bb: null, bbSeq: 0, bbT: -99, hostRef: null };
+  atkSeen: new Map(), bb: null, bbSeq: 0, bbT: -99, hostRef: null, dmg: new Map(), dmgT: new Map(), dmgBase: new Map(), pruneT: 0 };
 const PARTY = { key: lsGet('spellblade_party') || '', invited: [], offer: null, declined: new Set() };
 const CHAT = { all: [], seen: new Set(), mine: [], ch: 'w', unread: 0, lastSend: 0, wp: Promise.resolve(), first: true, feedSig: '' };
 const myKey = () => NET.me || 'me';
@@ -3524,8 +3548,8 @@ function readPresence(p) {
     map: typeof pr.m === 'string' ? pr.m.slice(0, 40) : '', nx: num(pr.x, 0.5, 0, 1), ny: num(pr.y, 0.5, 0, 1),
     look: { g: pr.g === 'f' ? 'f' : 'm', hair: int(pr.h, 0, 0, HAIR_NAMES.length - 1), hc: color(pr.c, HAIR_COLORS[0]) },
     ws: pr.ws === 'katar' ? 'katar' : 'dual', sw: int(pr.sw, 0, 0, 1e9), dead: !!pr.d, hp: int(pr.hp, 100, 0, 100),
-    mt: num(pr.mt, 0, 0, 1e15), pk: typeof pr.pk === 'string' ? pr.pk.slice(0, 24) : '',
-    pi: (arr(pr.pi, 6) || []).filter((x) => typeof x === 'string'), hit: arr(pr.hit, 20), kd: arr(pr.kd, 12),
+    mt: num(pr.mt, 0, 0, 1e15), hb: int(pr.hb, 0, 0, 1e12), aw: !!pr.aw, pk: typeof pr.pk === 'string' ? pr.pk.slice(0, 24) : '',
+    pi: (arr(pr.pi, 6) || []).filter((x) => typeof x === 'string'), hit: arr(pr.hit, 20), dg: arr(pr.dg, 40), kd: arr(pr.kd, 12),
     ms: Array.isArray(pr.ms) ? pr.ms : null, tp: (arr(pr.tp, 12) || []).filter((x) => typeof x === 'string'),
     bb: Array.isArray(pr.bb) && typeof pr.bb[0] === 'string' ? [pr.bb[0].slice(0, 40), int(pr.bb[1], 0, 0, 1e9)] : null,
     eqv: (() => { const a = Array.isArray(pr.ev) ? pr.ev : [], g = (x, sl) => (typeof x === 'string' && GEAR[x] && GEAR[x].slot === sl ? x : null); return { head: g(a[0], 'head'), face: g(a[1], 'face'), mouth: g(a[2], 'mouth'), wings: g(a[3], 'wings') }; })()
@@ -3541,6 +3565,9 @@ function syncOthers() {
     const tx = d.nx * WORLD.w, ty = d.ny * WORLD.h;
     if (!o) { o = { key: p.peer, x: tx, y: ty, swingT: -9, sw: d.sw, bbT: -99 }; ONLINE.others.set(p.peer, o); }
     if (d.sw !== o.sw) { o.swingT = W.t; o.sw = d.sw; }
+    if (d.hb !== o.hb || !o.beat) o.beat = performance.now();
+    if (d.aw && !o.aw) o.awaySince = performance.now();
+    if (!d.aw) o.awaySince = 0;
     if (o.map !== d.map) { o.x = tx; o.y = ty; }
     if (d.bb && (!o.bb || o.bb[1] !== d.bb[1])) o.bbT = W.t;
     Object.assign(o, d, { tx, ty });
@@ -3551,21 +3578,26 @@ function syncOthers() {
   for (const k of [...ONLINE.others.keys()]) if (!seen.has(k)) ONLINE.others.delete(k);
   PARTY.invited = PARTY.invited.filter((k) => { const o = ONLINE.others.get(k); return o && o.pk !== PARTY.key; });
 }
-function othersHere() { const out = []; if (!W.map) return out; for (const o of ONLINE.others.values()) if (o.map === W.map.id) out.push(o); return out; }
+const isGone = (o) => (o.aw && performance.now() - (o.awaySince || 0) > 20000) || performance.now() - (o.beat || 0) > 20000;
+const activeOthers = () => [...ONLINE.others.values()].filter((o) => !isGone(o));
+const isLive = (o) => !o.aw && performance.now() - (o.beat || 0) < 3500;
+function othersLive() { return othersHere().filter(isLive); }
+function othersHere() { const out = []; if (!W.map) return out; for (const o of ONLINE.others.values()) if (o.map === W.map.id && !isGone(o)) out.push(o); return out; }
 function mapPlayers() {
   const out = []; if (!P.dead) out.push({ key: myKey(), x: P.x, y: P.y, me: true });
-  for (const o of othersHere()) if (!o.dead) out.push({ key: o.key, x: o.x, y: o.y });
+  for (const o of othersLive()) if (!o.dead) out.push({ key: o.key, x: o.x, y: o.y });
   return out;
 }
+
 
 /* ---------- shared monsters ---------- */
 function netElect() {
   if (!ONLINE.room || !NET.me || !W.map) { NET.host = myKey(); if (!NET.isHost) adoptMirror(); NET.isHost = true; return; }
   let best = { mt: NET.mapT, key: NET.me };
-  for (const o of othersHere()) if (o.mt < best.mt || (o.mt === best.mt && o.key < best.key)) best = { mt: o.mt, key: o.key };
+  for (const o of othersLive()) if (o.mt < best.mt || (o.mt === best.mt && o.key < best.key)) best = { mt: o.mt, key: o.key };
   const was = NET.isHost;
   NET.host = best.key; NET.isHost = best.key === NET.me;
-  if (NET.isHost && !was) adoptMirror();
+  if (NET.isHost && !was) { NET.dmgBase.clear(); adoptMirror(); }
   if (!NET.isHost && was) { NET.hostRef = null; W.mons = []; P.target = null; P.queued = null; }
 }
 function adoptMirror() {
@@ -3577,6 +3609,7 @@ function adoptMirror() {
     if (m.state !== 'dead' && m.state !== 'chase') m.state = 'idle';
   }
   W.uid = Math.max(W.uid, mx + 1);
+  for (const m of W.mons) if (m.state !== 'dead' && m.hp <= 0) killMon(m, myKey());
   if (!W.map) return;
   const alive = W.mons.filter((m) => m.state !== 'dead' && !m.boss).length;
   for (let i = alive; i < monCount(W.map); i++) spawnMon();
@@ -3594,7 +3627,7 @@ function applyMirror(o) {
     if (!m) { m = makeMon(tpl, ti, nx, ny); m.uid = uid; W.mons.push(m); NET.atkSeen.set(uid, int(e[7], 0, 0, 1e9)); }
     m.nx = nx; m.ny = ny;
     const hpHost = num(e[4], 1000, 0, 1000) / 1000 * m.maxHp;
-    if (!(m.predT && W.t - m.predT < 0.7 && m.hp < hpHost)) m.hp = hpHost;
+    if (!(m.predT && W.t - m.predT < 2.5 && m.hp < hpHost)) m.hp = hpHost;
     const fl = int(e[5], 0, 0, 15);
     m.moving = !!(fl & 2);
     const ti2 = int(e[6], -1, -1, 99); m.tgt = ti2 >= 0 && tp[ti2] ? tp[ti2] : null;
@@ -3618,6 +3651,30 @@ function mirrorMons(dt) {
 function netPushHit(uid, dmg, crit) {
   NET.hitSeq++; NET.hits.push([NET.hitSeq, uid, dmg, crit ? 1 : 0]);
   if (NET.hits.length > 16) NET.hits.shift();
+  NET.dmg.set(uid, (NET.dmg.get(uid) || 0) + dmg); NET.dmgT.set(uid, performance.now());
+}
+function pruneDamage() {
+  const now = performance.now(); if (now - NET.pruneT < 1000) return; NET.pruneT = now;
+  for (const uid of [...NET.dmg.keys()]) if (!W.mons.some((m) => m.uid === uid && m.state !== 'dead') && now - (NET.dmgT.get(uid) || 0) > 3000) { NET.dmg.delete(uid); NET.dmgT.delete(uid); }
+  for (const [k, base] of NET.dmgBase) { if (!ONLINE.others.has(k)) { NET.dmgBase.delete(k); continue; } for (const uid of [...base.keys()]) if (!W.mons.some((m) => m.uid === uid)) base.delete(uid); }
+}
+function hostApplyDamage() {
+  for (const o of othersHere()) {
+    if (!Array.isArray(o.dg)) continue;
+    let base = NET.dmgBase.get(o.key);
+    if (!base) { base = new Map(); for (const e of o.dg) if (Array.isArray(e)) base.set(int(e[0], -1, -1, 1e9), num(e[1], 0, 0, 1e12)); NET.dmgBase.set(o.key, base); continue; }
+    for (const e of o.dg) {
+      if (!Array.isArray(e)) continue;
+      const uid = int(e[0], -1, -1, 1e9), tot = num(e[1], 0, 0, 1e12), prev = base.has(uid) ? base.get(uid) : null;
+      if (prev == null) { const m0 = W.mons.find((x) => x.uid === uid && x.state !== 'dead'); base.set(uid, m0 ? 0 : tot); if (!m0) continue; }
+      const before = base.get(uid);
+      if (tot <= before) { if (tot < before) base.set(uid, tot); continue; }
+      base.set(uid, tot);
+      const m = W.mons.find((x) => x.uid === uid && x.state !== 'dead'); if (!m) continue;
+      m.hp -= tot - before; m.angry = true; m.state = 'chase'; m.tgt = o.key; m.hitT = 0.1;
+      if (m.hp <= 0) killMon(m, o.key);
+    }
+  }
 }
 function processOthersHits() {
   for (const o of othersHere()) {
@@ -3634,7 +3691,6 @@ function processOthersHits() {
       const dmg = int(hh[2], 0, 0, 1e9), cr = !!hh[3], s = m.size || 1;
       addNum(m.x + (Math.random() * 18 - 9), m.y - 30 * s, fmt(dmg), cr ? '#ffd84a' : '#cfe3ff', cr ? 15 : 12, { pop: cr });
       m.hitT = 0.1;
-      if (NET.isHost) { m.hp -= dmg; m.angry = true; m.state = 'chase'; m.tgt = o.key; if (m.hp <= 0) killMon(m, o.key); }
     }
     NET.seenHit.set(o.key, mx);
   }
@@ -3665,6 +3721,8 @@ function onlineTick(dt) {
   if (!S.hero || !W.map || S.screen !== 'game') return;
   netElect();
   processOthersHits();
+  if (NET.isHost) hostApplyDamage();
+  pruneDamage();
   if (!NET.isHost) {
     const ho = ONLINE.others.get(NET.host);
     if (ho && ho.map === W.map.id) { if (ho.ms && ho.ms !== NET.hostRef) { NET.hostRef = ho.ms; applyMirror(ho); } processHostKills(ho); }
@@ -3677,7 +3735,7 @@ function onlineTick(dt) {
   const pr = { v: 1, n: h.name, j: h.job, l: h.level, jl: h.jobLv, m: W.map.id,
     x: Math.round(P.x / WORLD.w * 1000) / 1000, y: Math.round(P.y / WORLD.h * 1000) / 1000,
     g: h.look.g, h: h.look.hair, c: h.look.hc, ws: h.wstyle, sw: ONLINE.swc, d: P.dead ? 1 : 0, hp: Math.round(clamp(P.hp / D.maxHp, 0, 1) * 100),
-    mt: NET.mapT, pk: PARTY.key, pi: PARTY.invited.slice(-4), hit: NET.hits, bb: NET.bb, ev: (() => { const v = eqVis(h); return [v.head || '', v.face || '', v.mouth || '', v.wings || '']; })() };
+    mt: NET.mapT, pk: PARTY.key, pi: PARTY.invited.slice(-4), hit: NET.hits, dg: [...NET.dmg].slice(-30), bb: NET.bb, ev: (() => { const v = eqVis(h); return [v.head || '', v.face || '', v.mouth || '', v.wings || '']; })() };
   if (NET.isHost) {
     const tp = [], ms = [];
     for (const m of W.mons) {
@@ -3690,13 +3748,21 @@ function onlineTick(dt) {
     pr.ms = ms; pr.tp = tp; pr.kd = NET.kd;
   }
   const sig = JSON.stringify(pr);
-  if (sig === ONLINE.sig) return;
+  if (sig === ONLINE.sig && now - ONLINE.lastSend < 1000) return;
   ONLINE.sig = sig; ONLINE.lastSend = now;
+  pr.hb = ++ONLINE.hb; pr.aw = 0; ONLINE.last = pr;
   room.presence(pr).catch(() => {});
 }
 
+document.addEventListener('visibilitychange', () => {
+  if (!ONLINE.room) return;
+  if (document.visibilityState === 'hidden') { if (ONLINE.last) ONLINE.room.presence(Object.assign({}, ONLINE.last, { aw: 1, hb: ++ONLINE.hb })).catch(() => {}); }
+  else { NET.mapT = Date.now(); NET.hostRef = null; ONLINE.sig = ''; ONLINE.lastSend = 0; }
+});
+window.addEventListener('pagehide', () => { if (ONLINE.room && ONLINE.last) ONLINE.room.presence(Object.assign({}, ONLINE.last, { aw: 1, hb: ++ONLINE.hb })).catch(() => {}); });
+
 /* ---------- party ---------- */
-function partyMates(anyMap) { const out = []; if (!PARTY.key) return out; for (const o of ONLINE.others.values()) if (o.pk === PARTY.key && (anyMap || (W.map && o.map === W.map.id))) out.push(o); return out; }
+function partyMates(anyMap) { const out = []; if (!PARTY.key) return out; for (const o of activeOthers()) if (o.pk === PARTY.key && (anyMap || (W.map && o.map === W.map.id))) out.push(o); return out; }
 function partyInvite(o) {
   if (!NET.me) { toast('ระบบปาร์ตี้ยังเชื่อมต่อไม่ได้'); return; }
   if (!PARTY.key) { PARTY.key = 'p' + uid36(); lsSet('spellblade_party', PARTY.key); }
@@ -3824,7 +3890,7 @@ function drawBubbles(ctx, proj) {
 }
 
 /* ---------- panels ---------- */
-function renderOnlineDot() { const d = $('#dotOnline'); if (!d) return; const n = ONLINE.others.size; d.hidden = n < 1; d.textContent = n; }
+function renderOnlineDot() { const d = $('#dotOnline'); if (!d) return; const n = activeOthers().length; d.hidden = n < 1; d.textContent = n; }
 function mapName(id) { const m = CONFIG.maps.find((x) => x.id === id); return m ? m.name : 'ไม่ทราบแผนที่'; }
 function headCanvas(look, job, ws, eqv) {
   const cv = el('canvas', { width: 72, height: 72, style: 'width:36px;height:36px;border-radius:8px;background:#26304a;flex-shrink:0' });
@@ -3850,7 +3916,7 @@ function panelOnline(body) {
     body.append(el('p', { class: 'empty', text: ONLINE.ready ? 'ยังเชื่อมต่อเซิร์ฟเวอร์ไม่ได้ ลองรีโหลดหน้า หรือตรวจการตั้งค่า Firebase' : 'กำลังเชื่อมต่อ…' }));
     return;
   }
-  const list = [...ONLINE.others.values()];
+  const list = activeOthers();
   body.append(el('p', { class: 'note', text: 'ออนไลน์ตอนนี้ ' + (list.length + 1) + ' คนรวมคุณ คนในแผนที่เดียวกันเห็นมอนชุดเดียวกันและช่วยกันตีได้' }));
   if (!list.length) { body.append(el('p', { class: 'empty', text: 'ตอนนี้มีคุณคนเดียว ส่งลิงก์ชวนเพื่อนมาเล่นได้เลย' })); return; }
   list.sort((a, b) => (b.map === W.map.id) - (a.map === W.map.id) || b.lv - a.lv);
@@ -3994,7 +4060,7 @@ function toast(msg) {
 }
 function show(scr) {
   S.screen = scr;
-  $('#scrBoot').hidden = scr !== 'boot'; $('#scrCreate').hidden = scr !== 'create'; $('#scrGame').hidden = scr !== 'game';
+  $('#scrBoot').hidden = scr !== 'boot'; $('#scrCreate').hidden = scr !== 'create'; $('#scrGame').hidden = scr !== 'game'; $('#scrSelect').hidden = scr !== 'select';
 }
 function skillDesc(sk, lv) {
   lv = Math.max(1, lv);
@@ -4076,6 +4142,61 @@ function setupCreate() {
 }
 window.addEventListener('resize', () => { if (S.screen === 'create') sizePreview(); });
 
+/* ---------- character select & away logout ---------- */
+const SEL = { ang: 0.35, drag: null, sized: false };
+function sizeSelect() {
+  const cv = $('#selCv'), r = cv.getBoundingClientRect(), d = Math.min(2, window.devicePixelRatio || 1);
+  cv.width = Math.max(1, Math.round(r.width * d)); cv.height = Math.max(1, Math.round(r.height * d)); SEL.sized = true;
+}
+function showSelect(msg, away) {
+  const h = S.hero; if (!h) { setupCreate(); return; }
+  show('select'); AU.music('title');
+  $('#selMsg').textContent = msg || 'เลือกตัวละครเพื่อเข้าสู่โลก';
+  $('#selMsg').className = 'selmsg' + (away ? ' away' : '');
+  $('#selName').textContent = h.name;
+  $('#selJob').textContent = jobName(h.job) + '  Base ' + h.level + '  Job ' + h.jobLv;
+  const mp = CONFIG.maps.find((m) => m.id === h.mapId) || CONFIG.maps[0];
+  $('#selMap').textContent = '📍 ' + (mp ? mp.name : '');
+  $('#selOut').hidden = !window.__fbLogout;
+  sizeSelect();
+}
+function drawSelect(now) {
+  if (S.screen !== 'select' || !S.hero) return;
+  const cv = $('#selCv');
+  if (R3.on) R3.view(cv, S.hero, SEL.ang + (SEL.drag == null ? now * 0.25 : 0), now);
+  else { const c = cv.getContext('2d'); c.setTransform(1, 0, 0, 1, 0, 0); c.clearRect(0, 0, cv.width, cv.height); drawHero(c, cv.width / 2, cv.height * 0.85, cv.height / 80, S.hero.look, S.hero.job, { t: now, wstyle: S.hero.wstyle }); }
+}
+$('#selCv').addEventListener('pointerdown', (e) => { SEL.drag = e.clientX; e.currentTarget.setPointerCapture(e.pointerId); });
+$('#selCv').addEventListener('pointermove', (e) => { if (SEL.drag == null) return; SEL.ang += (e.clientX - SEL.drag) * 0.012; SEL.drag = e.clientX; });
+$('#selCv').addEventListener('pointerup', () => { SEL.drag = null; });
+$('#selEnter').addEventListener('click', () => { if (S.hero) startGame(S.hero, S.savedOnline); });
+twoStep($('#selNew'), 'สร้างตัวละครใหม่', 'แตะอีกครั้ง ตัวละครนี้จะหายไป', () => { S.hero = null; W.map = null; lsSet(LS_SAVE + (S.uid || ''), ''); setupCreate(); });
+$('#selOut').addEventListener('click', () => { if (window.__fbLogout) window.__fbLogout(); });
+window.addEventListener('resize', () => { if (S.screen === 'select') sizeSelect(); });
+function leaveWorld(msg, away) {
+  if (S.screen !== 'game' || !S.hero) return;
+  save(); closeSheet(); if (typeof closeEquip === 'function') closeEquip(); setAuto(false);
+  if (ONLINE.room) ONLINE.room.presence({ v: 0 }).catch(() => {});
+  ONLINE.last = null; ONLINE.sig = '';
+  W.mons = []; W.fx = []; W.nums = []; W.pend = []; W.map = null; P.target = null; P.queued = null;
+  $('#bossBar').hidden = true; $('#patchModal').hidden = true;
+  showSelect(msg, away);
+}
+const AWAY_MS = 20000;
+let hiddenAt = 0, awayTimer = 0;
+const awayMsg = 'คุณไม่ได้อยู่หน้าจอเกิน 20 วินาที ระบบพาตัวละครออกจากโลกแล้ว กดเข้าสู่เกมเพื่อเล่นต่อ';
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'hidden') {
+    hiddenAt = Date.now(); clearTimeout(awayTimer);
+    awayTimer = setTimeout(() => { if (document.visibilityState === 'hidden') leaveWorld(awayMsg, true); }, AWAY_MS);
+  } else {
+    clearTimeout(awayTimer);
+    if (hiddenAt && Date.now() - hiddenAt >= AWAY_MS) leaveWorld(awayMsg, true);
+    hiddenAt = 0;
+  }
+});
+window.addEventListener('pageshow', (e) => { if (e.persisted && hiddenAt && Date.now() - hiddenAt >= AWAY_MS) leaveWorld(awayMsg, true); });
+
 /* ---------- game start & HUD ---------- */
 function startGame(hero, fromServer) {
   S.hero = hero;
@@ -4132,7 +4253,7 @@ function hudText() {
   ds.hidden = h.statPts < 2; ds.textContent = h.statPts;
   dk.hidden = h.skillPts < 1; dk.textContent = h.skillPts;
   $('#btnJob').classList.toggle('glow', canJobChange(h));
-  renderPartyHud(); renderChatFeed(); renderChatDot(); renderBossBar();
+  renderPartyHud(); renderChatFeed(); renderChatDot(); renderBossBar(); renderOnlineDot();
 }
 function hud() {
   const h = S.hero, D = P.D, tier = JOBS[h.job].tier;
@@ -4635,7 +4756,7 @@ async function init() {
   }
   if (!hero) { try { const l = JSON.parse(lsGet(LS_SAVE + (S.uid || '')) || 'null'); if (l) hero = sanitizeHero(l); } catch (e) {} }
   if (!S.db) BOSS.loaded = true;
-  if (hero) { startGame(hero, fromServer); if (!fromServer) save(); } else setupCreate();
+  if (hero) { S.hero = hero; S.savedOnline = fromServer; if (!fromServer) save(); showSelect(); } else setupCreate();
   if (S.db && S.uid) {
     S.db.doc('heroes/' + S.uid).onSnapshot((snap) => {
       if (!snap.exists || !S.hero) return;
@@ -4656,6 +4777,7 @@ function frame(ts) {
   try {
     if (S.screen === 'game' && S.hero && W.map) { update(dt); onlineTick(dt); bossTick(); draw(); hud(); }
     else if (S.screen === 'create') drawPreview(now);
+    else if (S.screen === 'select') drawSelect(now);
     drawEquipPreview(now);
   } catch (e) { console.error(e); }
   requestAnimationFrame(frame);
