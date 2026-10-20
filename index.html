@@ -81,25 +81,25 @@ button:disabled{cursor:default}
 .game{background:#0d1118}
 #world{position:absolute;inset:0;width:100%;height:100%;display:block;touch-action:none}
 .hud-top{position:absolute;left:8px;right:8px;top:8px;display:flex;gap:6px;align-items:flex-start;pointer-events:none}
-.plate{pointer-events:auto;display:flex;gap:8px;padding:6px 10px 7px 6px;border-radius:14px;background:rgba(10,14,24,.68);color:#f2f5fb;min-width:0;flex:1;border:1px solid rgba(255,255,255,.1)}
-#avatar{width:54px;height:54px;border-radius:10px;background:radial-gradient(circle at 50% 70%,#3c4f72,#1b2335);flex-shrink:0}
+.plate{pointer-events:auto;display:flex;gap:6px;padding:5px 8px 6px 5px;border-radius:12px;background:rgba(10,14,24,.68);color:#f2f5fb;min-width:0;flex:0 1 196px;max-width:196px;border:1px solid rgba(255,255,255,.1)}
+#avatar{width:40px;height:40px;border-radius:9px;background:radial-gradient(circle at 50% 70%,#3c4f72,#1b2335);flex-shrink:0}
 .plate-in{flex:1;min-width:0}
-.nm{font-weight:700;font-size:.92rem;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.jb{font-size:.72rem;color:#b9c4da;line-height:1.2}
-.gbar{position:relative;height:10px;border-radius:5px;background:rgba(255,255,255,.14);overflow:hidden;margin-top:3px}
+.nm{font-weight:700;font-size:.78rem;line-height:1.15;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.jb{font-size:.6rem;color:#b9c4da;line-height:1.15}
+.gbar{position:relative;height:8px;border-radius:4px;background:rgba(255,255,255,.14);overflow:hidden;margin-top:2px}
 .gbar i{position:absolute;left:0;top:0;bottom:0;width:0;border-radius:inherit}
 .gbar.hp i{background:linear-gradient(#7ee596,#2ea44f)}
 .gbar.sp i{background:linear-gradient(#89b8ff,#2f6ad2)}
-.gbar span{position:absolute;inset:0;font:700 8px/10px "Silkscreen",monospace;text-align:center;color:#fff;text-shadow:0 0 2px #000,0 0 2px #000}
-.lv{display:flex;gap:5px;align-items:center;font:700 8px/1 "Silkscreen",monospace;margin-top:4px;color:#e7ecf5;white-space:nowrap}
-.thin{flex:1;height:4px;border-radius:2px;background:rgba(255,255,255,.15);overflow:hidden}
+.gbar span{position:absolute;inset:0;font:700 6px/8px "Silkscreen",monospace;text-align:center;color:#fff;text-shadow:0 0 2px #000,0 0 2px #000}
+.lv{display:flex;gap:4px;align-items:center;font:700 6px/1 "Silkscreen",monospace;margin-top:3px;color:#e7ecf5;white-space:nowrap}
+.thin{flex:1;height:3px;border-radius:2px;background:rgba(255,255,255,.15);overflow:hidden}
 .thin i{display:block;height:100%;width:0}
 .thin.bx i{background:#f3c24a}.thin.jx i{background:#c49bff}
-.money{pointer-events:auto;padding:6px 9px;border-radius:12px;background:rgba(10,14,24,.68);color:#ffd977;font:700 10px/1.3 "Silkscreen",monospace;white-space:nowrap;border:1px solid rgba(255,255,255,.1);text-align:right}
-.money small{display:block;color:#b9c4da;font:500 10px/1.3 "Bai Jamjuree",sans-serif}
-.notice{position:absolute;left:8px;right:62px;top:84px;padding:4px 10px;border-radius:10px;background:rgba(10,14,24,.6);color:#ffe7a6;font-size:.78rem;line-height:1.35;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;pointer-events:none}
+.money{pointer-events:auto;padding:3px 7px;border-radius:9px;font-size:9px!important;background:rgba(10,14,24,.68);color:#ffd977;font:700 10px/1.3 "Silkscreen",monospace;white-space:nowrap;border:1px solid rgba(255,255,255,.1);text-align:right}
+.money small{display:block;color:#b9c4da;font:500 9px/1.25 "Bai Jamjuree",sans-serif}
+.notice{position:static;max-width:calc(100vw - 118px);padding:4px 10px;border-radius:10px;background:rgba(10,14,24,.6);color:#ffe7a6;font-size:.78rem;line-height:1.35;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;pointer-events:none}
 .notice[hidden]{display:none}
-.side{position:absolute;right:8px;top:84px;display:flex;flex-direction:column;gap:4px}
+.side{display:flex;flex-direction:column;gap:4px}
 .sbtn{position:relative;width:46px;height:40px;border-radius:13px;border:1px solid rgba(255,255,255,.18);background:rgba(10,14,24,.66);color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:1.05rem;line-height:1;padding:0}
 .sbtn small{font-size:.56rem;margin-top:3px;color:#cfd8ea}
 .sbtn .dot{position:absolute;top:-4px;right:-4px;min-width:17px;height:17px;border-radius:9px;background:#e8473a;color:#fff;font:700 8px/17px "Silkscreen",monospace;padding:0 3px}
@@ -140,7 +140,7 @@ button:disabled{cursor:default}
 .chatfeed{position:absolute;left:58px;right:76px;bottom:84px;display:flex;flex-direction:column;gap:2px;pointer-events:none;font-size:.74rem}
 .chatfeed .cl{background:rgba(10,14,24,.6);color:#e9eef7;padding:2px 8px;border-radius:8px;align-self:flex-start;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .chatfeed .cl.wd b{color:#9fe3ff}.chatfeed .cl.pt b{color:#8dff9a}.chatfeed .cl.sys{color:#ffe08a}
-.partyhud{position:absolute;left:8px;top:112px;width:150px;display:flex;flex-direction:column;gap:4px;pointer-events:none}
+.partyhud{position:static;width:150px;display:flex;flex-direction:column;gap:4px;pointer-events:none}
 .partyhud[hidden]{display:none}
 .pm{background:rgba(10,14,24,.62);border-radius:8px;padding:3px 8px;color:#e9eef7;font-size:.72rem;line-height:1.3}
 .pm em{display:block;height:3px;background:rgba(255,255,255,.15);border-radius:2px;margin-top:2px;overflow:hidden}
@@ -195,7 +195,7 @@ button:disabled{cursor:default}
 .pickc small{color:var(--ink-soft);font-size:.74rem}
 .tile em{position:absolute;left:3px;top:2px;font-style:normal;font-size:.55rem;color:#1e2939;background:rgba(255,255,255,.8);border-radius:4px;padding:0 3px}
 
-.bossbar{position:absolute;left:50%;top:112px;transform:translateX(-50%);display:flex;flex-direction:column;gap:4px;z-index:5;max-width:62%}
+.bossbar{position:static;display:flex;flex-direction:column;gap:4px;align-items:flex-start;max-width:calc(100vw - 118px)}
 .bossbar[hidden]{display:none}
 .bossrow{display:flex;gap:8px;align-items:center;justify-content:space-between;padding:4px 10px;border-radius:10px;border:1px solid rgba(255,190,90,.5);background:rgba(30,12,8,.72);color:#ffe0b0;font-size:.74rem;white-space:nowrap}
 .bossrow b{font-size:.66rem;color:#ffd36b}
@@ -216,6 +216,16 @@ button:disabled{cursor:default}
 .selinfo b{font-size:1.15rem;color:var(--ink)}
 .selwrap .btn-main{width:100%;max-width:340px}
 .selacts{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
+
+.lcol{position:absolute;left:8px;top:calc(8px + 54px);display:flex;flex-direction:column;align-items:flex-start;gap:4px;pointer-events:none;z-index:4}
+.lcol .bossrow{pointer-events:auto}
+.rcol{position:absolute;right:8px;top:8px;display:flex;flex-direction:column;align-items:flex-end;gap:4px;pointer-events:none;z-index:4}
+.rcol>*{pointer-events:auto}
+.mmap{width:86px;border-radius:12px;overflow:hidden;border:1px solid rgba(255,255,255,.28);background:rgba(10,14,24,.72);box-shadow:0 2px 10px rgba(0,0,0,.35)}
+#mmCv{display:block;width:86px;height:132px;cursor:pointer;touch-action:none}
+.mmname{font-size:.58rem;line-height:1.3;color:#e7ecf5;text-align:center;padding:1px 4px 2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rcol .money{text-align:center;min-width:86px}
+@media (max-height:760px){.side{display:grid;grid-template-columns:repeat(2,46px);direction:rtl}.side>*{direction:ltr}}
 
 /* sheet */
 .sheet-wrap{position:fixed;inset:0;z-index:30;display:flex;flex-direction:column;justify-content:flex-end;background:rgba(5,8,15,.28)}
@@ -351,10 +361,16 @@ details.box summary{font-weight:700;cursor:pointer}
           <div class="lv"><span id="bLv"></span><span class="thin bx"><i id="bxI"></i></span><span id="jLv"></span><span class="thin jx"><i id="jxI"></i></span></div>
         </div>
       </div>
-      <div class="money"><span id="goldT"></span><small id="saveT"></small></div>
     </div>
-    <div class="notice" id="notice" hidden></div>
-    <div class="side">
+    <div class="lcol">
+      <div class="notice" id="notice" hidden></div>
+      <div class="bossbar" id="bossBar" hidden></div>
+      <div class="partyhud" id="partyHud" hidden></div>
+    </div>
+    <div class="rcol">
+      <div class="mmap"><canvas id="mmCv" aria-label="มินิแมพ แตะเพื่อเดินไปจุดนั้น"></canvas><div class="mmname" id="mmName"></div></div>
+      <div class="money"><span id="goldT"></span><small id="saveT"></small></div>
+      <div class="side">
       <button class="sbtn" data-panel="stats"><span>👤</span><small>สถานะ</small><span class="dot" id="dotStat" hidden></span></button>
       <button class="sbtn" data-panel="skills"><span>✨</span><small>สกิล</small><span class="dot" id="dotSkill" hidden></span></button>
       <button class="sbtn" data-panel="bag"><span>🎒</span><small>กระเป๋า</small></button>
@@ -365,6 +381,7 @@ details.box summary{font-weight:700;cursor:pointer}
       <button class="sbtn" data-panel="online"><span>👥</span><small>ผู้เล่น</small><span class="dot" id="dotOnline" hidden></span></button>
       <button class="sbtn" data-panel="sound"><span>⚙️</span><small>ตั้งค่า</small></button>
       <button class="sbtn" data-panel="gm" id="btnGM" hidden><span>👑</span><small>GM</small></button>
+      </div>
     </div>
     <div class="hud-bottom">
       <div class="pots">
@@ -377,8 +394,6 @@ details.box summary{font-weight:700;cursor:pointer}
     </div>
     <div class="zoom"><button id="zoomIn" aria-label="ซูมเข้า">＋</button><button id="zoomOut" aria-label="ซูมออก">－</button></div>
     <div class="chatfeed" id="chatFeed" aria-live="polite"></div>
-    <div class="partyhud" id="partyHud" hidden></div>
-    <div class="bossbar" id="bossBar" hidden></div>
     <div class="bossann" id="bossAnn" role="status" aria-live="polite"></div>
     <div class="invite" id="invite" hidden></div>
     <div class="dead" id="dead" hidden><div><div class="big">ถูกโค่นล้ม</div><div>ฟื้นคืนชีพใน <b id="deadT">4</b> วินาที</div></div></div>
@@ -4328,6 +4343,61 @@ $('#world').addEventListener('pointerdown', (e) => {
   }
 });
 
+/* ---------- minimap ---------- */
+const MM = { key: '', bg: null, t: 0, w: 86, h: 132 };
+const MM_PROP = { tree: ['#132015', 3.2], pillar: ['#8a9294', 2.4], cactus: ['#2f6b3a', 2], rock: ['rgba(0,0,0,.38)', 2], bush: ['rgba(18,40,18,.55)', 2.2], brazier: ['rgba(255,176,74,.6)', 1.4], pool: ['rgba(255,106,42,.42)', 4.5] };
+function mmBuild() {
+  const cv = $('#mmCv'), d = Math.min(2, window.devicePixelRatio || 1);
+  cv.width = Math.round(MM.w * d); cv.height = Math.round(MM.h * d);
+  const bg = document.createElement('canvas'); bg.width = cv.width; bg.height = cv.height;
+  const g = bg.getContext('2d'), sx = bg.width / WORLD.w, sy = bg.height / WORLD.h;
+  g.drawImage(renderGround(W.map.theme, WORLD.w, WORLD.h, 0.3, W.map.id, { flat: true }), 0, 0, bg.width, bg.height);
+  g.fillStyle = 'rgba(0,0,0,.18)'; g.fillRect(0, 0, bg.width, bg.height);
+  for (const p of (R3.on && R3.props) || []) {
+    const st = MM_PROP[p.type]; if (!st) continue;
+    g.fillStyle = st[0]; g.beginPath(); g.arc(p.x * sx, p.y * sy, Math.max(1, st[1] * (p.s || 1) * d * 0.55), 0, TAU); g.fill();
+  }
+  const B = bounds(); g.strokeStyle = 'rgba(255,255,255,.22)'; g.lineWidth = d; g.strokeRect(B.x0 * sx, B.y0 * sy, (B.x1 - B.x0) * sx, (B.y1 - B.y0) * sy);
+  MM.bg = bg; MM.key = W.map.id + ':' + W.map.theme + ':' + cv.width; $('#mmName').textContent = W.map.name;
+}
+function mmDot(g, x, y, r, fill, stroke, lw) { g.beginPath(); g.arc(x, y, r, 0, TAU); g.fillStyle = fill; g.fill(); if (stroke) { g.lineWidth = lw; g.strokeStyle = stroke; g.stroke(); } }
+function drawMinimap(now) {
+  if (!W.map || S.screen !== 'game') return;
+  if (now - MM.t < 0.1) return; MM.t = now;
+  const cv = $('#mmCv'), d = Math.min(2, window.devicePixelRatio || 1);
+  if (!MM.bg || MM.key !== W.map.id + ':' + W.map.theme + ':' + Math.round(MM.w * d)) mmBuild();
+  const g = cv.getContext('2d'), sx = cv.width / WORLD.w, sy = cv.height / WORLD.h;
+  g.drawImage(MM.bg, 0, 0);
+  // view area
+  const vw = (R3.on ? 7.4 * (S.zoom || 1) * R3.U : W.w / (S.zoom || 1)), vh = vw * Math.min(1.6, (W.h - 200) / Math.max(1, W.w));
+  g.strokeStyle = 'rgba(255,255,255,.35)'; g.lineWidth = d; g.strokeRect((P.x - vw / 2) * sx, (P.y - vh * 0.62) * sy, vw * sx, vh * sy);
+  for (const m of W.mons) if (!m.boss && m.state !== 'dead') mmDot(g, m.x * sx, m.y * sy, 1.1 * d, 'rgba(255,120,110,.7)');
+  for (const o of othersHere()) {
+    const pm = PARTY.key && o.pk === PARTY.key;
+    if (pm) mmDot(g, o.x * sx, o.y * sy, 3 * d, '#4dff6e', '#0b2a12', d);
+    else mmDot(g, o.x * sx, o.y * sy, 2 * d, '#8fd0ff', 'rgba(0,0,0,.6)', d * 0.8);
+  }
+  for (const m of W.mons) if (m.boss && m.state !== 'dead') {
+    const x = m.x * sx, y = m.y * sy, pr = (5 + Math.sin(now * 5) * 1.5) * d;
+    g.beginPath(); g.arc(x, y, pr + 2 * d, 0, TAU); g.strokeStyle = 'rgba(255,70,50,' + (0.5 + Math.sin(now * 5) * 0.3) + ')'; g.lineWidth = 1.5 * d; g.stroke();
+    mmDot(g, x, y, 3.4 * d, '#ff3b2f', '#fff', d);
+    g.font = (9 * d) + 'px sans-serif'; g.textAlign = 'center'; g.textBaseline = 'bottom'; g.fillText('👑', x, y - 3.5 * d);
+  }
+  const mx = P.x * sx, my = P.y * sy;
+  g.beginPath(); g.moveTo(mx + P.dir * 5 * d, my); g.lineTo(mx - P.dir * 3 * d, my - 3.5 * d); g.lineTo(mx - P.dir * 3 * d, my + 3.5 * d); g.closePath();
+  g.fillStyle = '#ffe14d'; g.fill(); g.lineWidth = d; g.strokeStyle = '#1a1406'; g.stroke();
+}
+$('#mmCv').addEventListener('click', (e) => {
+  if (!S.hero || !W.map || P.dead) return;
+  const r = e.currentTarget.getBoundingClientRect(), b = bounds();
+  const x = clamp((e.clientX - r.left) / r.width * WORLD.w, b.x0, b.x1), y = clamp((e.clientY - r.top) / r.height * WORLD.h, b.y0, b.y1);
+  const boss = W.mons.find((m) => m.boss && m.state !== 'dead' && Math.hypot(m.x - x, m.y - y) < 40);
+  P.queued = null;
+  if (boss) { P.target = boss; P.tx = null; toast('เล็งเป้า ' + boss.name); }
+  else { P.target = null; P.tx = x; P.ty = y; addFx({ kind: 'tap', x, y, color: '#ffffff', dur: 0.35 }); }
+  if (S.auto && !boss) { setAuto(false); toast('ปิดออโต้แล้ว เดินไปจุดที่เลือก'); }
+});
+
 /* ---------- sheet panels ---------- */
 const PANELS = {
   stats: ['สถานะตัวละคร', panelStats], skills: ['สกิล', panelSkills], job: ['เปลี่ยนอาชีพ', panelJob],
@@ -4779,6 +4849,7 @@ function frame(ts) {
     else if (S.screen === 'create') drawPreview(now);
     else if (S.screen === 'select') drawSelect(now);
     drawEquipPreview(now);
+    drawMinimap(now);
   } catch (e) { console.error(e); }
   requestAnimationFrame(frame);
 }
