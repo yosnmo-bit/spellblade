@@ -145,7 +145,7 @@ button:disabled{cursor:default}
 .pm{background:rgba(10,14,24,.62);border-radius:8px;padding:3px 8px;color:#e9eef7;font-size:.72rem;line-height:1.3}
 .pm em{display:block;height:3px;background:rgba(255,255,255,.15);border-radius:2px;margin-top:2px;overflow:hidden}
 .pm i{display:block;height:100%;background:#3fd06a}.pm.away{opacity:.6}
-.invite{position:absolute;left:50%;top:112px;transform:translateX(-50%);z-index:20;display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:12px;background:rgba(10,14,24,.92);color:#fff;font-size:.84rem;border:1px solid #ffd166;width:max-content;max-width:94%}
+.invite{position:absolute;left:50%;top:150px;transform:translateX(-50%);z-index:20;display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:12px;background:rgba(10,14,24,.92);color:#fff;font-size:.84rem;border:1px solid #ffd166;width:max-content;max-width:94%}
 .invite[hidden]{display:none}
 .chatlist{height:min(46vh,360px);overflow-y:auto;border:1px solid var(--line);border-radius:12px;padding:8px 10px;background:var(--panel-2);margin-top:8px;font-size:.88rem;-webkit-user-select:text;user-select:text}
 .chatlist .cl{padding:3px 0;overflow-wrap:anywhere}
@@ -194,6 +194,18 @@ button:disabled{cursor:default}
 .pickc{display:flex;flex-direction:column;align-items:flex-start;padding:8px 10px;border-radius:10px;border:1px solid var(--line);background:var(--chip);text-align:left}
 .pickc small{color:var(--ink-soft);font-size:.74rem}
 .tile em{position:absolute;left:3px;top:2px;font-style:normal;font-size:.55rem;color:#1e2939;background:rgba(255,255,255,.8);border-radius:4px;padding:0 3px}
+
+.bossbar{position:absolute;left:50%;top:112px;transform:translateX(-50%);display:flex;flex-direction:column;gap:4px;z-index:5;max-width:62%}
+.bossbar[hidden]{display:none}
+.bossrow{display:flex;gap:8px;align-items:center;justify-content:space-between;padding:4px 10px;border-radius:10px;border:1px solid rgba(255,190,90,.5);background:rgba(30,12,8,.72);color:#ffe0b0;font-size:.74rem;white-space:nowrap}
+.bossrow b{font-size:.66rem;color:#ffd36b}
+.bossrow.alive{border-color:#ff6b4a;box-shadow:0 0 10px rgba(255,90,60,.5)}
+.bossrow.alive b{color:#ff8f6b}
+.bossann{position:absolute;left:50%;top:36%;transform:translate(-50%,-10px) scale(.96);opacity:0;pointer-events:none;z-index:25;padding:12px 18px;border-radius:14px;background:rgba(20,8,6,.86);border:2px solid #ffb04a;color:#fff3d6;font-weight:700;font-size:1rem;text-align:center;width:max-content;max-width:88%;transition:opacity .35s,transform .35s;text-shadow:0 1px 0 #000}
+.bossann.show{opacity:1;transform:translate(-50%,0) scale(1)}
+.bossann.k-spawn,.bossann.k-here{border-color:#ff5a3a;box-shadow:0 0 24px rgba(255,80,50,.6)}
+.bossann.k-dead{border-color:#ffd36b}
+@media (prefers-reduced-motion: reduce){.bossann{transition:none}}
 
 /* sheet */
 .sheet-wrap{position:fixed;inset:0;z-index:30;display:flex;flex-direction:column;justify-content:flex-end;background:rgba(5,8,15,.28)}
@@ -343,6 +355,8 @@ details.box summary{font-weight:700;cursor:pointer}
     <div class="zoom"><button id="zoomIn" aria-label="ซูมเข้า">＋</button><button id="zoomOut" aria-label="ซูมออก">－</button></div>
     <div class="chatfeed" id="chatFeed" aria-live="polite"></div>
     <div class="partyhud" id="partyHud" hidden></div>
+    <div class="bossbar" id="bossBar" hidden></div>
+    <div class="bossann" id="bossAnn" role="status" aria-live="polite"></div>
     <div class="invite" id="invite" hidden></div>
     <div class="dead" id="dead" hidden><div><div class="big">ถูกโค่นล้ม</div><div>ฟื้นคืนชีพใน <b id="deadT">4</b> วินาที</div></div></div>
   </section>
@@ -440,6 +454,7 @@ window.__NET_RATE = 250;
           if (!u) { $i('fbLogin').hidden = false; return; }
           started = true; curUid = u.uid; $i('fbLogin').hidden = true;
           const r = { uid: u.uid, rtdb };
+          try { rtdb.ref('.info/serverTimeOffset').on('value', (x) => { window.__srvOff = x.val() || 0; }); } catch (e) {}
           const own = rtdb.ref('meta/owner');
           try { await own.transaction((cur) => (cur ? undefined : u.uid)); } catch (e) {}
           try { r.owner = (await own.once('value')).val() === u.uid; } catch (e) { r.owner = false; }
@@ -677,8 +692,8 @@ function MON(id, name, arch, color, lv, extra) {
 }
 
 const DEFAULT_CONFIG = {
-  version: '2.2.0',
-  patchNotes: 'อัปเดต 2.2: หน้าตัวละครและอุปกรณ์\n• แตะรูปตัวละครมุมซ้ายบน หรือปุ่มกระเป๋า เพื่อเปิดหน้าตัวละคร\n• ช่องสวมใส่ หมวก ใบหน้า ปาก อาวุธ มือซ้าย เสื้อเกราะ ปีก รองเท้า และแหวน 2 วง (ขวาและซ้าย) ใส่การ์ดแหวนได้วงละ 1 ใบ\n• การ์ดแยกประเภท ใส่ได้เฉพาะช่องของมัน\n• ร้านขายอุปกรณ์ใหม่ เช่น หูแมว แว่น ปีกนางฟ้า',
+  version: '2.3.0',
+  patchNotes: 'อัปเดต 2.3: บอสเกิดตามเวลา\n• บอสตายแล้วเกิดใหม่ทุก 30 นาที (GM ปรับได้)\n• แถบนับถอยหลังด้านบนจอในแมพที่มีบอส แตะเพื่อเล็งเป้าบอส\n• ประกาศเตือนก่อนเกิด 5 นาทีและ 1 นาที ประกาศตอนบอสปรากฏตัวและตอนถูกโค่น\n• หน้าแผนที่บอกเวลาเกิดบอสของทุกแมพ',
   announcement: 'ยินดีต้อนรับสู่ช่วงทดสอบ! เจอบั๊กบอก GM ได้เลย',
   rates: { bexp: 1, jexp: 1, gold: 1, drop: 1 },
   deathPenalty: 1,
@@ -718,7 +733,7 @@ const DEFAULT_CONFIG = {
       MON('golem', 'โกเลมลาวา', 'brute', '#9a4426', 82),
       MON('hellhound', 'สุนัขนรก', 'beast', '#c23a24', 87, { aggro: true }),
       MON('drake', 'มังกรเพลิงน้อย', 'drake', '#e0642c', 92, { aggro: true }),
-      MON('ancient', 'มังกรเพลิงโบราณ', 'drake', '#8e1f2a', 98, { aggro: true, boss: true })
+      MON('ancient', 'มังกรเพลิงโบราณ', 'drake', '#8e1f2a', 98, { aggro: true, boss: true, rs: 30 })
     ] }
   ]
 };
@@ -778,7 +793,7 @@ function sanitizeConfig(raw) {
         lv: int(x && x.lv, 1, 1, 999),
         hp: int(x && x.hp, 50, 1, 1e9), atk: int(x && x.atk, 5, 0, 1e9), def: int(x && x.def, 0, 0, 1e6),
         bexp: int(x && x.bexp, 5, 0, 1e9), jexp: int(x && x.jexp, 4, 0, 1e9), gold: int(x && x.gold, 2, 0, 1e9),
-        aggro: !!(x && x.aggro), boss: !!(x && x.boss),
+        aggro: !!(x && x.aggro), boss: !!(x && x.boss), rs: int(x && x.rs, 30, 1, 10080),
         cs: CS_TH[x && x.cs] ? x.cs : (ARCH_CS[x && x.arch] || 'armor')
       }))
     }))
@@ -1377,7 +1392,7 @@ function enterMap(id, silent) {
   const hostThere = [...ONLINE.others.values()].some((o) => o.map === map.id);
   NET.isHost = !hostThere;
   if (!hostThere) for (let i = 0; i < monCount(map); i++) spawnMon();
-  updAutoBadge();
+  updAutoBadge(); bossEnterMap(map);
   addFx({ kind: 'ring', x: P.x, y: P.y, r: 46, color: '#9fe3ff', dur: 0.7 });
   if (!silent) { toast(map.name + '  Lv ' + map.min + '–' + map.max); AU.sfx('warp'); }
   AU.music(map.theme);
@@ -1392,12 +1407,9 @@ function makeMon(tpl, ti, x, y) {
 }
 function spawnMon() {
   const map = W.map; if (!map || !map.monsters.length) return;
-  const bossAlive = W.mons.some((m) => m.boss && m.state !== 'dead');
-  const pool = map.monsters.map((t, i) => [t, i]).filter(([t]) => !(t.boss && bossAlive));
+  const pool = map.monsters.map((t, i) => [t, i]).filter(([t]) => !t.boss);
   if (!pool.length) return;
-  let tot = 0; for (const [t] of pool) tot += t.boss ? 0.06 : 1;
-  let r = Math.random() * tot, pick = pool[0];
-  for (const e of pool) { r -= e[0].boss ? 0.06 : 1; if (r <= 0) { pick = e; break; } }
+  const pick = pool[(Math.random() * pool.length) | 0];
   const b = bounds(); let x = 0, y = 0;
   for (let k = 0; k < 20; k++) { x = b.x0 + Math.random() * (b.x1 - b.x0); y = b.y0 + Math.random() * (b.y1 - b.y0); if (Math.hypot(x - P.x, y - P.y) > 120) break; }
   W.mons.push(makeMon(pick[0], pick[1], x, y));
@@ -1467,7 +1479,8 @@ function killMon(m, killer) {
   const k = killer || myKey();
   NET.kdSeq++; NET.kd.push([NET.kdSeq, m.uid, m.ti, k]); if (NET.kd.length > 8) NET.kd.shift();
   processKill(m, k, m.ti);
-  later(3 + Math.random() * 3, () => { W.mons = W.mons.filter((x) => x !== m); if (NET.isHost) spawnMon(); });
+  if (m.boss) bossKilled(m, k);
+  later(3 + Math.random() * 3, () => { W.mons = W.mons.filter((x) => x !== m); if (NET.isHost && !m.boss) spawnMon(); });
 }
 function processKill(m, killer, ti) {
   const h = S.hero, R = CONFIG.rates, tpl = W.map && W.map.monsters[ti != null ? ti : m.ti];
@@ -3054,6 +3067,8 @@ const AU = (() => {
     warp(t) { tone('sine', 300, t, 0.5, 0.12, { to: 1200 }); noise(t, 0.5, 0.12, 'bandpass', 600, 4000, 3); },
     click(t) { tone('sine', 900, t, 0.04, 0.05); },
     card(t) { [1047, 1319, 1568, 2093, 2637].forEach((f, i) => tone('sine', f, t + i * 0.07, 0.55, 0.1)); tone('triangle', 523, t, 1.0, 0.08, { a: 0.05 }); noise(t + 0.3, 0.6, 0.08, 'highpass', 6000); },
+    boss(t) { [110, 147, 165].forEach((f, i) => tone('sawtooth', f, t + i * 0.12, 1.2, 0.12, { lp: 900, a: 0.08 })); tone('sine', 55, t, 1.4, 0.4, { to: 45 }); noise(t, 0.9, 0.18, 'lowpass', 300, 80); },
+    bell(t) { [988, 1319].forEach((f, i) => tone('sine', f, t + i * 0.18, 0.9, 0.09)); },
     chat(t) { tone('sine', 1320, t, 0.08, 0.045); tone('sine', 1760, t + 0.07, 0.1, 0.04); }
   };
   A.sfx = (name) => {
@@ -3563,7 +3578,7 @@ function adoptMirror() {
   }
   W.uid = Math.max(W.uid, mx + 1);
   if (!W.map) return;
-  const alive = W.mons.filter((m) => m.state !== 'dead').length;
+  const alive = W.mons.filter((m) => m.state !== 'dead' && !m.boss).length;
   for (let i = alive; i < monCount(W.map); i++) spawnMon();
 }
 function applyMirror(o) {
@@ -3863,6 +3878,102 @@ function panelSound(body) {
     el('button', { class: 'mini', text: 'ลองเสียงการ์ด', onclick: () => AU.sfx('card') })));
   body.append(el('p', { class: 'note', style: 'margin-top:12px', text: 'แต่ละแผนที่มีเพลงของตัวเอง ถ้าไม่ได้ยินเสียง ให้ตรวจว่ามือถือไม่ได้เปิดโหมดเงียบ' }));
 }
+/* =================== BOSS RESPAWN TIMERS =================== */
+const BOSS = { all: {}, local: {}, loaded: false, sub: false, seen: {}, warned: {}, annT: 0, curMap: null, first: true };
+const nowMs = () => Date.now() + (window.__srvOff || 0);
+function bossTpls(map) { return (map ? map.monsters : []).map((t, i) => [t, i]).filter(([t]) => t.boss); }
+function sanitizeBossDoc(d) {
+  const o = {}; if (!d || typeof d !== 'object') return o;
+  for (const id of Object.keys(d).slice(0, 20)) { const x = d[id] || {}; o[id] = { next: num(x.next, 0, 0, 1e15), alive: !!x.alive, by: txt(x.by, 16), at: num(x.at, 0, 0, 1e15) }; }
+  return o;
+}
+function bossInit() {
+  if (!S.db || BOSS.sub) { BOSS.loaded = true; return; }
+  BOSS.sub = true;
+  S.db.collection('bosses').onSnapshot((snap) => {
+    const all = {};
+    for (const d of snap.docs) all[d.id] = sanitizeBossDoc(d.data());
+    const had = !!(W.map && BOSS.all[W.map.id]), prev = (W.map && BOSS.all[W.map.id]) || {};
+    BOSS.all = all; BOSS.loaded = true;
+    if (W.map && had) bossTransitions(prev, all[W.map.id] || {});
+    renderBossBar();
+  }, () => { BOSS.loaded = true; });
+}
+function bossState(mapId) { return BOSS.all[mapId] || BOSS.local[mapId] || {}; }
+function bossWrite(mapId, id, st) {
+  const prev = bossState(mapId), cur = Object.assign({}, prev, { [id]: st });
+  BOSS.local[mapId] = cur; BOSS.all[mapId] = cur;
+  if (S.db) S.db.doc('bosses/' + mapId).set(cur).catch(() => {});
+  if (W.map && W.map.id === mapId) bossTransitions(prev, cur);
+  renderBossBar();
+}
+function bossEnterMap(map) { BOSS.curMap = map.id; BOSS.first = true; BOSS.warned = {}; renderBossBar(); setTimeout(() => { if (BOSS.curMap === map.id) bossFirstLook(map); }, 1500); }
+function bossFirstLook(map) {
+  if (!BOSS.first) return; BOSS.first = false;
+  const st = bossState(map.id);
+  for (const [t] of bossTpls(map)) if (st[t.id] && st[t.id].alive) bossAnnounce('here', t);
+}
+function bossTransitions(prev, cur) {
+  if (!W.map) return;
+  for (const [t] of bossTpls(W.map)) {
+    const a = prev[t.id] || {}, b = cur[t.id] || {};
+    if (!a.alive && b.alive) bossAnnounce('spawn', t);
+    if (a.alive && !b.alive && b.at) bossAnnounce('dead', t, b.by);
+  }
+}
+function bossAnnounce(kind, t, extra) {
+  BOSS.first = false;
+  const box = $('#bossAnn'); if (!box) return;
+  const msg = kind === 'spawn' ? '⚠️ ' + t.name + ' ปรากฏตัวแล้ว!'
+    : kind === 'here' ? '👑 ' + t.name + ' อยู่ในแผนที่นี้'
+    : kind === 'dead' ? '🏆 ' + t.name + ' ถูกโค่นแล้ว' + (extra ? ' โดย ' + extra : '') + '  เกิดใหม่ในอีก ' + (t.rs || 30) + ' นาที'
+    : '⏳ ' + t.name + ' จะปรากฏตัวในอีก ' + (extra >= 60000 ? Math.round(extra / 60000) + ' นาที' : Math.round(extra / 1000) + ' วินาที');
+  box.textContent = msg; box.className = 'bossann show k-' + kind;
+  clearTimeout(BOSS.annT); BOSS.annT = setTimeout(() => { box.className = 'bossann'; }, 5000);
+  AU.sfx(kind === 'spawn' || kind === 'here' ? 'boss' : kind === 'dead' ? 'levelup' : 'bell');
+}
+let bossLastTick = 0;
+function bossTick() {
+  if (!S.hero || !W.map || S.screen !== 'game' || !BOSS.loaded) return;
+  const pn = performance.now(); if (pn - bossLastTick < 250) return; bossLastTick = pn;
+  const now = nowMs(), st = bossState(W.map.id);
+  for (const [t, ti] of bossTpls(W.map)) {
+    const s = st[t.id] || { next: 0, alive: false };
+    const here = W.mons.some((m) => m.boss && m.id === t.id && m.state !== 'dead');
+    if (NET.isHost && !here && now >= (s.next || 0)) {
+      const b = bounds();
+      W.mons.push(makeMon(t, ti, clamp(WORLD.w / 2 + (Math.random() - 0.5) * 120, b.x0, b.x1), clamp(WORLD.h * 0.35 + (Math.random() - 0.5) * 80, b.y0, b.y1)));
+      if (!s.alive) bossWrite(W.map.id, t.id, { next: 0, alive: true, by: '', at: now });
+    }
+    if (!s.alive && s.next > now) {
+      const left = s.next - now;
+      for (const w of [300000, 60000]) { const k = t.id + ':' + w + ':' + s.next; if (left <= w && left > w - 3000 && !BOSS.warned[k]) { BOSS.warned[k] = 1; bossAnnounce('warn', t, w); } }
+    }
+  }
+}
+function bossKilled(m, killer) {
+  const t = W.map && W.map.monsters[m.ti]; if (!t) return;
+  const nm = killer === myKey() ? S.hero.name : ((ONLINE.others.get(killer) || {}).name || 'นักผจญภัย');
+  bossWrite(W.map.id, t.id, { next: nowMs() + (t.rs || 30) * 60000, alive: false, by: nm, at: nowMs() });
+}
+const fmtLeft = (ms) => { const s = Math.max(0, Math.ceil(ms / 1000)), h = Math.floor(s / 3600), m = Math.floor((s % 3600) / 60), x = s % 60; return (h ? h + ':' + String(m).padStart(2, '0') : m) + ':' + String(x).padStart(2, '0'); };
+function bossLine(map, t) {
+  const s = bossState(map.id)[t.id], now = nowMs();
+  if (!s || s.alive || !s.next) { const m = W.map && W.map.id === map.id ? W.mons.find((x) => x.boss && x.id === t.id && x.state !== 'dead') : null; return { alive: true, text: 'ปรากฏตัวอยู่' + (m ? '  HP ' + Math.max(1, Math.round(m.hp / m.maxHp * 100)) + '%' : '') }; }
+  return s.next > now ? { alive: false, text: 'เกิดใหม่ใน ' + fmtLeft(s.next - now) } : { alive: false, text: 'กำลังจะปรากฏตัว…' };
+}
+function renderBossBar() {
+  const box = $('#bossBar'); if (!box) return;
+  const list = W.map ? bossTpls(W.map) : [];
+  if (!list.length || S.screen !== 'game') { box.hidden = true; return; }
+  box.hidden = false; box.textContent = '';
+  for (const [t] of list) {
+    const L = bossLine(W.map, t);
+    const b = el('button', { class: 'bossrow' + (L.alive ? ' alive' : ''), onclick: () => { const m = W.mons.find((x) => x.boss && x.id === t.id && x.state !== 'dead'); if (m) { P.target = m; P.tx = null; toast('เล็งเป้า ' + t.name); } } },
+      el('span', { text: '👑 ' + t.name }), el('b', { class: 'px', text: L.text }));
+    box.append(b);
+  }
+}
 /* =================== UI =================== */
 function el(tag, props, ...kids) {
   const n = document.createElement(tag);
@@ -4021,7 +4132,7 @@ function hudText() {
   ds.hidden = h.statPts < 2; ds.textContent = h.statPts;
   dk.hidden = h.skillPts < 1; dk.textContent = h.skillPts;
   $('#btnJob').classList.toggle('glow', canJobChange(h));
-  renderPartyHud(); renderChatFeed(); renderChatDot();
+  renderPartyHud(); renderChatFeed(); renderChatDot(); renderBossBar();
 }
 function hud() {
   const h = S.hero, D = P.D, tier = JOBS[h.job].tier;
@@ -4256,7 +4367,8 @@ function panelMap(body) {
     body.append(el('div', { class: 'list-row' }, el('span', { style: 'font-size:1.5rem', text: ICON[m.theme] || '🗺️' }),
       el('div', { class: 'grow' }, el('div', { class: 'nm2', text: m.name }),
         el('div', { class: 'ds', text: 'Lv ' + m.min + '–' + m.max + '  ' + m.monsters.map((x) => x.name).slice(0, 4).join(', ') }),
-        low ? el('div', { class: 'meta', style: 'color:var(--bad)', text: 'อันตรายสำหรับเลเวลคุณ' }) : null),
+        low ? el('div', { class: 'meta', style: 'color:var(--bad)', text: 'อันตรายสำหรับเลเวลคุณ' }) : null,
+        ...bossTpls(m).map(([t]) => el('div', { class: 'meta', style: 'color:var(--accent-ink)', text: '👑 ' + t.name + '  ' + bossLine(m, t).text }))),
       el('button', { class: 'mini pri', text: here ? 'อยู่ที่นี่' : 'เดินทาง', disabled: here, onclick: () => { closeSheet(); enterMap(m.id); save(); } })));
   }
 }
@@ -4424,7 +4536,9 @@ function panelGM(body) {
           el('button', { class: 'mini', text: 'คำนวณจากเลเวล', onclick: () => { Object.assign(x, monStats(x.lv, x.boss)); markDraft(); rebuildGM(); } })),
         el('div', { class: 'g3', style: 'margin-top:6px' }, fNum('HP', x.hp, (v) => { x.hp = v; }), fNum('ATK', x.atk, (v) => { x.atk = v; }), fNum('DEF', x.def, (v) => { x.def = v; }),
           fNum('Base EXP', x.bexp, (v) => { x.bexp = v; }), fNum('Job EXP', x.jexp, (v) => { x.jexp = v; }), fNum('ทอง', x.gold, (v) => { x.gold = v; })),
-        el('div', { class: 'acts', style: 'margin-top:6px;align-items:center' }, fCk('วิ่งเข้าหาผู้เล่น', x.aggro, (v) => { x.aggro = v; }), fCk('บอส', x.boss, (v) => { x.boss = v; }),
+        x.boss ? el('div', { class: 'g2', style: 'margin-top:6px;align-items:end' }, fNum('บอสเกิดใหม่ทุก (นาที)', x.rs || 30, (v) => { x.rs = Math.max(1, Math.round(v)); }),
+          el('button', { class: 'mini', text: 'ให้บอสเกิดทันที', onclick: () => { bossWrite(m.id, x.id, { next: 0, alive: false, by: '', at: 0 }); toast('รีเซ็ตเวลาเกิด ' + x.name + ' แล้ว บอสจะเกิดเมื่อมีผู้เล่นอยู่ในแผนที่'); } })) : null,
+        el('div', { class: 'acts', style: 'margin-top:6px;align-items:center' }, fCk('วิ่งเข้าหาผู้เล่น', x.aggro, (v) => { x.aggro = v; }), fCk('บอส', x.boss, (v) => { x.boss = v; if (v && !x.rs) x.rs = 30; markDraft(); rebuildGM(); }),
           el('button', { class: 'mini warn', text: 'ลบ', onclick: () => { m.monsters.splice(xi, 1); markDraft(); rebuildGM(); } }))));
     });
     det.append(el('div', { class: 'acts' },
@@ -4512,7 +4626,7 @@ async function init() {
       if (S.sheet === 'rank') renderSheet();
       if (S.sheet === 'gm') renderGMPlayers();
     }, () => { S.boardReady = true; });
-    chatInit();
+    chatInit(); bossInit();
   }
   let hero = null, fromServer = false;
   if (S.db && S.uid) {
@@ -4520,6 +4634,7 @@ async function init() {
     try { const snap = await S.db.doc('heroes/' + S.uid).get(); if (snap.exists) { hero = sanitizeHero(snap.data()); fromServer = true; } } catch (e) {}
   }
   if (!hero) { try { const l = JSON.parse(lsGet(LS_SAVE + (S.uid || '')) || 'null'); if (l) hero = sanitizeHero(l); } catch (e) {} }
+  if (!S.db) BOSS.loaded = true;
   if (hero) { startGame(hero, fromServer); if (!fromServer) save(); } else setupCreate();
   if (S.db && S.uid) {
     S.db.doc('heroes/' + S.uid).onSnapshot((snap) => {
@@ -4539,7 +4654,7 @@ function frame(ts) {
   const now = ts / 1000, dt = Math.min(0.1, Math.max(0, now - (lastTs || now)));
   lastTs = now;
   try {
-    if (S.screen === 'game' && S.hero && W.map) { update(dt); onlineTick(dt); draw(); hud(); }
+    if (S.screen === 'game' && S.hero && W.map) { update(dt); onlineTick(dt); bossTick(); draw(); hud(); }
     else if (S.screen === 'create') drawPreview(now);
     drawEquipPreview(now);
   } catch (e) { console.error(e); }
