@@ -125,6 +125,16 @@ button:disabled{cursor:default}
 .dead[hidden]{display:none}
 .dead .big{font-family:"Charm","Noto Serif Thai",serif;font-size:2.4rem;font-weight:700;color:#ff8f7a}
 
+.auto{position:relative}
+.auto .dot{position:absolute;top:-2px;right:-2px;min-width:18px;height:18px;border-radius:9px;background:#e8473a;color:#fff;font:700 9px/18px "Silkscreen",monospace;padding:0 3px}
+.auto .dot[hidden]{display:none}
+.zoom{position:absolute;left:8px;top:46%;display:flex;flex-direction:column;gap:6px}
+.zoom button{width:38px;height:38px;border-radius:50%;border:1px solid rgba(255,255,255,.22);background:rgba(10,14,24,.62);color:#fff;font-size:1.15rem;line-height:1;padding:0}
+.autolist{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.autoc{display:flex;align-items:center;gap:8px;padding:9px;border-radius:12px;border:1px solid var(--line);background:var(--chip);text-align:left}
+.autoc.on{border-color:var(--accent);background:color-mix(in srgb,var(--accent) 20%,var(--chip));box-shadow:0 0 0 1px var(--accent)}
+.autoc .ai{font-size:1.45rem}.autoc .an{display:flex;flex-direction:column;line-height:1.25;min-width:0}
+.autoc small{color:var(--ink-soft);font-size:.72rem}
 .pot .dot{position:absolute;top:-4px;right:-4px;min-width:17px;height:17px;border-radius:9px;background:#e8473a;color:#fff;font:700 8px/17px "Silkscreen",monospace;padding:0 3px}
 .pot .dot[hidden]{display:none}
 .chatfeed{position:absolute;left:58px;right:76px;bottom:84px;display:flex;flex-direction:column;gap:2px;pointer-events:none;font-size:.74rem}
@@ -298,8 +308,9 @@ details.box summary{font-weight:700;cursor:pointer}
         <button class="pot blue" id="potSp" aria-label="ยาฟ้า">🧪<b id="potSpN">0</b></button>
       </div>
       <div class="skills" id="hotbar"></div>
-      <button class="auto" id="autoBtn" aria-pressed="false">AUTO</button>
+      <button class="auto" id="autoBtn" aria-pressed="false">AUTO<span class="dot" id="autoDot" hidden></span></button>
     </div>
+    <div class="zoom"><button id="zoomIn" aria-label="ซูมเข้า">＋</button><button id="zoomOut" aria-label="ซูมออก">－</button></div>
     <div class="chatfeed" id="chatFeed" aria-live="polite"></div>
     <div class="partyhud" id="partyHud" hidden></div>
     <div class="invite" id="invite" hidden></div>
@@ -1184,6 +1195,10 @@ const S = {
   players: [], boardReady: false, sheet: null, draft: null, draftDirty: false, hb: []
 };
 const W = { w: 360, h: 640, dpr: 1, map: null, mapSig: '', ground: null, mons: [], fx: [], nums: [], pend: [], t: 0, uid: 1 };
+const WORLD = { w: 720, h: 1200 };
+const monCount = (map) => Math.round(map.count * 2);
+S.zoom = num(lsGet('spellblade_zoom'), 1.15, 0.8, 1.8);
+try { S.autoSel = JSON.parse(lsGet('spellblade_autosel') || '{}') || {}; } catch (e) { S.autoSel = {}; }
 const P = { x: 180, y: 420, tx: null, ty: null, target: null, queued: null, atkT: 0, swingT: -9, dir: 1, walking: false,
   hp: 1, sp: 1, dead: false, deadUntil: 0, buffs: {}, cds: {}, potT: 0, D: null, nextAuto: 0, hurtT: -9 };
 
@@ -1301,9 +1316,9 @@ function derived(h) {
 const spCost = (sk, lv) => Math.round(sk.sp[0] + sk.sp[1] * lv);
 
 /* ---------- world ---------- */
-function bounds() { if (R3.on && R3.B) return R3.B; const y0 = 132, y1 = Math.max(y0 + 120, W.h - 120); return { x0: 22, x1: W.w - 22, y0, y1 }; }
+function bounds() { return { x0: 30, x1: WORLD.w - 30, y0: 40, y1: WORLD.h - 30 }; }
 function currentMap() { return CONFIG.maps.find((m) => m.id === S.hero.mapId) || CONFIG.maps[0]; }
-function buildGround() { if (!W.map) return; if (R3.on) R3.setMap(W.map); else W.ground = renderGround(W.map.theme, W.w, W.h, W.dpr, W.map.id); }
+function buildGround() { if (!W.map) return; if (R3.on) R3.setMap(W.map); else W.ground = renderGround(W.map.theme, WORLD.w, WORLD.h, Math.min(1.5, W.dpr), W.map.id); }
 function enterMap(id, silent) {
   S.hero.mapId = id;
   const map = currentMap();
@@ -1312,11 +1327,12 @@ function enterMap(id, silent) {
   W.mons = []; W.fx = []; W.nums = []; W.pend = [];
   buildGround();
   const b = bounds();
-  P.x = W.w / 2; P.y = b.y1 - 30; P.target = null; P.tx = null; P.queued = null;
+  P.x = WORLD.w / 2; P.y = WORLD.h * 0.62; P.target = null; P.tx = null; P.queued = null; W.cam2 = null; R3.camSnap = true;
   NET.mapT = Date.now(); NET.kd = []; NET.hostRef = null;
   const hostThere = [...ONLINE.others.values()].some((o) => o.map === map.id);
   NET.isHost = !hostThere;
-  if (!hostThere) for (let i = 0; i < map.count; i++) spawnMon();
+  if (!hostThere) for (let i = 0; i < monCount(map); i++) spawnMon();
+  updAutoBadge();
   addFx({ kind: 'ring', x: P.x, y: P.y, r: 46, color: '#9fe3ff', dur: 0.7 });
   if (!silent) { toast(map.name + '  Lv ' + map.min + '–' + map.max); AU.sfx('warp'); }
   AU.music(map.theme);
@@ -1475,18 +1491,20 @@ function playerDie() {
 }
 function respawn() {
   P.dead = false; P.D = derived(); P.hp = P.D.maxHp; P.sp = Math.max(P.sp, P.D.maxSp * 0.5);
-  P.x = W.w / 2; P.y = bounds().y1 - 30;
+  P.x = WORLD.w / 2; P.y = WORLD.h * 0.62; R3.camSnap = true;
   $('#dead').hidden = true;
   for (const m of W.mons) { m.angry = false; if (m.state === 'chase') m.state = 'idle'; }
   addFx({ kind: 'pillar', x: P.x, y: P.y, color: '#9fe3ff', dur: 0.8, w: 30 });
 }
 function pickTarget() {
   let best = null, bs = 1e9;
-  const lv = S.hero.level;
+  const lv = S.hero.level, sel = S.auto ? autoSet() : null, me = myKey();
   for (const m of W.mons) {
     if (m.state === 'dead' || m.alpha < 0.5 || m.hp <= 0) continue;
-    if (m.state !== 'chase' && m.lv > lv + 6) continue;
-    const sc = Math.hypot(m.x - P.x, m.y - P.y) + Math.max(0, m.lv - lv) * 25 - (m.state === 'chase' ? 140 : 0);
+    const onMe = m.tgt === me && m.state === 'chase';
+    if (sel && !sel.has(m.id) && !onMe) continue;
+    if (!onMe && m.lv > lv + 6 && !(sel && sel.has(m.id))) continue;
+    const sc = Math.hypot(m.x - P.x, m.y - P.y) + Math.max(0, m.lv - lv) * 25 - (onMe ? 140 : 0);
     if (sc < bs) { bs = sc; best = m; }
   }
   return best;
@@ -1800,9 +1818,12 @@ function drawPlayer(ctx, t) {
 }
 function draw() {
   if (R3.on) { R3.render(W.t); return; }
-  const ctx = WC, t = W.t;
-  ctx.setTransform(W.dpr, 0, 0, W.dpr, 0, 0);
-  if (W.ground) ctx.drawImage(W.ground, 0, 0, W.w, W.h); else { ctx.fillStyle = '#1c2430'; ctx.fillRect(0, 0, W.w, W.h); }
+  const ctx = WC, t = W.t, zs = 1 / S.zoom;
+  if (!W.cam2) W.cam2 = { x: P.x, y: P.y };
+  W.cam2.x += (P.x - W.cam2.x) * 0.12; W.cam2.y += (P.y - W.cam2.y) * 0.12;
+  ctx.setTransform(W.dpr, 0, 0, W.dpr, 0, 0); ctx.fillStyle = '#1c2430'; ctx.fillRect(0, 0, W.w, W.h);
+  ctx.setTransform(W.dpr * zs, 0, 0, W.dpr * zs, W.dpr * (W.w / 2 - W.cam2.x * zs), W.dpr * (W.h * 0.55 - W.cam2.y * zs));
+  if (W.ground) ctx.drawImage(W.ground, 0, 0, WORLD.w, WORLD.h);
   for (const f of W.fx) { const p = (t - f.t0) / f.dur; if (p >= 0 && p <= 1 && GROUND_FX[f.kind]) drawFx(ctx, f, p, t); }
   if (P.target && P.target.state !== 'dead') drawTargetMark(ctx, P.target, t);
   const ents = W.mons.slice(); ents.push(P); ents.sort((a, b) => a.y - b.y);
@@ -1830,12 +1851,7 @@ function resize() {
   W.w = r.width; W.h = r.height; W.dpr = Math.min(2, window.devicePixelRatio || 1);
   const cv = $('#world'); cv.width = Math.round(W.w * W.dpr); cv.height = Math.round(W.h * W.dpr);
   if (R3.on) R3.resize();
-  if (W.map) {
-    if (!R3.on) buildGround();
-    const sx = W.w / ow, sy = W.h / oh, b = bounds();
-    for (const m of W.mons) { m.x = clamp(m.x * sx, b.x0, b.x1); m.y = clamp(m.y * sy, b.y0, b.y1); m.wx = m.x; m.wy = m.y; }
-    P.x = clamp(P.x * sx, b.x0, b.x1); P.y = clamp(P.y * sy, b.y0, b.y1);
-  }
+  if (W.map && !R3.on && !W.ground) buildGround();
 }
 window.addEventListener('resize', resize);
 
@@ -2392,16 +2408,15 @@ void main(){
   function genProps(map, B) {
     const R = mulberry(hashStr(map.id + '#props')), out = [], th = map.theme;
     const add = (type, x, y, s) => out.push({ type, x, y, s: s || 1, r: R() * TAU, seed: R() * 10 });
-    const side = () => R() < 0.5 ? B.x0 - 30 + R() * 46 : B.x1 + 30 - R() * 46;
-    const yr = () => B.y0 - 120 + R() * (B.y1 - B.y0 + 220);
-    const n = { grass: [['fern', 9], ['rock', 7], ['bush', 5]], forest: [['tree', 9], ['fern', 10], ['rock', 4]], sand: [['cactus', 6], ['rock', 9]],
-      ruins: [['pillar', 6], ['fern', 9], ['rock', 6], ['brazier', 3]], lava: [['rock', 12], ['brazier', 4]] }[th] || [['rock', 8]];
+    const inside = () => [B.x0 + R() * (B.x1 - B.x0), B.y0 + R() * (B.y1 - B.y0)];
+    const edge = () => { const sd = (R() * 4) | 0, k = R(); return sd === 0 ? [B.x0 - 50 + R() * 70, B.y0 + k * (B.y1 - B.y0)] : sd === 1 ? [B.x1 + 50 - R() * 70, B.y0 + k * (B.y1 - B.y0)] : sd === 2 ? [B.x0 + k * (B.x1 - B.x0), B.y0 - 50 + R() * 70] : [B.x0 + k * (B.x1 - B.x0), B.y1 + 50 - R() * 70]; };
+    const IN = { tree: 0.12, pillar: 0.3, cactus: 0.5, fern: 0.6, rock: 0.65, bush: 0.5, brazier: 1, pool: 1 };
+    const n = { grass: [['fern', 24], ['rock', 18], ['bush', 12]], forest: [['tree', 26], ['fern', 24], ['rock', 8]], sand: [['cactus', 14], ['rock', 22]],
+      ruins: [['pillar', 14], ['fern', 20], ['rock', 12], ['brazier', 7]], lava: [['rock', 28], ['brazier', 8], ['pool', 9]] }[th] || [['rock', 16]];
     for (const [type, cnt] of n) for (let i = 0; i < cnt; i++) {
-      if (type === 'brazier') add(type, i % 2 ? B.x0 + 30 + R() * 30 : B.x1 - 30 - R() * 30, B.y0 + 40 + R() * (B.y1 - B.y0 - 80), 1);
-      else if (type === 'rock' && R() < 0.4) add(type, B.x0 + R() * (B.x1 - B.x0), B.y0 + R() * (B.y1 - B.y0), 0.4 + R() * 0.4);
-      else add(type, side(), yr(), 0.8 + R() * 0.6);
+      const inner = R() < (IN[type] != null ? IN[type] : 0.5), [x, y] = inner ? inside() : edge();
+      add(type, x, y, type === 'rock' && inner ? 0.4 + R() * 0.4 : type === 'pool' ? 0.8 + R() * 0.8 : 0.8 + R() * 0.6);
     }
-    if (th === 'lava') for (let i = 0; i < 4; i++) add('pool', B.x0 + R() * (B.x1 - B.x0), B.y0 + R() * (B.y1 - B.y0), 0.8 + R() * 0.8);
     return out;
   }
   function drawProp(E, p, T3, t) {
@@ -2436,7 +2451,7 @@ void main(){
   }
 
   /* ---------- world mapping ---------- */
-  const L2W = (x, y) => [(x - W.w / 2) / R3.U, (y - W.h / 2) / R3.U];
+  const L2W = (x, y) => [(x - WORLD.w / 2) / R3.U, (y - WORLD.h / 2) / R3.U];
   function cool(hex) { const [r, g, b] = hexRgb(hex); return b > r + 10; }
 
   R3.init = function () {
@@ -2458,34 +2473,37 @@ void main(){
     if (!R3.on) return;
     const E = R3.eng, cv = E.cv, d = W.dpr;
     cv.width = Math.round(W.w * d); cv.height = Math.round(W.h * d);
-    const aspect = W.w / W.h, fovy = 38 * Math.PI / 180, elev = 54 * Math.PI / 180, ty = Math.tan(fovy / 2);
-    const visW = 7.4, visH = (W.h - 250) / R3.U;
+    R3.aspect = W.w / W.h; R3.camSnap = true;
+    R3.ray = (sx, sy) => { const r = E.ray(sx / W.w * 2 - 1, 1 - sy / W.h * 2); return r ? { x: r[0] * R3.U + WORLD.w / 2, y: r[1] * R3.U + WORLD.h / 2 } : null; };
+  };
+  R3.cam = function (dt) {
+    const E = R3.eng, fovy = 38 * Math.PI / 180, elev = 54 * Math.PI / 180, ty = Math.tan(fovy / 2), aspect = R3.aspect || 0.5;
+    const z = S.zoom || 1, visW = 7.4 * z, visH = Math.max(6, (W.h - 250) / R3.U) * z;
     const D = Math.max((visW / 2) / (ty * aspect), (visH / 2) / ty * Math.sin(elev));
-    const tgt = [0, 0, 0.35];
-    const eye = [0, tgt[1] + D * Math.sin(elev), tgt[2] + D * Math.cos(elev)];
-    E.setCam(eye, tgt, fovy, aspect, 0.5, D * 3);
-    E.fogR = [D * 1.0, D * 1.75];
-    const ray = (sx, sy) => { const r = E.ray(sx / W.w * 2 - 1, 1 - sy / W.h * 2); return r ? { x: r[0] * R3.U + W.w / 2, y: r[1] * R3.U + W.h / 2 } : null; };
-    const top = ray(W.w / 2, 150), bot = ray(W.w / 2, W.h - 128), bl = ray(26, W.h - 128), br = ray(W.w - 26, W.h - 128);
-    R3.B = (top && bot && bl && br) ? { x0: bl.x, x1: br.x, y0: top.y, y1: bot.y } : { x0: 22, x1: W.w - 22, y0: 132, y1: W.h - 120 };
-    R3.ray = ray;
-    if (W.map) R3.setMap(W.map);
+    const [px, pz] = L2W(P.x, P.y), tz = pz - 0.5;
+    if (R3.camSnap || R3.cx == null) { R3.cx = px; R3.cz = tz; R3.camSnap = false; }
+    const k = Math.min(1, dt * 6); R3.cx += (px - R3.cx) * k; R3.cz += (tz - R3.cz) * k;
+    const tgt = [R3.cx, 0, R3.cz];
+    E.setCam([tgt[0], D * Math.sin(elev), tgt[2] + D * Math.cos(elev)], tgt, fovy, aspect, 0.5, D * 4);
+    E.fogR = [D * 1.08, D * 2.0];
   };
   R3.setMap = function (map) {
     if (!R3.on) return;
     const E = R3.eng, gl = E.gl, T3 = THEME3[map.theme] || THEME3.grass;
     if (R3.gTex) gl.deleteTexture(R3.gTex);
-    R3.gTex = makeTex(gl, renderGround(map.theme, W.w, W.h, 1.5, map.id, { flat: true }), 'mirror');
+    R3.gTex = makeTex(gl, renderGround(map.theme, WORLD.w, WORLD.h, 1.25, map.id, { flat: true }), 'mirror');
     E.fog = c3(T3.fog); E.amb = T3.amb; R3.T3 = T3; R3.fogCol = c3(T3.fog);
-    R3.props = genProps(map, R3.B).map((p) => { const [X, Z] = L2W(p.x, p.y); return Object.assign(p, { X, Z }); });
+    R3.props = genProps(map, bounds()).map((p) => { const [X, Z] = L2W(p.x, p.y); return Object.assign(p, { X, Z }); });
   };
   const turn = (e, ta, dt) => { let a = e._fa == null ? ta : e._fa, df = ta - a; while (df > Math.PI) df -= TAU; while (df < -Math.PI) df += TAU; e._fa = a + df * Math.min(1, dt * 12); };
 
   R3.render = function (t) {
     const E = R3.eng, gl = E.gl, dt = Math.min(0.1, Math.max(0, t - (R3.lt == null ? t : R3.lt))); R3.lt = t;
+    R3.cam(dt);
+    const vis = (X, Z) => { const p = E.project(X, 0.5, Z); return p.w > 0 && p.x > -0.3 && p.x < 1.3 && p.y > -0.4 && p.y < 1.35; };
     E.begin(E.cv.width, E.cv.height, R3.fogCol || [0.1, 0.1, 0.1]);
     // ground
-    E.useFx(); E.push(); E.Sc(W.w / R3.U * 3, 1, W.h / R3.U * 3); E.flat('plane', [1, 1, 1, 1], { tex: R3.gTex, uvT: [3, 3, -1, -1], fog: true }); E.pop();
+    E.useFx(); E.push(); E.Sc(WORLD.w / R3.U * 3, 1, WORLD.h / R3.U * 3); E.flat('plane', [1, 1, 1, 1], { tex: R3.gTex, uvT: [3, 3, -1, -1], fog: true }); E.pop();
     // facings & positions
     const ents = [];
     for (const m of W.mons) {
@@ -2503,11 +2521,13 @@ void main(){
     // decals: shadows
     E.blend('alpha');
     const shadow = (X, Z, r) => { E.push(); E.T(X, 0.012, Z); E.Sc(r, 1, r * 0.8); E.flat('disc', [0, 0, 0, 0.5], { fade: 2 }); E.pop(); };
-    for (const m of ents) if (m.state !== 'dead') shadow(m.X, m.Z, 0.42 * (m.size || 1));
+    for (const m of ents) m._vis = vis(m.X, m.Z);
+    for (const p of R3.props) p._vis = vis(p.X, p.Z);
+    for (const m of ents) if (m.state !== 'dead' && m._vis) shadow(m.X, m.Z, 0.42 * (m.size || 1));
     shadow(P.X, P.Z, 0.4);
     const oth = othersHere();
     for (const o of oth) { [o.X, o.Z] = L2W(o.x, o.y); if (o._px != null && (Math.abs(o.x - o._px) + Math.abs(o.y - o._py)) > 0.05) turn(o, Math.atan2(o.x - o._px, o.y - o._py), dt); o._px = o.x; o._py = o.y; shadow(o.X, o.Z, 0.4); }
-    for (const p of R3.props) if (p.type !== 'pool') shadow(p.X, p.Z, 0.5 * p.s * (p.type === 'tree' ? 1.6 : 1));
+    for (const p of R3.props) if (p.type !== 'pool' && p._vis) shadow(p.X, p.Z, 0.5 * p.s * (p.type === 'tree' ? 1.6 : 1));
     // additive ground decals
     E.blend('add');
     for (const p of R3.props) {
@@ -2530,8 +2550,8 @@ void main(){
     }
     // opaque
     E.blend(null); E.useLit();
-    for (const p of R3.props) if (p.type !== 'pool') drawProp(E, p, R3.T3, t);
-    for (const m of ents) if (m.alpha > 0.02) drawMon(E, m, t);
+    for (const p of R3.props) if (p.type !== 'pool' && p._vis) drawProp(E, p, R3.T3, t);
+    for (const m of ents) if (m.alpha > 0.02 && m._vis) drawMon(E, m, t);
     const h = S.hero;
     E.push(); E.T(P.X, 0, P.Z); E.RY(P._fa || 0);
     drawChar(E, h.look, h.job, h.wstyle, { t, walking: P.walking, swing: (t - P.swingT) / 0.3, flash: t - P.hurtT < 0.1 ? 0.45 : 0, dead: P.dead });
@@ -3018,7 +3038,7 @@ function syncOthers() {
     const d = readPresence(p); if (!d) continue;
     seen.add(p.peer);
     let o = ONLINE.others.get(p.peer);
-    const tx = d.nx * W.w, ty = d.ny * W.h;
+    const tx = d.nx * WORLD.w, ty = d.ny * WORLD.h;
     if (!o) { o = { key: p.peer, x: tx, y: ty, swingT: -9, sw: d.sw, bbT: -99 }; ONLINE.others.set(p.peer, o); }
     if (d.sw !== o.sw) { o.swingT = W.t; o.sw = d.sw; }
     if (o.map !== d.map) { o.x = tx; o.y = ty; }
@@ -3059,7 +3079,7 @@ function adoptMirror() {
   W.uid = Math.max(W.uid, mx + 1);
   if (!W.map) return;
   const alive = W.mons.filter((m) => m.state !== 'dead').length;
-  for (let i = alive; i < W.map.count; i++) spawnMon();
+  for (let i = alive; i < monCount(W.map); i++) spawnMon();
 }
 function applyMirror(o) {
   const ms = o.ms || [], tp = o.tp || [], map = W.map, b = bounds(), seen = new Set();
@@ -3068,7 +3088,7 @@ function applyMirror(o) {
     const uid = int(e[0], 0, 0, 1e9), ti = int(e[1], 0, 0, 99), tpl = map.monsters[ti];
     if (!tpl) continue;
     seen.add(uid);
-    const nx = clamp(num(e[2], 500, 0, 1000) / 1000 * W.w, b.x0, b.x1), ny = clamp(num(e[3], 500, 0, 1000) / 1000 * W.h, b.y0, b.y1);
+    const nx = clamp(num(e[2], 500, 0, 1000) / 1000 * WORLD.w, b.x0, b.x1), ny = clamp(num(e[3], 500, 0, 1000) / 1000 * WORLD.h, b.y0, b.y1);
     let m = W.mons.find((x) => x.uid === uid);
     if (m && m.ti !== ti) { W.mons = W.mons.filter((x) => x !== m); m = null; }
     if (!m) { m = makeMon(tpl, ti, nx, ny); m.uid = uid; W.mons.push(m); NET.atkSeen.set(uid, int(e[7], 0, 0, 1e9)); }
@@ -3155,7 +3175,7 @@ function onlineTick(dt) {
   if (now - ONLINE.lastSend < (window.__NET_RATE || 160)) return;
   const h = S.hero, D = P.D || derived();
   const pr = { v: 1, n: h.name, j: h.job, l: h.level, jl: h.jobLv, m: W.map.id,
-    x: Math.round(P.x / W.w * 1000) / 1000, y: Math.round(P.y / W.h * 1000) / 1000,
+    x: Math.round(P.x / WORLD.w * 1000) / 1000, y: Math.round(P.y / WORLD.h * 1000) / 1000,
     g: h.look.g, h: h.look.hair, c: h.look.hc, ws: h.wstyle, sw: ONLINE.swc, d: P.dead ? 1 : 0, hp: Math.round(clamp(P.hp / D.maxHp, 0, 1) * 100),
     mt: NET.mapT, pk: PARTY.key, pi: PARTY.invited.slice(-4), hit: NET.hits, bb: NET.bb };
   if (NET.isHost) {
@@ -3164,7 +3184,7 @@ function onlineTick(dt) {
       if (m.state === 'dead' && W.t - m.dieT > 0.4) continue;
       let ti = -1;
       if (m.tgt) { ti = tp.indexOf(m.tgt); if (ti < 0) { tp.push(m.tgt); ti = tp.length - 1; } }
-      ms.push([m.uid, m.ti, Math.round(m.x / W.w * 1000), Math.round(m.y / W.h * 1000), Math.round(clamp(m.hp / m.maxHp, 0, 1) * 1000),
+      ms.push([m.uid, m.ti, Math.round(m.x / WORLD.w * 1000), Math.round(m.y / WORLD.h * 1000), Math.round(clamp(m.hp / m.maxHp, 0, 1) * 1000),
         (m.state === 'chase' ? 1 : 0) | (m.moving ? 2 : 0) | (m.state === 'dead' ? 4 : 0), ti, m.atkN || 0]);
     }
     pr.ms = ms; pr.tp = tp; pr.kd = NET.kd;
@@ -3533,8 +3553,36 @@ function hud() {
   const now = performance.now();
   if (now - hudLast > 200) { hudLast = now; hudText(); }
 }
-function setAuto(v) { S.auto = v; $('#autoBtn').setAttribute('aria-pressed', String(v)); if (!v) P.queued = null; }
-$('#autoBtn').addEventListener('click', () => { setAuto(!S.auto); toast(S.auto ? 'ออโต้: ตีมอนและใช้สกิลในช่องให้เอง' : 'ปิดออโต้'); });
+function setAuto(v) { S.auto = v; $('#autoBtn').setAttribute('aria-pressed', String(v)); if (!v) P.queued = null; updAutoBadge(); }
+$('#autoBtn').addEventListener('click', () => { if (S.auto) { setAuto(false); toast('ปิดออโต้'); } else openPanel('auto'); });
+function setZoom(z) { S.zoom = clamp(z, 0.8, 1.8); lsSet('spellblade_zoom', S.zoom.toFixed(2)); }
+$('#zoomIn').addEventListener('click', () => setZoom(S.zoom - 0.2));
+$('#zoomOut').addEventListener('click', () => setZoom(S.zoom + 0.2));
+const PTR = new Map(); let pinch = null;
+$('#world').addEventListener('pointerdown', (e) => { PTR.set(e.pointerId, { x: e.clientX, y: e.clientY }); if (PTR.size === 2) { const [a, b] = [...PTR.values()]; pinch = { d: Math.max(20, Math.hypot(a.x - b.x, a.y - b.y)), z: S.zoom }; } });
+$('#world').addEventListener('pointermove', (e) => { if (!PTR.has(e.pointerId)) return; PTR.set(e.pointerId, { x: e.clientX, y: e.clientY }); if (pinch && PTR.size >= 2) { const [a, b] = [...PTR.values()]; setZoom(pinch.z * pinch.d / Math.max(20, Math.hypot(a.x - b.x, a.y - b.y))); } });
+for (const ev of ['pointerup', 'pointercancel', 'pointerleave']) $('#world').addEventListener(ev, (e) => { PTR.delete(e.pointerId); if (PTR.size < 2) pinch = null; });
+$('#world').addEventListener('wheel', (e) => { e.preventDefault(); setZoom(S.zoom * (1 + e.deltaY * 0.0012)); }, { passive: false });
+function autoSet() { const a = W.map && S.autoSel[W.map.id]; return Array.isArray(a) && a.length ? new Set(a) : null; }
+function updAutoBadge() { const d = $('#autoDot'); if (!d) return; const s = autoSet(); d.hidden = !(S.auto && s); if (s) d.textContent = s.size; }
+let autoPick = null;
+function panelAuto(body) {
+  const map = W.map; if (!map) return;
+  if (!autoPick || autoPick.map !== map.id) autoPick = { map: map.id, set: new Set(S.autoSel[map.id] || []) };
+  body.append(el('p', { class: 'note', style: 'margin-top:0', text: 'เลือกมอนที่จะให้ตีอัตโนมัติบน ' + map.name + ' ส่วนมอนที่เข้ามาตีคุณจะถูกตีกลับเสมอ' }));
+  const g = el('div', { class: 'autolist' });
+  map.monsters.forEach((tpl) => {
+    const on = autoPick.set.has(tpl.id);
+    g.append(el('button', { class: 'autoc' + (on ? ' on' : ''), 'aria-pressed': String(on), onclick: () => { if (on) autoPick.set.delete(tpl.id); else autoPick.set.add(tpl.id); renderSheet(); } },
+      el('span', { class: 'ai', text: ARCH_ICON[tpl.arch] || '👾' }),
+      el('span', { class: 'an' }, el('b', { text: tpl.name }), el('small', { text: 'Lv ' + tpl.lv + (tpl.boss ? '  บอส' : '') + (tpl.aggro ? '  ดุร้าย' : '') }))));
+  });
+  body.append(g);
+  const n = autoPick.set.size;
+  const start = (arr) => { S.autoSel[map.id] = arr; lsSet('spellblade_autosel', JSON.stringify(S.autoSel)); closeSheet(); P.target = null; setAuto(true); toast(arr ? 'ออโต้: ตีเฉพาะ ' + arr.length + ' ชนิดที่เลือก' : 'ออโต้: ตีทุกตัวบนแผนที่'); };
+  body.append(el('div', { class: 'acts' }, el('button', { class: 'mini', text: 'ตีทุกตัว', onclick: () => start(null) }),
+    el('button', { class: 'mini pri', text: n ? 'ตีเฉพาะที่เลือก (' + n + ')' : 'เลือกอย่างน้อย 1 ชนิด', disabled: !n, onclick: () => start([...autoPick.set]) })));
+}
 $('#potHp').addEventListener('click', () => usePot('hp'));
 $('#chatBtn').addEventListener('click', () => openPanel('chat'));
 $('#potSp').addEventListener('click', () => usePot('sp'));
@@ -3544,8 +3592,10 @@ $('#world').addEventListener('pointerdown', (e) => {
   e.preventDefault();
   const r = e.currentTarget.getBoundingClientRect();
   let x = e.clientX - r.left, y = e.clientY - r.top, best = null, bd = 1e9;
+  if (PTR.size >= 2) return;
   if (R3.on) { const pk = R3.pick(x, y); if (!pk) return; if (pk.mon) best = pk.mon; else { x = pk.x; y = pk.y; } }
-  else for (const m of W.mons) {
+  else { const zs = 1 / S.zoom, c = W.cam2 || { x: P.x, y: P.y }; x = (x - W.w / 2) / zs + c.x; y = (y - W.h * 0.55) / zs + c.y; }
+  if (!R3.on) for (const m of W.mons) {
     if (m.state === 'dead') continue;
     const s = m.size || 1, d = Math.hypot(x - m.x, (y - (m.y - 18 * s)) * 0.9);
     if (d < 32 * s && d < bd) { bd = d; best = m; }
@@ -3563,7 +3613,7 @@ $('#world').addEventListener('pointerdown', (e) => {
 const PANELS = {
   stats: ['สถานะตัวละคร', panelStats], skills: ['สกิล', panelSkills], job: ['เปลี่ยนอาชีพ', panelJob],
   map: ['แผนที่', panelMap], shop: ['ร้านช่างตีเหล็ก', panelShop], rank: ['ทำเนียบนักผจญภัย', panelRank], gm: ['ห้องควบคุม GM', panelGM],
-  online: ['ผู้เล่นและปาร์ตี้', panelOnline], sound: ['ตั้งค่า', panelSound], bag: ['กระเป๋า', panelBag], chat: ['แชท', panelChat]
+  auto: ['โหมดออโต้', panelAuto], online: ['ผู้เล่นและปาร์ตี้', panelOnline], sound: ['ตั้งค่า', panelSound], bag: ['กระเป๋า', panelBag], chat: ['แชท', panelChat]
 };
 function openPanel(name) {
   if (!PANELS[name]) return;
@@ -3854,7 +3904,7 @@ function panelGM(body) {
   d.maps.forEach((m, mi) => {
     const det = el('details', { class: 'box', 'data-k': 'map' + mi, open: !!gmOpen['map' + mi] }, el('summary', { text: m.name + ' (Lv ' + m.min + '–' + m.max + ')' }));
     det.append(el('div', { class: 'g2', style: 'margin-top:8px' }, fText('ชื่อแผนที่', m.name, (v) => { m.name = v; }), fSel('พื้นผิว', m.theme, THEME_TH, (v) => { m.theme = v; })),
-      el('div', { class: 'g3', style: 'margin-top:6px' }, fNum('Lv ต่ำสุด', m.min, (v) => { m.min = v; }), fNum('Lv สูงสุด', m.max, (v) => { m.max = v; }), fNum('จำนวนมอน', m.count, (v) => { m.count = v; })));
+      el('div', { class: 'g3', style: 'margin-top:6px' }, fNum('Lv ต่ำสุด', m.min, (v) => { m.min = v; }), fNum('Lv สูงสุด', m.max, (v) => { m.max = v; }), fNum('มอนต่อหน้าจอ', m.count, (v) => { m.count = v; })));
     m.monsters.forEach((x, xi) => {
       det.append(el('div', { class: 'medit' },
         el('div', { class: 'g2' }, fText('ชื่อ', x.name, (v) => { x.name = v; }, { max: 30 }), fSel('รูปร่าง', x.arch, ARCH_TH, (v) => { x.arch = v; })),
