@@ -687,6 +687,7 @@ const DEFAULT_CONFIG = {
   finalJobCap: 70,
   maxBase: 99,
   potion: { hp: 30, sp: 80 },
+  shop: { gear: {}, refineW: 150, refineA: 120 },
   jobNames: {},
   maps: [
     { id: 'meadow', name: 'ทุ่งหญ้าอรุณ', theme: 'grass', min: 1, max: 15, count: 7, monsters: [
@@ -752,6 +753,17 @@ function sanitizeConfig(raw) {
     maxBase: int(raw.maxBase, 99, 10, 999),
     potion: { hp: int(raw.potion && raw.potion.hp, 30, 0, 1e9), sp: int(raw.potion && raw.potion.sp, 80, 0, 1e9) },
     jobNames: jn,
+    shop: (() => {
+      const sh = raw.shop || {}, g = {};
+      if (sh.gear && typeof sh.gear === 'object') for (const id of Object.keys(sh.gear).slice(0, 80)) {
+        if (!/^[a-z0-9_]{1,20}$/.test(id)) continue;
+        const x = sh.gear[id] || {}, o = {};
+        if (x.pr != null) o.pr = int(x.pr, 0, 0, 1e9);
+        if (x.on === false) o.on = false;
+        g[id] = o;
+      }
+      return { gear: g, refineW: int(sh.refineW, 150, 1, 1e9), refineA: int(sh.refineA, 120, 1, 1e9) };
+    })(),
     maps: maps.slice(0, 20).map((m, i) => ({
       id: str(m && m.id, 'map' + i, 40),
       name: str(m && m.name, 'แผนที่ ' + (i + 1), 40),
@@ -3206,7 +3218,9 @@ function cardBonus(tpl) {
 }
 function lootItem(tpl) { return { k: 'L:' + tpl.id, kind: 'loot', nm: (LOOT_PRE[tpl.arch] || 'ชิ้นส่วน') + tpl.name, ar: tpl.arch, pr: Math.max(2, Math.round(tpl.gold * 0.9)), lv: tpl.lv, col: tpl.color }; }
 function cardItem(tpl) { return { k: 'C:' + tpl.id, kind: 'card', nm: 'การ์ด' + tpl.name, ar: tpl.arch, pr: 400 + tpl.lv * 30, lv: tpl.lv, b: cardBonus(tpl), col: tpl.color, cs: CS_TH[tpl.cs] ? tpl.cs : (ARCH_CS[tpl.arch] || 'armor') }; }
-function gearItem(id) { const g = GEAR[id]; return { k: 'G:' + id + ':' + Math.random().toString(36).slice(2, 8), kind: 'gear', id, nm: g.nm, pr: Math.round(g.pr / 2), cards: [] }; }
+function gearPrice(id) { const o = CONFIG.shop && CONFIG.shop.gear[id]; return o && o.pr != null ? o.pr : (GEAR[id] ? GEAR[id].pr : 0); }
+function gearOnSale(id) { const o = CONFIG.shop && CONFIG.shop.gear[id]; return !(o && o.on === false); }
+function gearItem(id) { const g = GEAR[id]; return { k: 'G:' + id + ':' + Math.random().toString(36).slice(2, 8), kind: 'gear', id, nm: g.nm, pr: Math.round(gearPrice(id) / 2), cards: [] }; }
 function sanitizeCard(x) { const c = sanitizeItem(x, false); return c && c.kind === 'card' ? c : null; }
 function sanitizeItem(x, withN) {
   if (!x || typeof x !== 'object' || typeof x.k !== 'string') return null;
@@ -3214,7 +3228,7 @@ function sanitizeItem(x, withN) {
   if (!kind) return null;
   if (kind === 'gear') {
     if (!GEAR[x.id]) return null;
-    const it = { k: x.k.slice(0, 60), kind, id: x.id, nm: GEAR[x.id].nm, pr: Math.round(GEAR[x.id].pr / 2), cards: [] };
+    const it = { k: x.k.slice(0, 60), kind, id: x.id, nm: GEAR[x.id].nm, pr: Math.round(gearPrice(x.id) / 2), cards: [] };
     it.cards = (Array.isArray(x.cards) ? x.cards : []).slice(0, 1).map((c) => (c ? sanitizeCard(c) : null));
     if (withN) it.n = 1;
     return it;
@@ -4249,7 +4263,7 @@ function panelMap(body) {
 
 /* shop */
 const refineChance = (r) => r < 4 ? 100 : Math.max(20, 100 - (r - 3) * 12);
-const refineCost = (kind, r) => Math.round((kind === 'w' ? 150 : 120) * Math.pow(1.5, r));
+const refineCost = (kind, r) => Math.round((kind === 'w' ? CONFIG.shop.refineW : CONFIG.shop.refineA) * Math.pow(1.5, r));
 function refine(kind) {
   const h = S.hero, D = derived(), key = kind === 'w' ? 'refineW' : 'refineA', r = h[key];
   if (r >= 15) return;
@@ -4290,7 +4304,8 @@ function panelShop(body) {
   body.append(el('div', { class: 'sub', text: 'อุปกรณ์สวมใส่' }));
   body.append(el('p', { class: 'note', text: 'ซื้อแล้วไปสวมได้ที่หน้าตัวละคร (แตะรูปตัวละครมุมซ้ายบน)' }));
   for (const id in GEAR) {
-    const g = GEAR[id], price = Math.max(1, Math.round(g.pr * (1 - disc / 100)));
+    if (!gearOnSale(id)) continue;
+    const g = GEAR[id], price = Math.max(0, Math.round(gearPrice(id) * (1 - disc / 100)));
     body.append(el('div', { class: 'list-row' }, el('span', { style: 'font-size:1.5rem', text: g.ic }),
       el('div', { class: 'grow' }, el('div', { class: 'nm2', text: g.nm + '  (' + GEAR_TYPE_TH[g.slot] + ')' }), el('div', { class: 'ds', text: bonusText(g.b) })),
       el('button', { class: 'mini pri', text: fmt(price) + ' G', disabled: h.gold < price, onclick: () => { if (h.gold < price) return; if (!addItem(gearItem(id), 1)) return; h.gold -= price; AU.sfx('coin'); toast('ซื้อ' + g.nm + ' แล้ว ไปสวมที่หน้าตัวละคร'); renderSheet(); hudText(); } })));
@@ -4368,11 +4383,26 @@ function panelGM(body) {
     el('div', { class: 'g3' },
       fNum('Base EXP', d.rates.bexp, (v) => { d.rates.bexp = v; }, 0.5), fNum('Job EXP', d.rates.jexp, (v) => { d.rates.jexp = v; }, 0.5),
       fNum('ทอง', d.rates.gold, (v) => { d.rates.gold = v; }, 0.5), fNum('ดรอปยา', d.rates.drop, (v) => { d.rates.drop = v; }, 0.5),
-      fNum('ตายเสีย EXP %', d.deathPenalty, (v) => { d.deathPenalty = v; }, 0.5), fNum('ราคายาแดง', d.potion.hp, (v) => { d.potion.hp = v; }),
-      fNum('ราคายาฟ้า', d.potion.sp, (v) => { d.potion.sp = v; }), fNum('การ์ดดรอป %', d.cardChance, (v) => { d.cardChance = v; }, 0.1)),
+      fNum('ตายเสีย EXP %', d.deathPenalty, (v) => { d.deathPenalty = v; }, 0.5), fNum('การ์ดดรอป %', d.cardChance, (v) => { d.cardChance = v; }, 0.1)),
     el('div', { class: 'acts' },
       el('button', { class: 'mini', text: 'อีเวนต์ EXP x2', onclick: () => { d.rates.bexp = 2; d.rates.jexp = 2; markDraft(); rebuildGM(); } }),
       el('button', { class: 'mini', text: 'คืนค่าปกติ', onclick: () => { d.rates = { bexp: 1, jexp: 1, gold: 1, drop: 1 }; markDraft(); rebuildGM(); } }))));
+  const shopSec = el('div', { class: 'gm-sec' }, el('h3', { text: 'ร้านค้า' }),
+    el('p', { class: 'note', text: 'ตั้งราคาขายของในร้าน ราคาที่ผู้เล่นขายคืนร้านจะเป็นครึ่งหนึ่งของราคาขายอัตโนมัติ ส่วนลดของสายพ่อค้ายังคิดจากราคานี้' }),
+    el('div', { class: 'g2' },
+      fNum('ราคายาแดง', d.potion.hp, (v) => { d.potion.hp = v; }), fNum('ราคายาฟ้า', d.potion.sp, (v) => { d.potion.sp = v; }),
+      fNum('ค่าตีบวกอาวุธ ขั้นแรก', d.shop.refineW, (v) => { d.shop.refineW = Math.max(1, Math.round(v)); }), fNum('ค่าตีบวกเกราะ ขั้นแรก', d.shop.refineA, (v) => { d.shop.refineA = Math.max(1, Math.round(v)); })),
+    el('p', { class: 'note', style: 'margin-top:6px', text: 'ค่าตีบวกขั้นต่อไปเพิ่มขึ้นทีละ 1.5 เท่า' }));
+  const gd = el('details', { class: 'box', 'data-k': 'shopgear', open: !!gmOpen.shopgear }, el('summary', { text: 'ราคาอุปกรณ์สวมใส่ (' + Object.keys(GEAR).length + ' ชิ้น)' }));
+  for (const id in GEAR) {
+    const g = GEAR[id], cur = d.shop.gear[id] || {};
+    gd.append(el('div', { class: 'g3', style: 'align-items:end;margin-top:6px' },
+      el('div', { class: 'fld', style: 'color:var(--ink);font-size:.82rem' }, g.ic + ' ' + g.nm, el('small', { text: GEAR_TYPE_TH[g.slot] })),
+      fNum('ราคา', cur.pr != null ? cur.pr : g.pr, (v) => { (d.shop.gear[id] = d.shop.gear[id] || {}).pr = Math.max(0, Math.round(v)); }),
+      fCk('วางขาย', cur.on !== false, (v) => { const o = (d.shop.gear[id] = d.shop.gear[id] || {}); if (v) delete o.on; else o.on = false; })));
+  }
+  gd.append(el('div', { class: 'acts' }, el('button', { class: 'mini', text: 'คืนราคาเริ่มต้นทั้งหมด', onclick: () => { d.shop.gear = {}; markDraft(); rebuildGM(); } })));
+  shopSec.append(gd); body.append(shopSec);
   const jr = el('div', { class: 'gm-sec' }, el('h3', { text: 'เงื่อนไขอาชีพ' }));
   ['Novice → คลาส 1', 'คลาส 1 → คลาส 2', 'คลาส 2 → คลาส 3'].forEach((lb, i) => jr.append(el('div', { class: 'g3', style: 'align-items:end;margin-top:4px' },
     el('div', { class: 'fld', text: lb }), fNum('Base Lv', d.jobReq[i][0], (v) => { d.jobReq[i][0] = v; }), fNum('Job Lv', d.jobReq[i][1], (v) => { d.jobReq[i][1] = v; }))));
