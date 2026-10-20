@@ -165,6 +165,36 @@ button:disabled{cursor:default}
 .tile.empty{border-style:dashed;opacity:.45}
 .invdet{padding:10px;border-radius:12px;background:var(--panel-2);margin-top:6px}
 
+.plate #avatar{cursor:pointer}
+.eqwrap{position:fixed;inset:0;z-index:35;display:flex;justify-content:center;align-items:stretch;background:rgba(5,8,15,.45);padding:calc(10px + env(safe-area-inset-top,0px)) 8px calc(10px + env(safe-area-inset-bottom,0px))}
+.eqwrap[hidden]{display:none}
+.eqbox{width:100%;max-width:470px;display:flex;flex-direction:column;background:var(--panel);color:var(--ink);border-radius:16px;border:1px solid var(--line);overflow:hidden;box-shadow:0 10px 40px rgba(0,0,0,.4)}
+.eqbox .sheet-title button{width:32px;height:32px;border-radius:50%;border:1px solid rgba(255,255,255,.4);background:rgba(255,255,255,.14);color:#fff;padding:0}
+.eqbody{flex:1;overflow-y:auto;padding:10px 12px 18px}
+.eqmain{display:grid;grid-template-columns:64px 1fr 64px;gap:8px;align-items:start}
+.eqcol{display:flex;flex-direction:column;gap:6px}
+.eqslot{position:relative;width:64px;height:62px;border-radius:12px;border:1px solid var(--line);background:var(--chip);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:2px;gap:1px}
+.eqslot .ei{font-size:1.45rem;line-height:1}
+.eqslot small{font-size:.62rem;color:var(--ink-soft)}
+.eqslot.empty .ei{opacity:.35}
+.eqslot.sel{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent)}
+.eqslot .eref{position:absolute;top:2px;left:4px;font:700 8px "Silkscreen",monospace;color:var(--accent-ink)}
+.sdots{display:flex;gap:2px;height:6px}
+.sdots i{width:6px;height:6px;border-radius:50%;border:1px solid var(--ink-soft)}
+.sdots i.on{background:#b47aff;border-color:#b47aff}
+.eqcenter{display:flex;flex-direction:column;align-items:center;text-align:center;min-width:0}
+.eqcv{width:100%;height:290px;display:block;border-radius:14px;background:radial-gradient(circle at 50% 78%,#3d5a48,#1c2a24 72%);touch-action:none;cursor:grab}
+.eqname{font-weight:700;margin-top:6px}.eqjob{font-size:.76rem;color:var(--ink-soft)}
+.eqmini{display:flex;gap:10px;font-size:.72rem;color:var(--ink-soft);margin-top:2px}.eqmini b{color:var(--ink)}
+.eqdet{margin-top:10px;padding:10px;border-radius:12px;background:var(--panel-2)}
+.sock{display:flex;align-items:center;gap:8px;padding:7px 0;border-top:1px dashed var(--line);font-size:.84rem;flex-wrap:wrap}
+.sock span{flex:1;min-width:0}.sock small{color:var(--ink-soft);width:100%;order:3}
+.sock.on span{color:#9a5ae0;font-weight:700}
+.picklist{display:flex;flex-direction:column;gap:6px;margin:4px 0 6px}
+.pickc{display:flex;flex-direction:column;align-items:flex-start;padding:8px 10px;border-radius:10px;border:1px solid var(--line);background:var(--chip);text-align:left}
+.pickc small{color:var(--ink-soft);font-size:.74rem}
+.tile em{position:absolute;left:3px;top:2px;font-style:normal;font-size:.55rem;color:#1e2939;background:rgba(255,255,255,.8);border-radius:4px;padding:0 3px}
+
 /* sheet */
 .sheet-wrap{position:fixed;inset:0;z-index:30;display:flex;flex-direction:column;justify-content:flex-end;background:rgba(5,8,15,.28)}
 .sheet-wrap[hidden]{display:none}
@@ -624,6 +654,8 @@ const PCT_KEYS = { matkPct: 1, atk: 1, matk: 1, aspd: 1, hpPct: 1, atkPct: 1, as
 /* ---------- monsters & maps ---------- */
 const ARCHES = ['blob', 'shroom', 'beast', 'bat', 'plant', 'bones', 'ghost', 'brute', 'drake'];
 const ARCH_TH = { blob: 'สไลม์', shroom: 'เห็ด', beast: 'สัตว์สี่ขา', bat: 'ค้างคาว', plant: 'พืช', bones: 'โครงกระดูก', ghost: 'วิญญาณ', brute: 'ยักษ์', drake: 'มังกร' };
+const CS_TH = { weapon: 'อาวุธ', shield: 'โล่', armor: 'เสื้อเกราะ', head: 'หมวก', face: 'ใบหน้า', mouth: 'ปาก', shoes: 'รองเท้า', ring: 'แหวน' };
+const ARCH_CS = { blob: 'armor', shroom: 'head', beast: 'shoes', bat: 'face', plant: 'mouth', bones: 'weapon', ghost: 'shield', brute: 'weapon', drake: 'ring' };
 const THEME_LIST = ['grass', 'forest', 'sand', 'ruins', 'lava'];
 const THEME_TH = { grass: 'ทุ่งหญ้า', forest: 'ป่า', sand: 'ทะเลทราย', ruins: 'ซากปรักหักพัง', lava: 'ลาวา' };
 
@@ -645,8 +677,8 @@ function MON(id, name, arch, color, lv, extra) {
 }
 
 const DEFAULT_CONFIG = {
-  version: '2.1.0',
-  patchNotes: 'โลกใหม่ทั้งหมด!\n• สร้างตัวละคร เลือกเพศ ทรงผม สีผม\n• 6 สายอาชีพ 3 ขั้น จาก Novice ถึงคลาสสูงสุด\n• Base Lv และ Job Lv แยกกัน พร้อมแต้มสเตตัสและสกิล\n• 5 แผนที่ ตั้งแต่ทุ่งหญ้าถึงภูเขาไฟมังกร\n• ตีบวกอาวุธและเกราะ',
+  version: '2.2.0',
+  patchNotes: 'อัปเดต 2.2: หน้าตัวละครและอุปกรณ์\n• แตะรูปตัวละครมุมซ้ายบน หรือปุ่มกระเป๋า เพื่อเปิดหน้าตัวละคร\n• ช่องสวมใส่ หมวก ใบหน้า ปาก อาวุธ มือซ้าย เสื้อเกราะ ปีก รองเท้า และแหวน 2 วง (ขวาและซ้าย) ใส่การ์ดแหวนได้วงละ 1 ใบ\n• การ์ดแยกประเภท ใส่ได้เฉพาะช่องของมัน\n• ร้านขายอุปกรณ์ใหม่ เช่น หูแมว แว่น ปีกนางฟ้า',
   announcement: 'ยินดีต้อนรับสู่ช่วงทดสอบ! เจอบั๊กบอก GM ได้เลย',
   rates: { bexp: 1, jexp: 1, gold: 1, drop: 1 },
   deathPenalty: 1,
@@ -734,7 +766,8 @@ function sanitizeConfig(raw) {
         lv: int(x && x.lv, 1, 1, 999),
         hp: int(x && x.hp, 50, 1, 1e9), atk: int(x && x.atk, 5, 0, 1e9), def: int(x && x.def, 0, 0, 1e6),
         bexp: int(x && x.bexp, 5, 0, 1e9), jexp: int(x && x.jexp, 4, 0, 1e9), gold: int(x && x.gold, 2, 0, 1e9),
-        aggro: !!(x && x.aggro), boss: !!(x && x.boss)
+        aggro: !!(x && x.aggro), boss: !!(x && x.boss),
+        cs: CS_TH[x && x.cs] ? x.cs : (ARCH_CS[x && x.arch] || 'armor')
       }))
     }))
   };
@@ -1238,7 +1271,7 @@ function canJobChange(h) {
 function newHero(name, look) {
   return { name, look, job: 'novice', level: 1, exp: 0, jobLv: 1, jobExp: 0, stats: { str: 1, agi: 1, vit: 1, int: 1, dex: 1, luk: 1 },
     statPts: 48, skillPts: 0, skills: {}, hotbar: ['', '', '', ''], gold: 200, refineW: 0, refineA: 0, potHp: 10, potSp: 3,
-    mapId: '', kills: 0, wstyle: 'dual', gmStamp: 0, inv: [], cards: [null, null, null, null] };
+    mapId: '', kills: 0, wstyle: 'dual', gmStamp: 0, inv: [], eq: null };
 }
 function sanitizeHero(d) {
   d = d || {};
@@ -1257,7 +1290,7 @@ function sanitizeHero(d) {
   const st = d.stats || {}; for (const k of STATS) h.stats[k] = int(st[k], 1, 1, 99);
   const seenK = new Set();
   h.inv = (Array.isArray(d.inv) ? d.inv : []).map((x) => sanitizeItem(x, true)).filter((x) => x && !seenK.has(x.k) && seenK.add(x.k)).slice(0, INV_MAX);
-  h.cards = [0, 1, 2, 3].map((i) => (Array.isArray(d.cards) && d.cards[i] && d.cards[i].kind === 'card') ? sanitizeItem(d.cards[i], false) : null);
+  sanitizeEq(d, h);
   const sk = d.skills || {};
   for (const s of skillsFor(h.job)) { const v = int(sk[s.id], 0, 0, s.maxLv); if (v > 0) h.skills[s.id] = v; }
   const hb = Array.isArray(d.hotbar) ? d.hotbar : [];
@@ -1287,7 +1320,7 @@ function buffSum() {
 function derived(h) {
   h = h || S.hero;
   const J = JOBS[h.job], L = LINES[J.line], tier = J.tier, ti = Math.max(0, tier - 1);
-  const jb = jobBonus(h), pa = passiveSum(h), bu = buffSum(), ca = cardSum(h);
+  const jb = jobBonus(h), pa = passiveSum(h), bu = buffSum(), ca = gearSum(h);
   for (const k in ca) pa[k] = (pa[k] || 0) + ca[k];
   const st = {};
   for (const k of STATS) st[k] = h.stats[k] + (jb[k] || 0) + (pa[k] || 0) + (bu[k] || 0);
@@ -1860,7 +1893,7 @@ function heroDoc() {
   const h = S.hero;
   return { name: h.name, look: h.look, job: h.job, level: h.level, exp: h.exp, jobLv: h.jobLv, jobExp: h.jobExp, stats: h.stats,
     skills: h.skills, hotbar: h.hotbar, gold: h.gold, refineW: h.refineW, refineA: h.refineA, potHp: h.potHp, potSp: h.potSp,
-    mapId: h.mapId, kills: h.kills, wstyle: h.wstyle, gmStamp: h.gmStamp || 0, inv: h.inv, cards: h.cards, updatedAt: Date.now() };
+    mapId: h.mapId, kills: h.kills, wstyle: h.wstyle, gmStamp: h.gmStamp || 0, inv: h.inv, eq: h.eq, updatedAt: Date.now() };
 }
 function saveLocal() { if (S.hero) lsSet(LS_SAVE + (S.uid || ''), JSON.stringify(heroDoc())); }
 async function save() {
@@ -1981,12 +2014,12 @@ void main(){
   }
   function geoPlane() { return { p: [-0.5, 0, 0.5, 0.5, 0, 0.5, 0.5, 0, -0.5, -0.5, 0, -0.5], n: [0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0], u: [0, 1, 1, 1, 1, 0, 0, 0], ix: [0, 1, 2, 0, 2, 3] }; }
   const HAIRP = [
-    { front: 0.24, zig: 0.24, k: 9, side: -0.1, back: -0.55 },
-    { front: 0.2, zig: 0.04, k: 14, side: -0.62, back: -0.72 },
-    { front: 0.26, zig: 0.15, k: 6, side: -0.5, back: -0.95 },
-    { front: 0.28, zig: 0.16, k: 7, side: -0.25, back: -0.6 },
-    { front: 0.3, zig: 0.17, k: 5, side: -0.15, back: -0.5 },
-    { sweep: true, side: -0.32, back: -0.6 }
+    { front: 0.44, zig: 0, k: 1, side: -0.2, back: -0.6 },
+    { front: 0.4, zig: 0, k: 1, side: -0.42, back: -0.72 },
+    { front: 0.42, zig: 0, k: 1, side: -0.3, back: -0.85 },
+    { front: 0.44, zig: 0, k: 1, side: -0.22, back: -0.62 },
+    { front: 0.44, zig: 0, k: 1, side: -0.2, back: -0.55 },
+    { front: 0.42, zig: 0, k: 1, side: -0.26, back: -0.62 }
   ];
   function geoHair(st) {
     const g = geoSphere(44, 22), P = HAIRP[st];
@@ -2000,6 +2033,45 @@ void main(){
     }
     return g;
   }
+
+  function geoTorus(tube, su, sv) {
+    const p = [], n = [], u = [], ix = [];
+    for (let i = 0; i <= su; i++) { const a = i / su * TAU, ca = Math.cos(a), sa = Math.sin(a);
+      for (let j = 0; j <= sv; j++) { const b = j / sv * TAU, cb = Math.cos(b), sb = Math.sin(b);
+        p.push((1 + tube * cb) * ca, tube * sb, (1 + tube * cb) * sa); n.push(cb * ca, sb, cb * sa); u.push(i / su, j / sv); } }
+    for (let i = 0; i < su; i++) for (let j = 0; j < sv; j++) { const a = i * (sv + 1) + j, b = a + sv + 1; ix.push(a, a + 1, b, b, a + 1, b + 1); }
+    return { p, n, u, ix };
+  }
+  function geoLock(bend, flat) {
+    const p = [], n = [], u = [], ix = [], SG = 10, RG = 10;
+    for (let i = 0; i <= SG; i++) {
+      const t = i / SG, cy = -t, cz = bend * t * t, r = 0.5 * Math.pow(1 - t, 0.85) + 0.004;
+      const ty = -1, tz = 2 * bend * t, tl = Math.hypot(ty, tz), Ny = tz / tl, Nz = -ty / tl;
+      for (let j = 0; j <= RG; j++) {
+        const a = (j / RG - 0.5) * TAU, sa = Math.sin(a), ca = Math.cos(a);
+        p.push(sa * r, cy + Ny * ca * r * flat, cz + Nz * ca * r * flat);
+        const nx = sa, nn = ca / flat, l = Math.hypot(nx, nn); n.push(nx / l, Ny * nn / l, Nz * nn / l); u.push(j / RG, t);
+      }
+    }
+    for (let i = 0; i < SG; i++) for (let j = 0; j < RG; j++) { const a = i * (RG + 1) + j, b = a + RG + 1; ix.push(a, b, a + 1, b, b + 1, a + 1); }
+    return { p, n, u, ix };
+  }
+  function geoShell(keep, seg, rings) {
+    const g = geoSphere(seg || 40, rings || 22);
+    for (let i = 0; i < g.p.length; i += 3) if (!keep(g.p[i], g.p[i + 1], g.p[i + 2])) { g.p[i] *= 0.8; g.p[i + 1] *= 0.8; g.p[i + 2] *= 0.8; }
+    return g;
+  }
+  function geoSheet(a0, a1, rt, rb, segs) {
+    const p = [], n = [], u = [], ix = [], sl = rb - rt, ln = Math.hypot(1, sl);
+    for (const inner of [0, 1]) {
+      const base = p.length / 3, k = inner ? 0.985 : 1, sg = inner ? -1 : 1;
+      for (let r = 0; r < 2; r++) { const y = r === 0 ? 0 : -1, rad = (r === 0 ? rt : rb) * k;
+        for (let s = 0; s <= segs; s++) { const a = a0 + (a1 - a0) * s / segs, sx = Math.sin(a), sz = Math.cos(a);
+          p.push(sx * rad, y, sz * rad); n.push(sg * sx / ln, sg * sl / ln, sg * sz / ln); u.push(s / segs, r); } }
+      for (let s = 0; s < segs; s++) { const a = base + s, b = a + segs + 1; if (inner) ix.push(a, a + 1, b, b, a + 1, b + 1); else ix.push(a, b, a + 1, b, b + 1, a + 1); }
+    }
+    return { p, n, u, ix };
+  }
   const GEO = {};
   function buildGeo() {
     if (GEO.sph) return;
@@ -2009,6 +2081,15 @@ void main(){
     GEO.pillar = geoCyl(1, 1, 24, false); GEO.box = geoBox();
     GEO.ring = geoRing(0.84, 64); GEO.disc = geoDisc(36); GEO.plane = geoPlane();
     for (let i = 0; i < 6; i++) GEO['hair' + i] = geoHair(i);
+    GEO.torus = geoTorus(0.16, 36, 10); GEO.torusT = geoTorus(0.06, 36, 8); GEO.torusF = geoTorus(0.42, 28, 12);
+    GEO.lockA = geoLock(0.35, 0.55); GEO.lockS = geoLock(0.08, 0.6); GEO.lockC = geoLock(0.8, 0.55); GEO.lockR = geoLock(0.25, 1);
+    GEO.hood = geoShell((x, y, z) => !(z > 0.25 && y < 0.55 && y > -0.75 && Math.abs(x) < 0.82));
+    GEO.mask = geoShell((x, y, z) => z > 0.35 && y < -0.28 && y > -0.9, 36, 22);
+    GEO.bandana = geoShell((x, y, z) => y > 0.38 + (z > 0 ? 0 : -0.25 * (-z)), 36, 20);
+    GEO.capS = geoShell((x, y, z) => y > 0.45, 32, 16);
+    GEO.cape = geoSheet(Math.PI - 1.35, Math.PI + 1.35, 0.17, 0.36, 18);
+    GEO.collarH = geoSheet(Math.PI - 1.5, Math.PI + 1.5, 0.12, 0.2, 14);
+    GEO.capelet = geoSheet(-Math.PI, Math.PI, 0.16, 0.3, 28);
   }
 
   /* ---------- engine ---------- */
@@ -2142,26 +2223,31 @@ void main(){
   }
 
   /* ---------- textures ---------- */
-  function faceCanvas(fem) {
-    const cv = document.createElement('canvas'); cv.width = 512; cv.height = 256;
+  function faceCanvas(fem, hc) {
+    const cv = document.createElement('canvas'); cv.width = 1024; cv.height = 512;
     const g = cv.getContext('2d');
-    g.fillStyle = '#ffe2cc'; g.fillRect(0, 0, 512, 256);
-    const ey = 142;
+    g.fillStyle = '#ffe4cf'; g.fillRect(0, 0, 1024, 512);
+    const [hr, hg, hb] = hexRgb(hc || '#2b2230'), lum = (hr * 0.3 + hg * 0.59 + hb * 0.11) / 255;
+    const iris = lum < 0.22 ? '#6d55d6' : lum > 0.85 ? '#5a8de0' : shade(hc, -0.05), irisD = lum < 0.22 ? '#2a1a5e' : shade(hc, -0.6);
+    const ey = 300;
     for (const sx of [-1, 1]) {
-      const ex = 256 + sx * 34;
-      g.fillStyle = '#ffffff'; g.beginPath(); g.ellipse(ex, ey, 13, 17, 0, 0, TAU); g.fill();
-      const gr = g.createLinearGradient(0, ey - 15, 0, ey + 17); gr.addColorStop(0, '#2c1f55'); gr.addColorStop(1, '#9a74e6');
-      g.fillStyle = gr; g.beginPath(); g.ellipse(ex - sx * 1.5, ey + 2, 10.5, 15, 0, 0, TAU); g.fill();
-      g.fillStyle = '#170f28'; g.beginPath(); g.ellipse(ex - sx * 1.5, ey + 1, 5, 8, 0, 0, TAU); g.fill();
-      g.fillStyle = '#ffffff'; g.beginPath(); g.arc(ex - 4, ey - 6, 4, 0, TAU); g.fill(); g.beginPath(); g.arc(ex + 4, ey + 8, 2, 0, TAU); g.fill();
-      g.strokeStyle = '#24152a'; g.lineCap = 'round'; g.lineWidth = 5;
-      g.beginPath(); g.moveTo(ex - 15, ey - 9); g.quadraticCurveTo(ex, ey - 23, ex + 15, ey - 10); g.stroke();
-      if (fem) { g.lineWidth = 3.4; g.beginPath(); g.moveTo(ex + sx * 13, ey - 11); g.lineTo(ex + sx * 21, ey - 18); g.stroke(); g.beginPath(); g.moveTo(ex + sx * 9, ey - 15); g.lineTo(ex + sx * 14, ey - 22); g.stroke(); }
-      g.strokeStyle = '#6a4436'; g.lineWidth = 3; g.beginPath(); g.moveTo(ex - 11, ey - 33); g.quadraticCurveTo(ex, ey - 38, ex + 11, ey - 33); g.stroke();
-      g.fillStyle = 'rgba(255,120,140,.35)'; g.beginPath(); g.ellipse(256 + sx * 52, ey + 26, 12, 6, 0, 0, TAU); g.fill();
+      const ex = 512 + sx * 60;
+      g.fillStyle = '#ffffff'; g.beginPath(); g.ellipse(ex, ey, 25, 33, 0, 0, TAU); g.fill();
+      const gr = g.createLinearGradient(0, ey - 30, 0, ey + 30); gr.addColorStop(0, irisD); gr.addColorStop(0.55, iris); gr.addColorStop(1, shade(iris, 0.45));
+      g.fillStyle = gr; g.beginPath(); g.ellipse(ex - sx * 2, ey + 4, 20, 29, 0, 0, TAU); g.fill();
+      g.fillStyle = 'rgba(10,6,20,.85)'; g.beginPath(); g.ellipse(ex - sx * 2, ey + 2, 9, 14, 0, 0, TAU); g.fill();
+      g.fillStyle = '#fff'; g.beginPath(); g.ellipse(ex - 8, ey - 12, 8, 10, -0.3, 0, TAU); g.fill();
+      g.beginPath(); g.arc(ex + 8, ey + 16, 4, 0, TAU); g.fill();
+      g.strokeStyle = '#1e1224'; g.lineCap = 'round'; g.lineJoin = 'round';
+      g.lineWidth = fem ? 9 : 8; g.beginPath(); g.moveTo(ex - sx * 27, ey - 8); g.quadraticCurveTo(ex - sx * 6, ey - 42, ex + sx * 28, ey - 26); g.stroke();
+      if (fem) { g.lineWidth = 6; g.beginPath(); g.moveTo(ex + sx * 26, ey - 26); g.lineTo(ex + sx * 40, ey - 36); g.stroke(); g.beginPath(); g.moveTo(ex + sx * 22, ey - 32); g.lineTo(ex + sx * 32, ey - 46); g.stroke(); }
+      g.lineWidth = 3; g.strokeStyle = 'rgba(30,18,36,.6)'; g.beginPath(); g.moveTo(ex - sx * 14, ey + 34); g.quadraticCurveTo(ex + sx * 2, ey + 38, ex + sx * 18, ey + 31); g.stroke();
+      g.strokeStyle = shade(hc || '#3a2a2a', -0.35); g.lineWidth = 5; g.beginPath(); g.moveTo(ex - sx * 20, ey - 62); g.quadraticCurveTo(ex + sx * 2, ey - 70, ex + sx * 24, ey - 60); g.stroke();
+      g.fillStyle = 'rgba(255,110,130,.28)'; g.beginPath(); g.ellipse(512 + sx * 92, ey + 48, 22, 11, 0, 0, TAU); g.fill();
     }
-    g.strokeStyle = '#a0504c'; g.lineWidth = 3; g.beginPath();
-    if (fem) { g.moveTo(248, 184); g.quadraticCurveTo(256, 191, 264, 184); } else { g.moveTo(249, 186); g.lineTo(263, 186); }
+    g.fillStyle = 'rgba(200,120,110,.55)'; g.beginPath(); g.ellipse(512, ey + 44, 3.5, 2.5, 0, 0, TAU); g.fill();
+    g.strokeStyle = '#9a4a48'; g.lineWidth = 4; g.lineCap = 'round'; g.beginPath();
+    if (fem) { g.moveTo(498, ey + 74); g.quadraticCurveTo(512, ey + 84, 526, ey + 74); } else { g.moveTo(500, ey + 77); g.quadraticCurveTo(512, ey + 80, 524, ey + 76); }
     g.stroke();
     return cv;
   }
@@ -2188,111 +2274,303 @@ void main(){
   const SKIN3 = c3('#ffe2cc'), WHITE = [1, 1, 1], DARK = [0.09, 0.06, 0.12];
 
   /* ---------- character ---------- */
+  const OUT = {
+    novice: { body: 'tunic', belt: 1, satchel: 1 },
+    swordman: { body: 'tunic', chest: 1, pauld: 1, gaunt: 1, greave: 1, belt: 1, hat: 'band' },
+    knight: { body: 'tunic', chest: 2, pauld: 2, gaunt: 1, greave: 1, cape: 1, tabard: 1, hat: 'circlet' },
+    lordknight: { body: 'tunic', chest: 2, pauld: 3, gaunt: 1, greave: 1, cape: 2, fur: 1, tabard: 1, hat: 'horn' },
+    acolyte: { body: 'robe', sash: 1, collar: 1, hat: 'veil' },
+    priest: { body: 'robe', stole: 1, cape: 1, collar: 1, hat: 'biretta' },
+    highpriest: { body: 'robe', stole: 1, cape: 2, collar: 1, hat: 'mitre', halo: 1 },
+    magician: { body: 'coat', capelet: 1, belt: 1, hat: 'wizard' },
+    wizard: { body: 'coat', cape: 1, collarH: 1, belt: 1, hat: 'wizard2' },
+    highwizard: { body: 'coat', cape: 2, collarH: 1, belt: 1, hat: 'wizard3', orbs: 1 },
+    archer: { body: 'tunic', vest: 1, guard: 1, quiver: 1, belt: 1, hat: 'feather' },
+    hunter: { body: 'tunic', vest: 1, fur: 1, guard: 1, quiver: 1, capelet: 1, belt: 1, hat: 'feather2' },
+    sniper: { body: 'coat', scarf: 1, guard: 1, quiver: 1, belt: 1, hat: 'goggles' },
+    thief: { body: 'tight', mask: 1, pouch: 1, belt: 1, hat: 'bandana' },
+    assassin: { body: 'tight', mask: 1, scarfL: 1, spikes: 1, belt: 1 },
+    assassincross: { body: 'tight', mask: 1, scarfL: 2, spikes: 1, belt: 1, hat: 'hood' },
+    merchant: { body: 'tunic', apron: 1, pack: 1, belt: 1, hat: 'cap' },
+    blacksmith: { body: 'tunic', apron: 2, gaunt: 1, belt: 1, hat: 'goggles' },
+    whitesmith: { body: 'coat', gaunt: 2, capelet: 1, belt: 1, hat: 'goggles2' }
+  };
+  const METAL = ['#b9c2cf', '#b9c2cf', '#a9bbe0', '#e8c25a'];
+  const HR = 0.262, HY = 1.2;
+  const onHead = (yaw, el, r) => [r * Math.cos(el) * Math.sin(yaw), r * Math.sin(el), r * Math.cos(el) * Math.cos(yaw)];
+  function lockAt(E, yaw, el, tilt, roll, w, L, col, fl, mesh, r) {
+    const [x, y, z] = onHead(yaw, el, r || 0.268);
+    E.push(); E.T(x, y, z); E.RY(yaw); E.RX(tilt == null ? -el : tilt); E.RZ(roll || 0); E.Sc(w, L, w); E.part(mesh || 'lockA', col, fl, { ow: 0.011 }); E.pop();
+  }
+  const radial = (el) => -(Math.PI / 2 + el);
+  function hair3(E, look, hc, fl, t, walking, hat) {
+    const st = look.hair | 0, sway = Math.sin(t * 2.3) * 0.05 + (walking ? Math.sin(t * 10) * 0.07 : 0), hood = hat === 'hood' || hat === 'veil';
+    const dark = c3(look.hc || '#2b2230', -0.12);
+    if (!hood) { E.push(); E.T(0, 0.012, -0.012); E.Sc(0.288, 0.29, 0.286); E.part('hair' + st, hc, fl, { ow: 0.014 }); E.pop(); }
+    const covered0 = hat === 'cap' || hat === 'bandana' || hat === 'feather' || hat === 'feather2' || hat === 'biretta' || (hat && hat.startsWith('wizard'));
+    // bangs
+    const bangs = st === 5
+      ? [[-0.55, 0.11, 0.15, 0.15], [-0.28, 0.12, 0.17, 0.1], [0.02, 0.13, 0.22, -0.25], [0.3, 0.13, 0.26, -0.45], [0.58, 0.11, 0.2, -0.3]]
+      : st === 0 ? [[-0.6, 0.1, 0.13, 0.25], [-0.32, 0.11, 0.16, 0.12], [-0.05, 0.11, 0.17, -0.05], [0.22, 0.11, 0.16, -0.15], [0.5, 0.1, 0.13, -0.28]]
+      : [[-0.62, 0.11, 0.15, 0.18], [-0.36, 0.12, 0.17, 0.1], [-0.1, 0.12, 0.18, 0.02], [0.14, 0.12, 0.18, -0.04], [0.4, 0.12, 0.17, -0.1], [0.65, 0.11, 0.15, -0.18]];
+    bangs.forEach(([yw, w, L, rl], i) => lockAt(E, yw, 0.66, null, rl, w, L, i % 2 ? hc : dark, fl, 'lockA'));
+    // side locks
+    const sideL = st === 1 ? 0.34 : st === 2 || st === 3 ? 0.42 : st === 0 ? 0.2 : 0.27;
+    for (const s of [-1, 1]) {
+      lockAt(E, s * 1.2, 0.3, -0.25, s * -0.08, 0.12, sideL, hc, fl, 'lockS');
+      if (st !== 0) lockAt(E, s * 0.95, 0.42, -0.35, s * -0.05, 0.1, sideL * 0.8, dark, fl, 'lockA');
+    }
+    if (hood) return;
+    // back
+    const covered = hat === 'cap' || hat === 'bandana' || hat === 'feather' || hat === 'feather2' || hat === 'biretta' || (hat && hat.startsWith('wizard'));
+    if (st === 0 && !covered) {
+      for (const [yw, el, L] of [[0, 0.95, 0.2], [0.7, 0.75, 0.18], [-0.7, 0.75, 0.18], [1.5, 0.5, 0.16], [-1.5, 0.5, 0.16], [2.4, 0.55, 0.19], [-2.4, 0.55, 0.19], [Math.PI, 0.6, 0.2], [Math.PI, 0.15, 0.17], [2.7, -0.05, 0.15], [-2.7, -0.05, 0.15]])
+        lockAt(E, yw, el, radial(el) + 0.35, 0, 0.12, L, hc, fl, 'lockA');
+    } else {
+      const backL = st === 2 ? 0.7 : st === 1 ? 0.3 : 0.24;
+      for (const yw of [Math.PI, Math.PI - 0.5, Math.PI + 0.5, Math.PI - 1.0, Math.PI + 1.0]) lockAt(E, yw, 0.05, -0.1 + sway * 0.4, 0, st === 2 ? 0.16 : 0.13, backL, hc, fl, st === 2 ? 'lockS' : 'lockA');
+    }
+    if (st === 3) for (const s of [-1, 1]) {
+      E.push(); E.T(s * 0.24, 0.1, -0.1); E.RZ(s * (0.2 + sway * 0.5)); E.RX(0.15);
+      for (const [dx, w, L] of [[0, 0.16, 0.56], [0.03, 0.12, 0.5], [-0.03, 0.12, 0.48]]) { E.push(); E.T(dx, 0, 0); E.Sc(w, L, w); E.part('lockS', hc, fl, { ow: 0.011 }); E.pop(); }
+      E.push(); E.Sc(0.07, 0.05, 0.05); E.part('sphL', c3('#e8576b'), fl, { ow: 0.01 }); E.pop(); E.pop();
+    }
+    if (st === 4) {
+      E.push(); E.T(0, 0.15, -0.26); E.RX(0.45 + sway);
+      for (const [dx, w, L] of [[0, 0.17, 0.55], [0.04, 0.13, 0.5], [-0.04, 0.13, 0.48]]) { E.push(); E.T(dx, 0, 0); E.Sc(w, L, w); E.part('lockS', hc, fl, { ow: 0.011 }); E.pop(); }
+      E.push(); E.Sc(0.06); E.part('sphL', c3('#4a7be0'), fl, { ow: 0.01 }); E.pop(); E.pop();
+    }
+  }
+  function hat3(E, type, pal, tier, fl, t, fem) {
+    if (!type) return;
+    const trim = c3(pal.trim), main = c3(pal.main), metal = c3(METAL[tier]), capeC = c3(pal.cape || pal.main);
+    switch (type) {
+      case 'band': E.push(); E.T(0, 0.07, 0); E.RX(-0.2); E.Sc(0.285); E.part('torus', trim, fl, { ow: 0.01 }); E.pop();
+        for (const s of [-1, 1]) { E.push(); E.T(s * 0.05, 0.06, -0.28); E.RX(0.5); E.RZ(s * 0.4); E.Sc(0.06, 0.16, 0.06); E.part('lockS', trim, fl, { ow: 0.01 }); E.pop(); } break;
+      case 'circlet': case 'horn':
+        E.push(); E.T(0, 0.09, 0); E.RX(-0.18); E.Sc(0.285); E.part('torusT', metal, fl, { ow: 0.008 }); E.pop();
+        E.push(); E.T(0, 0.15, 0.27); E.Sc(0.035, 0.045, 0.03); E.part('sphL', c3(tier >= 3 ? '#ff5a6e' : '#7fd4ff'), 0, { emit: true, ow: 0.008 }); E.pop();
+        if (type === 'horn') for (const s of [-1, 1]) { E.push(); E.T(s * 0.2, 0.2, 0.1); E.RZ(s * 0.5); E.RX(Math.PI - 0.5); E.Sc(0.07, 0.22, 0.07); E.part('lockC', metal, fl, { ow: 0.01 }); E.pop(); }
+        break;
+      case 'veil':
+        if (!fem) { E.push(); E.T(0, 0.04, -0.01); E.Sc(0.3); E.part('capS', main, fl, { ow: 0.012 }); E.pop(); break; }
+        E.push(); E.T(0, 0.01, -0.01); E.Sc(0.3, 0.31, 0.3); E.part('hood', c3('#f4f1ea'), fl, { ow: 0.012 }); E.pop();
+        E.push(); E.T(0, 0.05, -0.03); E.Sc(1.35, 0.5, 1.3); E.part('cape', c3('#f4f1ea'), fl, { outline: false }); E.pop();
+        E.push(); E.T(0, 0.16, 0.25); E.RX(-0.6); E.Sc(0.2, 0.025, 0.05); E.part('box', trim, fl, { ow: 0.008 }); E.pop(); break;
+      case 'biretta':
+        E.push(); E.T(0, 0.23, -0.02); E.RX(-0.15); E.Sc(0.25, 0.1, 0.25); E.part('box', main, fl, { ow: 0.012 }); E.pop();
+        E.push(); E.T(0, 0.3, -0.03); E.Sc(0.045); E.part('sphL', trim, fl, { ow: 0.01 }); E.pop(); break;
+      case 'mitre':
+        E.push(); E.T(0, 0.17, -0.02); E.RX(-0.12); E.Sc(0.2, 0.34, 0.15); E.part('frusS', c3('#fffaf0'), fl, { ow: 0.012 }); E.pop();
+        E.push(); E.T(0, 0.36, 0.06); E.RX(-0.12); E.Sc(0.02, 0.13, 0.01); E.part('box', trim, fl, { ow: 0.006 }); E.pop();
+        E.push(); E.T(0, 0.37, 0.065); E.RX(-0.12); E.Sc(0.08, 0.02, 0.01); E.part('box', trim, fl, { ow: 0.006 }); E.pop();
+        E.push(); E.T(0, 0.18, 0.01); E.RX(-0.12); E.Sc(0.205, 0.04, 0.155); E.part('cyl', trim, fl, { ow: 0.008 }); E.pop(); break;
+      case 'wizard': case 'wizard2': case 'wizard3': {
+        const big = type === 'wizard' ? 1 : type === 'wizard2' ? 1.15 : 1.25, hc2 = c3(pal.cape || pal.main);
+        E.push(); E.T(0, 0.17, -0.02); E.RX(-0.12);
+        E.push(); E.Sc(0.46 * big, 0.025, 0.46 * big); E.part('cyl', hc2, fl, { ow: 0.012 }); E.pop();
+        E.push(); E.Sc(0.25 * big, 0.4 * big, 0.25 * big); E.part('frusS', hc2, fl, { ow: 0.012 }); E.pop();
+        E.push(); E.T(0, 0.38 * big, -0.02); E.RX(-0.9 + Math.sin(t * 2) * 0.05); E.Sc(0.16 * big, 0.28 * big, 0.16 * big); E.part('cone', hc2, fl, { ow: 0.012 }); E.pop();
+        E.push(); E.T(0, 0.03, 0); E.Sc(0.255 * big, 0.04, 0.255 * big); E.part('cyl', trim, fl, { ow: 0.008 }); E.pop();
+        if (type !== 'wizard') { E.push(); E.T(0, 0.06, 0.25 * big); E.Sc(0.05); E.part('sphL', c3(type === 'wizard3' ? '#7ff0ff' : '#ffd36b'), 0, { emit: true, ow: 0.008 }); E.pop(); }
+        E.pop(); break;
+      }
+      case 'feather': case 'feather2':
+        E.push(); E.T(0, 0.12, -0.02); E.RZ(0.15); E.Sc(0.3, 0.3, 0.3); E.part('capS', c3(type === 'feather' ? pal.main : pal.cape || pal.main), fl, { ow: 0.012 }); E.pop();
+        E.push(); E.T(0.17, 0.25, -0.05); E.RZ(-0.9); E.RX(Math.PI - 0.4); E.Sc(0.07, type === 'feather' ? 0.32 : 0.42, 0.07); E.part('lockC', c3(type === 'feather' ? '#e8574a' : '#f2ead6'), fl, { ow: 0.01 }); E.pop(); break;
+      case 'goggles': case 'goggles2':
+        E.push(); E.T(0, 0.12, 0); E.RX(-0.3); E.Sc(0.285); E.part('torusT', c3('#4a3a2a'), fl, { ow: 0.008 }); E.pop();
+        for (const s of [-1, 1]) { E.push(); E.T(s * 0.08, 0.2, 0.22); E.RX(-1.1); E.Sc(0.065, 0.04, 0.065); E.part('cyl', type === 'goggles2' ? c3('#e8c25a') : c3('#8a6a3a'), fl, { ow: 0.008 }); E.pop();
+          E.push(); E.T(s * 0.08, 0.215, 0.255); E.RX(-1.1); E.Sc(0.05, 0.01, 0.05); E.part('cyl', c3('#9fe3ff'), 0, { emit: true, outline: false }); E.pop(); } break;
+      case 'bandana':
+        E.push(); E.T(0, 0.015, -0.01); E.Sc(0.3); E.part('bandana', c3(pal.trim), fl, { ow: 0.012 }); E.pop();
+        for (const s of [-1, 1]) { E.push(); E.T(s * 0.04, 0.02, -0.29); E.RX(0.6 + Math.sin(t * 4 + s) * 0.1); E.RZ(s * 0.35); E.Sc(0.07, 0.2, 0.07); E.part('lockS', c3(pal.trim), fl, { ow: 0.01 }); E.pop(); } break;
+      case 'hood':
+        E.push(); E.T(0, 0.01, -0.01); E.Sc(0.31, 0.32, 0.31); E.part('hood', capeC, fl, { ow: 0.012 }); E.pop();
+        E.push(); E.T(0, 0.2, -0.24); E.RX(-2.3); E.Sc(0.12, 0.22, 0.12); E.part('lockA', capeC, fl, { ow: 0.01 }); E.pop(); break;
+      case 'cap':
+        E.push(); E.T(0, 0.06, -0.01); E.Sc(0.3, 0.3, 0.3); E.part('capS', c3(pal.trim), fl, { ow: 0.012 }); E.pop();
+        E.push(); E.T(0, 0.2, 0.22); E.RX(0.25); E.Sc(0.17, 0.018, 0.12); E.part('cyl', c3(pal.trim, -0.15), fl, { ow: 0.008 }); E.pop(); break;
+    }
+  }
   function weapon3(E, w, tier, fl) {
     const bl = c3(BLADE[tier]), wood = c3('#6b4a2b'), gold = c3('#e2bb52'), glow = tier >= 3;
     E.push();
     switch (w) {
       case 'knife': case 'dual':
-        E.push(); E.T(0, -0.06, 0); E.Sc(0.028, 0.12, 0.028); E.part('cyl', wood, fl); E.pop();
-        E.push(); E.T(0, 0.06, 0); E.Sc(0.045, 0.26, 0.014); E.T(0, 0.5, 0); E.part('box', bl, fl, { emit: glow, ow: 0.012 }); E.pop();
+        E.push(); E.T(0, -0.07, 0); E.Sc(0.026, 0.13, 0.026); E.part('cyl', wood, fl); E.pop();
+        E.push(); E.T(0, 0.05, 0); E.Sc(0.09, 0.025, 0.04); E.part('box', gold, fl, { ow: 0.008 }); E.pop();
+        E.push(); E.T(0, 0.06, 0); E.Sc(0.05, 0.3, 0.014); E.T(0, 0.5, 0); E.part('box', bl, fl, { emit: glow, ow: 0.01 }); E.pop();
         break;
       case 'sword':
-        E.push(); E.T(0, -0.08, 0); E.Sc(0.03, 0.14, 0.03); E.part('cyl', wood, fl); E.pop();
-        E.push(); E.T(0, 0.07, 0); E.Sc(0.2, 0.035, 0.05); E.part('box', tier >= 2 ? gold : c3('#a9a9b5'), fl, { ow: 0.012 }); E.pop();
-        E.push(); E.T(0, 0.08, 0); E.Sc(0.065, 0.58 + tier * 0.05, 0.016); E.T(0, 0.5, 0); E.part('box', bl, fl, { emit: glow, ow: 0.014 }); E.pop();
+        E.push(); E.T(0, -0.12, 0); E.Sc(0.03, 0.17, 0.03); E.part('cyl', wood, fl); E.pop();
+        E.push(); E.T(0, -0.13, 0); E.Sc(0.035); E.part('sphL', gold, fl, { ow: 0.008 }); E.pop();
+        E.push(); E.T(0, 0.06, 0); E.Sc(0.24, 0.04, 0.06); E.part('box', tier >= 2 ? gold : c3('#a9a9b5'), fl, { ow: 0.01 }); E.pop();
+        E.push(); E.T(0, 0.08, 0); E.Sc(0.075, 0.66 + tier * 0.05, 0.018); E.T(0, 0.5, 0); E.part('box', bl, fl, { emit: glow, ow: 0.012 }); E.pop();
+        E.push(); E.T(0, 0.74 + tier * 0.05, 0); E.Sc(0.053, 0.08, 0.013); E.part('cone', bl, fl, { emit: glow, ow: 0.01 }); E.pop();
         break;
       case 'mace':
-        E.push(); E.T(0, -0.1, 0); E.Sc(0.026, 0.55, 0.026); E.part('cyl', c3('#8a6a3a'), fl); E.pop();
-        E.push(); E.T(0, 0.47, 0); E.Sc(0.075); E.part('sph', tier >= 2 ? c3('#f0d27a') : c3('#c9a24a'), fl); E.pop();
-        E.push(); E.T(0, 0.47, 0.06); E.Sc(0.032); E.part('sphL', c3(['#9be7ff', '#9be7ff', '#c8a8ff', '#ffffff'][tier]), 0, { emit: true, outline: false }); E.pop();
+        E.push(); E.T(0, -0.12, 0); E.Sc(0.026, 0.62, 0.026); E.part('cyl', c3('#8a6a3a'), fl); E.pop();
+        E.push(); E.T(0, 0.52, 0); E.Sc(0.075); E.part('sph', tier >= 2 ? c3('#f0d27a') : c3('#c9a24a'), fl); E.pop();
+        E.push(); E.T(0, 0.52, 0); E.RX(Math.PI / 2); E.Sc(0.1); E.part('torusT', gold, fl, { ow: 0.008 }); E.pop();
+        E.push(); E.T(0, 0.52, 0.065); E.Sc(0.03); E.part('sphL', c3(['#9be7ff', '#9be7ff', '#c8a8ff', '#ffffff'][tier]), 0, { emit: true, outline: false }); E.pop();
         break;
       case 'staff':
-        E.push(); E.T(0, -0.42, 0); E.Sc(0.03, 1.22, 0.03); E.part('cyl', wood, fl); E.pop();
-        E.push(); E.T(0, 0.86, 0); E.Sc(0.075, 0.12, 0.075); E.part('sph', c3(['#b8e1ff', '#c9a7ff', '#ff9be0', '#7ff0ff'][tier]), 0, { emit: true, ow: 0.016 }); E.pop();
-        for (const s of [-1, 1]) { E.push(); E.T(s * 0.06, 0.78, 0); E.RZ(-s * 0.5); E.Sc(0.016, 0.12, 0.016); E.part('cyl', gold, fl, { ow: 0.01 }); E.pop(); }
+        E.push(); E.T(0, -0.5, 0); E.Sc(0.03, 1.4, 0.03); E.part('cyl', wood, fl); E.pop();
+        E.push(); E.T(0, 0.98, 0); E.RX(Math.PI / 2); E.Sc(0.1); E.part('torusT', gold, fl, { ow: 0.008 }); E.pop();
+        E.push(); E.T(0, 0.98, 0); E.Sc(0.07, 0.11, 0.07); E.part('sph', c3(['#b8e1ff', '#c9a7ff', '#ff9be0', '#7ff0ff'][tier]), 0, { emit: true, ow: 0.012 }); E.pop();
         break;
       case 'bow':
-        E.push(); E.RX(-0.3); E.Sc(0.024, 0.44, 0.024); E.part('cyl', tier >= 2 ? c3('#3d2a1a') : wood, fl, { ow: 0.012 }); E.pop();
-        E.push(); E.RX(Math.PI + 0.3); E.Sc(0.024, 0.44, 0.024); E.part('cyl', tier >= 2 ? c3('#3d2a1a') : wood, fl, { ow: 0.012 }); E.pop();
-        E.push(); E.T(0, -0.42, -0.13); E.Sc(0.006, 0.84, 0.006); E.part('cyl', WHITE, 0, { emit: true, outline: false }); E.pop();
+        E.push(); E.RX(-0.3); E.Sc(0.026, 0.5, 0.026); E.part('cyl', tier >= 2 ? c3('#3d2a1a') : wood, fl, { ow: 0.01 }); E.pop();
+        E.push(); E.RX(Math.PI + 0.3); E.Sc(0.026, 0.5, 0.026); E.part('cyl', tier >= 2 ? c3('#3d2a1a') : wood, fl, { ow: 0.01 }); E.pop();
+        E.push(); E.T(0, -0.478, -0.148); E.Sc(0.006, 0.956, 0.006); E.part('cyl', WHITE, 0, { emit: true, outline: false }); E.pop();
+        E.push(); E.Sc(0.04, 0.09, 0.04); E.T(0, -0.5, 0); E.part('cyl', c3('#e8d2a0'), fl, { ow: 0.006 }); E.pop();
         break;
       case 'katar':
-        E.push(); E.Sc(0.1, 0.08, 0.06); E.part('box', c3('#3a3346'), fl, { ow: 0.012 }); E.pop();
-        E.push(); E.T(0, 0.04, 0); E.Sc(0.08, 0.34 + tier * 0.03, 0.016); E.T(0, 0.5, 0); E.part('box', bl, fl, { emit: glow, ow: 0.014 }); E.pop();
+        E.push(); E.Sc(0.11, 0.09, 0.07); E.part('box', c3('#3a3346'), fl, { ow: 0.01 }); E.pop();
+        E.push(); E.T(0, 0.04, 0); E.Sc(0.09, 0.4 + tier * 0.03, 0.016); E.T(0, 0.5, 0); E.part('box', bl, fl, { emit: glow, ow: 0.012 }); E.pop();
+        E.push(); E.T(0, 0.45 + tier * 0.03, 0); E.Sc(0.064, 0.1, 0.012); E.part('cone', bl, fl, { emit: glow, ow: 0.01 }); E.pop();
         break;
       case 'axe':
-        E.push(); E.T(0, -0.25, 0); E.Sc(0.032, 1.0, 0.032); E.part('cyl', wood, fl); E.pop();
-        E.push(); E.T(0, 0.6, 0.12); E.Sc(0.022, 0.3, 0.2); E.part('box', bl, fl, { emit: glow, ow: 0.016 }); E.pop();
-        E.push(); E.T(0, 0.62, -0.07); E.Sc(0.022, 0.1, 0.1); E.part('box', bl, fl, { ow: 0.012 }); E.pop();
+        E.push(); E.T(0, -0.3, 0); E.Sc(0.034, 1.12, 0.034); E.part('cyl', wood, fl); E.pop();
+        E.push(); E.T(0, 0.7, 0.12); E.Sc(0.024, 0.26, 0.2); E.part('box', bl, fl, { emit: glow, ow: 0.014 }); E.pop();
+        E.push(); E.T(0, 0.7, 0.22); E.Sc(0.022, 0.21, 0.075); E.part('sph', bl, fl, { emit: glow, ow: 0.012 }); E.pop();
+        E.push(); E.T(0, 0.72, -0.08); E.Sc(0.024, 0.12, 0.12); E.part('box', bl, fl, { ow: 0.01 }); E.pop();
         break;
     }
     E.pop();
   }
+
+  function gearHead(E, id, hc, fl, t) {
+    const gold = c3('#e8c25a');
+    if (id === 'ribbon') { E.push(); E.T(0.13, 0.25, -0.05); E.RZ(-0.5); for (const s of [-1, 1]) { E.push(); E.T(s * 0.07, 0, 0); E.RZ(s * 0.7); E.Sc(0.085, 0.05, 0.04); E.part('sph', c3('#e8384f'), fl, { ow: 0.01 }); E.pop(); } E.Sc(0.035); E.part('sphL', c3('#b81f36'), fl, { ow: 0.008 }); E.pop(); }
+    if (id === 'catears') for (const s of [-1, 1]) { E.push(); E.T(s * 0.15, 0.23, -0.01); E.RZ(-s * 0.35); E.Sc(0.085, 0.13, 0.045); E.part('cone', hc, fl, { ow: 0.01 }); E.pop(); E.push(); E.T(s * 0.15, 0.225, 0.02); E.RZ(-s * 0.35); E.Sc(0.05, 0.09, 0.02); E.part('cone', c3('#ffb3c8'), fl, { outline: false }); E.pop(); }
+    if (id === 'flower') { E.push(); E.T(0.2, 0.13, 0.12); E.RY(0.9); for (let i = 0; i < 5; i++) { const a = i / 5 * TAU; E.push(); E.T(Math.cos(a) * 0.04, Math.sin(a) * 0.04, 0); E.Sc(0.035, 0.035, 0.015); E.part('sphL', c3('#fff2a8'), fl, { ow: 0.006 }); E.pop(); } E.Sc(0.025); E.part('sphL', c3('#f0a030'), fl, { outline: false }); E.pop(); }
+    if (id === 'crown') { E.push(); E.T(0, 0.2, -0.01); E.RX(-0.1); E.push(); E.Sc(0.17, 0.06, 0.17); E.part('cyl', gold, fl, { ow: 0.01 }); E.pop();
+      for (let i = 0; i < 6; i++) { const a = i / 6 * TAU; E.push(); E.T(Math.sin(a) * 0.16, 0.06, Math.cos(a) * 0.16); E.Sc(0.035, 0.08, 0.035); E.part('cone', gold, fl, { ow: 0.008 }); E.pop(); }
+      E.push(); E.T(0, 0.03, 0.17); E.Sc(0.03); E.part('sphL', c3('#ff4a6a'), 0, { emit: true, ow: 0.006 }); E.pop(); E.pop(); }
+  }
+  function gearFace(E, id, fl) {
+    if (id === 'glasses') { for (const s of [-1, 1]) { E.push(); E.T(s * 0.09, -0.05, 0.245); E.RX(Math.PI / 2); E.Sc(0.058); E.part('torusT', c3('#3a2a24'), fl, { ow: 0.006 }); E.pop(); } E.push(); E.T(0, -0.04, 0.262); E.Sc(0.05, 0.012, 0.012); E.part('box', c3('#3a2a24'), fl, { outline: false }); E.pop(); }
+    if (id === 'blindfold') { E.push(); E.T(0, -0.02, 0); E.Sc(0.27, 0.075, 0.262); E.T(0, -0.5, 0); E.part('cyl', c3('#262030'), fl, { ow: 0.01 }); E.pop(); E.push(); E.T(0.05, -0.06, -0.27); E.RX(0.6); E.Sc(0.05, 0.16, 0.05); E.part('lockS', c3('#262030'), fl, { ow: 0.008 }); E.pop(); }
+    if (id === 'butterfly') for (const s of [-1, 1]) { E.push(); E.T(s * 0.09, -0.04, 0.24); E.RZ(s * 0.35); E.Sc(0.1, 0.07, 0.03); E.part('sph', c3('#b061e0'), fl, { ow: 0.008 }); E.pop(); E.push(); E.T(s * 0.09, -0.04, 0.262); E.Sc(0.03, 0.02, 0.01); E.part('sphL', c3('#2a1a3a'), fl, { outline: false }); E.pop(); }
+  }
+  function gearMouth(E, id, fl) {
+    if (id === 'pipe') { E.push(); E.T(0.05, -0.17, 0.235); E.RY(0.5); E.RX(1.35); E.Sc(0.012, 0.13, 0.012); E.part('cyl', c3('#5a3a24'), fl, { ow: 0.006 }); E.pop(); E.push(); E.T(0.11, -0.16, 0.33); E.Sc(0.03, 0.04, 0.03); E.part('frusS', c3('#6b4a2b'), fl, { ow: 0.006 }); E.pop(); }
+    if (id === 'clothmask') { E.push(); E.T(0, 0, 0.005); E.Sc(HR * 1.04); E.part('mask', c3('#f2f2f2'), fl, { ow: 0.01 }); E.pop(); }
+    if (id === 'lolli') { E.push(); E.T(0.03, -0.18, 0.24); E.RZ(-0.5); E.RX(1.2); E.Sc(0.01, 0.12, 0.01); E.part('cyl', WHITE, fl, { ow: 0.004 }); E.pop(); E.push(); E.T(0.09, -0.12, 0.33); E.Sc(0.05, 0.05, 0.015); E.part('sph', c3('#ff6fae'), fl, { ow: 0.008 }); E.pop(); }
+  }
+  function gearWings(E, id, fl, t) {
+    const f = Math.sin(t * 3) * 0.12;
+    for (const s of [-1, 1]) {
+      E.push(); E.T(s * 0.07, 0.86, -0.16); E.RY(-s * 0.45);
+      if (id === 'angel') for (let i = 0; i < 5; i++) { E.push(); E.RZ(s * (2.0 + i * 0.16 + f)); E.Sc(0.13 - i * 0.012, 0.5 - i * 0.06, 0.13); E.part('lockA', c3('#ffffff', -0.02 * i), fl, { ow: 0.01 }); E.pop(); }
+      if (id === 'demon') { E.push(); E.RZ(s * (2.2 + f)); E.T(0, -0.25, 0); E.Sc(0.2, 0.3, 0.025); E.part('sph', c3('#3a2050'), fl, { ow: 0.01 }); E.pop(); E.push(); E.RZ(s * (2.2 + f)); E.T(0, -0.5, 0); E.Sc(0.03, 0.12, 0.03); E.part('cone', c3('#1d1028'), fl, { ow: 0.008 }); E.pop(); }
+      if (id === 'fairy') for (const [a, L] of [[2.1, 0.32], [2.7, 0.24]]) { E.push(); E.RZ(s * (a + f * 1.5)); E.T(0, -L * 0.5, 0); E.Sc(0.1, L * 0.5, 0.012); E.part('sph', c3('#b8f2ff'), 0, { emit: true, outline: false }); E.pop(); }
+      E.pop();
+    }
+  }
   function drawChar(E, look, jobId, wstyle, A) {
-    const J = JOBS[jobId] || JOBS.novice, pal = J.look, tier = J.tier, w = weaponOf(jobId, wstyle);
-    const fem = look.g === 'f', t = A.t || 0, fl = A.flash || 0, hc = c3(look.hc || '#2b2230');
-    const main = c3(pal.main), trim = c3(pal.trim);
+    const J = JOBS[jobId] || JOBS.novice, pal = J.look, tier = J.tier, w = weaponOf(jobId, wstyle), O = OUT[jobId] || OUT.novice;
+    const fem = look.g === 'f', t = A.t || 0, fl = A.flash || 0, hc = c3(look.hc || '#2b2230'), EV = A.eq || {};
+    const main = c3(pal.main), trim = c3(pal.trim), pants = c3(pal.pants), boots = c3(pal.boots), metal = c3(METAL[tier]), capeC = c3(pal.cape || pal.main);
     const wk = A.walking ? Math.sin(t * 10) : 0;
-    const bob = A.walking ? Math.abs(Math.sin(t * 10)) * 0.035 : Math.sin(t * 2.2) * 0.01;
+    const bob = A.walking ? Math.abs(Math.sin(t * 10)) * 0.03 : Math.sin(t * 2.2) * 0.008;
     const sw = A.swing != null && A.swing >= 0 && A.swing <= 1 ? A.swing : -1;
     const k = sw >= 0 ? Math.sin(Math.PI * Math.min(1, sw * 1.12)) : 0;
     E.push();
-    if (A.dead) { E.T(0, 0.12, 0); E.RX(-1.45); }
+    if (A.dead) { E.T(0, 0.14, 0); E.RX(-1.45); }
     E.T(0, bob, 0);
-    for (const [lx, sg] of [[-0.09, 1], [0.09, -1]]) {
-      E.push(); E.T(lx, 0.34, 0); E.RX(wk * 0.65 * sg);
-      E.push(); E.T(0, -0.3, 0); E.Sc(0.075, 0.3, 0.075); E.part('cyl', fem ? SKIN3 : c3(pal.pants), fl); E.pop();
-      E.push(); E.T(0, -0.34, 0.01); E.Sc(0.087, fem ? 0.2 : 0.13, 0.092); E.part('cyl', c3(pal.boots), fl); E.pop();
-      E.push(); E.T(0, -0.31, 0.06); E.Sc(0.078, 0.05, 0.1); E.part('sphL', c3(pal.boots), fl); E.pop();
+    if (A.walking) E.RX(0.06);
+    // legs & boots
+    for (const [lx, sg] of [[-0.085, 1], [0.085, -1]]) {
+      E.push(); E.T(lx, 0.55, 0); E.RX(wk * 0.6 * sg);
+      E.push(); E.T(0, -0.43, 0); E.Sc(0.066, 0.43, 0.066); E.part('cyl', fem && O.body !== 'tight' ? c3('#fff2e6') : pants, fl); E.pop();
+      const bh = fem || O.greave ? 0.24 : 0.17;
+      E.push(); E.T(0, -0.54, 0.005); E.Sc(0.083, bh, 0.088); E.part('frusT', boots, fl); E.pop();
+      E.push(); E.T(0, -0.5, 0.055); E.Sc(0.075, 0.05, 0.1); E.part('sphL', boots, fl); E.pop();
+      E.push(); E.T(0, -0.54 + bh, 0.005); E.Sc(0.09, 0.03, 0.095); E.part('cyl', trim, fl, { ow: 0.008 }); E.pop();
+      if (O.greave) { E.push(); E.T(0, -0.4, 0.02); E.Sc(0.084, 0.2, 0.08); E.part('cyl', metal, fl, { ow: 0.01 }); E.pop(); E.push(); E.T(0, -0.21, 0.04); E.Sc(0.06, 0.05, 0.05); E.part('sphL', metal, fl, { ow: 0.008 }); E.pop(); }
       E.pop();
     }
-    if (fem) { E.push(); E.T(0, 0.23, 0); E.Sc(0.3, 0.2, 0.27); E.part('frusS', main, fl); E.pop(); }
-    else { E.push(); E.T(0, 0.27, 0); E.Sc(0.22, 0.12, 0.19); E.part('frusS', main, fl); E.pop(); }
-    E.push(); E.T(0, 0.33, 0); E.Sc(0.19, 0.31, 0.16); E.part('frusT', main, fl); E.pop();
-    E.push(); E.T(0, 0.36, 0); E.Sc(0.198, 0.045, 0.165); E.part('cyl', trim, fl, { ow: 0.012 }); E.pop();
-    E.push(); E.T(0, 0.6, 0); E.Sc(0.12, 0.05, 0.11); E.part('cyl', trim, fl, { ow: 0.012 }); E.pop();
-    E.push(); E.T(0, 0.52, 0.135); E.RX(0.25); E.Sc(0.05, 0.13, 0.02); E.part('box', trim, fl, { ow: 0.01 }); E.pop();
-    if (tier >= 3) { E.push(); E.T(0, 0.5, 0.16); E.Sc(0.045); E.part('sphL', trim, 0, { emit: true, ow: 0.012 }); E.pop(); }
-    if (tier >= 2) for (const s of [-1, 1]) { E.push(); E.T(s * 0.205, 0.62, 0); E.Sc(0.105, 0.07, 0.1); E.part('sph', trim, fl); E.pop(); }
-    if (pal.cape) { E.push(); E.T(0, 0.64, -0.14); E.RX(0.16 + (A.walking ? 0.22 : 0) + Math.sin(t * 3) * 0.04); E.T(0, -0.25, 0); E.Sc(0.36, 0.5, 0.03); E.part('box', c3(pal.cape), fl); E.pop(); }
-    E.push(); E.T(0, 0.6, 0); E.Sc(0.06, 0.1, 0.06); E.part('cyl', SKIN3, fl, { outline: false }); E.pop();
-    // arm poses
+    // hips / skirt
+    E.push(); E.T(0, 0.55, 0); E.Sc(0.165, 0.09, 0.13); E.part('sph', O.body === 'robe' ? main : pants, fl); E.pop();
+    if (O.body === 'robe') { E.push(); E.T(0, 0.09, 0); E.Sc(0.31, 0.6, 0.27); E.part('frusS', main, fl); E.pop(); E.push(); E.T(0, 0.09, 0); E.Sc(0.312, 0.05, 0.272); E.part('cyl', trim, fl, { ow: 0.01 }); E.pop(); }
+    else if (O.body === 'coat') { E.push(); E.T(0, 0.27, -0.01); E.Sc(0.26, 0.4, 0.23); E.part('frusS', main, fl); E.pop(); E.push(); E.T(0, 0.27, -0.01); E.Sc(0.262, 0.04, 0.232); E.part('cyl', trim, fl, { ow: 0.01 }); E.pop(); }
+    else if (O.body === 'tunic') { const fr = fem ? 0.26 : 0.215; E.push(); E.T(0, 0.38, 0); E.Sc(fr, 0.24, fr * 0.88); E.part('frusS', main, fl); E.pop(); E.push(); E.T(0, 0.38, 0); E.Sc(fr + 0.002, 0.035, fr * 0.88 + 0.002); E.part('cyl', trim, fl, { ow: 0.01 }); E.pop(); }
+    else if (fem) { E.push(); E.T(0, 0.45, 0); E.Sc(0.2, 0.13, 0.17); E.part('frusS', pants, fl); E.pop(); }
+    // torso
+    const slim = O.body === 'tight' ? 0.9 : 1;
+    E.push(); E.T(0, 0.58, 0); E.Sc(0.15 * slim, 0.2, 0.12); E.part('frusT', main, fl); E.pop();
+    E.push(); E.T(0, 0.8, 0); E.Sc(0.185 * slim, 0.17, 0.135); E.part('sph', main, fl); E.pop();
+    if (O.vest) { E.push(); E.T(0, 0.79, 0.01); E.Sc(0.19, 0.16, 0.135); E.part('sph', c3('#7a5532'), fl); E.pop(); }
+    if (O.chest) { const b = O.chest === 2 ? 1.04 : 1; E.push(); E.T(0, 0.8, 0.02); E.Sc(0.19 * b, 0.16 * b, 0.14 * b); E.part('sph', metal, fl); E.pop(); E.push(); E.T(0, 0.83, 0.15 * b); E.Sc(0.035); E.part('sphL', trim, fl, { ow: 0.008 }); E.pop(); }
+    if (O.belt) { E.push(); E.T(0, 0.61, 0); E.Sc(0.158 * slim, 0.035, 0.128); E.part('cyl', c3('#5a3f28'), fl, { ow: 0.008 }); E.pop(); E.push(); E.T(0, 0.627, 0.128); E.Sc(0.045, 0.04, 0.015); E.part('box', c3('#e2bb52'), fl, { ow: 0.006 }); E.pop(); }
+    if (O.sash) { E.push(); E.T(0, 0.75, 0.02); E.RZ(0.7); E.Sc(0.05, 0.42, 0.29); E.part('box', trim, fl, { ow: 0.008 }); E.pop(); }
+    if (O.tabard) { E.push(); E.T(0, 0.62, 0.15); E.RX(-0.08); E.Sc(0.17, 0.5, 0.02); E.T(0, -0.25, 0); E.part('box', capeC, fl, { ow: 0.01 }); E.pop(); E.push(); E.T(0, 0.55, 0.17); E.Sc(0.05); E.part('sphL', trim, fl, { ow: 0.008 }); E.pop(); }
+    if (O.apron) { const ac = c3(O.apron === 2 ? '#3d2a1e' : '#8a6a46'); E.push(); E.T(0, 0.88, 0.13); E.RX(-0.06); E.Sc(0.22, 0.6, 0.02); E.T(0, -0.5, 0); E.part('box', ac, fl, { ow: 0.01 }); E.pop(); }
+    if (O.stole) for (const s of [-1, 1]) { E.push(); E.T(s * 0.07, 0.9, 0.13); E.RX(-0.1); E.Sc(0.05, 0.62, 0.02); E.T(0, -0.5, 0); E.part('box', trim, fl, { ow: 0.008 }); E.pop(); }
+    if (O.pouch) for (const s of [-1, 1]) { E.push(); E.T(s * 0.13, 0.57, 0.08); E.Sc(0.06, 0.07, 0.04); E.part('box', c3('#6b4a2b'), fl, { ow: 0.008 }); E.pop(); }
+    if (O.satchel) { E.push(); E.T(0.15, 0.5, 0.06); E.Sc(0.08, 0.08, 0.05); E.part('box', c3('#8a6a46'), fl, { ow: 0.008 }); E.pop(); E.push(); E.T(0, 0.75, 0.02); E.RZ(-0.75); E.Sc(0.025, 0.4, 0.29); E.part('box', c3('#6b4a2b'), fl, { ow: 0.006 }); E.pop(); }
+    // back items
+    if (O.cape) { const L = O.cape === 2 ? 0.86 : 0.66; E.push(); E.T(0, 0.95, -0.015); E.RX(0.08 + (A.walking ? 0.25 : 0) + Math.sin(t * 2.5) * 0.04); E.Sc(1, L, 1); E.part('cape', capeC, fl, { outline: false }); E.pop(); }
+    if (O.quiver) { E.push(); E.T(0.06, 0.82, -0.17); E.RZ(-0.4); E.RX(-0.2); E.Sc(0.06, 0.38, 0.06); E.T(0, -0.5, 0); E.part('cyl', c3('#6b4a2b'), fl, { ow: 0.01 }); E.pop();
+      for (let i = 0; i < 3; i++) { E.push(); E.T(0.12 + i * 0.025, 1.0, -0.2 + i * 0.01); E.RZ(-0.4); E.Sc(0.022, 0.06, 0.022); E.part('cone', c3(i % 2 ? '#e8574a' : '#f2ead6'), fl, { ow: 0.006 }); E.pop(); } }
+    if (O.pack) { E.push(); E.T(0, 0.78, -0.2); E.Sc(0.17, 0.2, 0.11); E.part('sph', c3('#8a6a46'), fl); E.pop(); E.push(); E.T(0, 0.98, -0.2); E.RZ(Math.PI / 2); E.Sc(0.06, 0.34, 0.06); E.T(0, -0.5, 0); E.part('cyl', c3('#b0503a'), fl, { ow: 0.01 }); E.pop(); }
+    if (O.scarfL) { const L = O.scarfL === 2 ? 0.75 : 0.55; for (const s of [-1, 1]) { E.push(); E.T(s * 0.05, 0.96, -0.12); E.RX(0.35 + (A.walking ? 0.5 : 0) + Math.sin(t * 5 + s) * 0.12); E.RZ(s * 0.12); E.Sc(0.07, L, 0.02); E.T(0, -0.5, 0); E.part('box', trim, fl, { ow: 0.008 }); E.pop(); } }
+    // neck & collar
+    E.push(); E.T(0, 0.93, 0); E.Sc(0.055, 0.1, 0.055); E.part('cyl', SKIN3, fl, { outline: false }); E.pop();
+    if (O.collar) { E.push(); E.T(0, 0.96, 0); E.Sc(0.12); E.part('torus', trim, fl, { ow: 0.008 }); E.pop(); }
+    if (O.fur) { E.push(); E.T(0, 0.93, -0.01); E.Sc(0.15, 0.09, 0.14); E.part('torusF', c3('#efe6d8'), fl, { ow: 0.012 }); E.pop(); }
+    if (O.scarf || O.mask) { E.push(); E.T(0, 0.95, 0); E.Sc(0.115, 0.13, 0.115); E.part('torusF', c3(O.mask ? pal.trim : '#c9a24a'), fl, { ow: 0.01 }); E.pop(); }
+    if (O.collarH) { E.push(); E.T(0, 0.9, 0); E.RZ(Math.PI); E.Sc(1, 0.3, 1); E.part('collarH', capeC, fl, { outline: false }); E.pop(); }
+    if (O.capelet) { E.push(); E.T(0, 0.98, 0); E.Sc(1.05, 0.24, 1.05); E.part('capelet', capeC, fl, { outline: false }); E.pop(); E.push(); E.T(0, 0.745, 0); E.Sc(0.315, 0.025, 0.315); E.part('cyl', trim, fl, { ow: 0.006 }); E.pop(); }
+    // shoulders
+    if (O.pauld) for (const s of [-1, 1]) {
+      const sz = [0, 0.11, 0.135, 0.16][O.pauld];
+      E.push(); E.T(s * 0.21, 0.9, 0); E.RZ(-s * 0.35); E.Sc(sz, sz * 0.75, sz * 0.95); E.part('sph', metal, fl); E.pop();
+      E.push(); E.T(s * 0.21, 0.88, 0); E.RZ(-s * 0.35); E.Sc(sz * 1.02, sz * 0.75, sz * 0.97); E.part('torusT', trim, fl, { ow: 0.008 }); E.pop();
+      if (O.pauld === 3) { E.push(); E.T(s * 0.27, 0.98, 0); E.RZ(-s * 0.9); E.Sc(0.04, 0.12, 0.04); E.part('cone', c3('#f2ead6'), fl, { ow: 0.008 }); E.pop(); }
+    }
+    if (O.spikes) for (const s of [-1, 1]) { E.push(); E.T(s * 0.21, 0.92, -0.02); E.RZ(-s * 0.6); E.RX(-0.4); E.Sc(0.045, 0.14, 0.03); E.part('cone', c3(pal.trim), fl, { ow: 0.008 }); E.pop(); }
+    // arms
     const mode = w === 'staff' ? 'raise' : w === 'bow' ? 'aim' : 'sweep';
-    let thW = -0.25 + wk * 0.4, phW = 1.35, yaw = 0, thO = -0.12 - wk * 0.4;
-    if (mode === 'sweep' && k > 0) { thW = -0.25 - 1.2 * k; phW = 1.35 + 1.6 * k; yaw = (sw < 0.35 ? sw / 0.35 : 1 - 2.2 * easeOut((sw - 0.35) / 0.65)) * Math.min(1, k * 2); }
-    if (mode === 'raise') { thW = -0.25 - 2.3 * k + wk * 0.3; phW = 0.15 - thW; }
-    if (mode === 'aim') { thW = -0.25 - 1.3 * Math.max(k, 0.0); phW = -thW + 0.15; }
-    const arm = (sx, th, yw, side) => {
-      E.push(); E.T(sx, 0.6, 0); E.RY(yw); E.RX(th); E.RZ(side * 0.12);
-      E.push(); E.T(0, -0.27, 0); E.Sc(0.056, 0.27, 0.056); E.part('cyl', main, fl); E.pop();
-      E.T(0, -0.3, 0); E.push(); E.Sc(0.066); E.part('sphL', SKIN3, fl); E.pop();
+    let thW = -0.15 + wk * 0.4, phW = 0.55, yaw = 0, thO = -0.08 - wk * 0.4;
+    if (mode === 'sweep' && k > 0) { thW = -0.15 - 1.3 * k; phW = 0.55 + 2.4 * k; yaw = (sw < 0.35 ? sw / 0.35 : 1 - 2.2 * easeOut((sw - 0.35) / 0.65)) * Math.min(1, k * 2); }
+    if (mode === 'raise') { thW = -0.15 - 2.3 * k + wk * 0.3; phW = 0.12 - thW; }
+    if (mode === 'aim') { thW = -0.2 - 1.3 * k; phW = -thW + 0.1; }
+    const arm = (sx, th, yw, side, gaunt, guard) => {
+      E.push(); E.T(sx, 0.88, 0); E.RY(yw); E.RX(th); E.RZ(side * 0.14);
+      E.push(); E.T(0, -0.33, 0); E.Sc(0.052, 0.33, 0.052); E.part('frusT', main, fl); E.pop();
+      if (O.body === 'robe' || O.body === 'coat') { E.push(); E.T(0, -0.32, 0); E.Sc(0.075, 0.14, 0.075); E.part('frusS', main, fl); E.pop(); E.push(); E.T(0, -0.32, 0); E.Sc(0.076, 0.02, 0.076); E.part('cyl', trim, fl, { ow: 0.006 }); E.pop(); }
+      if (gaunt) { E.push(); E.T(0, -0.33, 0); E.Sc(0.066, 0.14, 0.066); E.part('cyl', metal, fl, { ow: 0.01 }); E.pop(); }
+      if (guard) { E.push(); E.T(0, -0.3, 0); E.Sc(0.062, 0.11, 0.062); E.part('cyl', c3('#7a5532'), fl, { ow: 0.008 }); E.pop(); }
+      E.T(0, -0.37, 0); E.push(); E.Sc(0.058, 0.065, 0.055); E.part('sphL', gaunt === 2 ? metal : SKIN3, fl); E.pop();
     };
-    arm(-0.215, thW, yaw * 1.1, -1); E.RX(phW); weapon3(E, w, tier, fl); E.pop();
-    const thOff = w === 'dual' ? (k > 0 ? -0.25 - 1.2 * Math.max(0, Math.sin(Math.PI * clamp(sw * 1.12 - 0.3, 0, 1))) : thO) : (mode === 'aim' ? thW : thO);
-    arm(0.215, thOff, w === 'dual' ? -yaw : 0, 1);
-    if (w === 'dual') { E.RX(1.35 + 1.2 * k); weapon3(E, 'dual', tier, fl); }
+    arm(-0.215, thW, yaw * 1.1, -1, O.gaunt, 0); E.RZ(0.25); E.RX(phW); weapon3(E, w, tier, fl); E.pop();
+    const thOff = w === 'dual' ? (k > 0 ? -0.15 - 1.3 * Math.max(0, Math.sin(Math.PI * clamp(sw * 1.12 - 0.3, 0, 1))) : thO) : (mode === 'aim' ? thW : thO);
+    arm(0.215, thOff, w === 'dual' ? -yaw : 0, 1, O.gaunt, O.guard);
+    if (w === 'dual') { E.RZ(-0.25); E.RX(0.55 + 2.4 * k); weapon3(E, 'dual', tier, fl); }
     if (w === 'sword' || w === 'mace') {
       const sc = c3(w === 'mace' ? ['#e9e2cf', '#f2ebd8', '#f6f0ff', '#fff6dc'][tier] : ['#9aa7b8', '#8fa0bd', '#6f8fd0', '#d8b04a'][tier]);
-      E.push(); E.T(0.06, 0.06, 0.02); E.RZ(-Math.PI / 2); E.Sc(w === 'mace' ? 0.15 : 0.19, 0.045, w === 'mace' ? 0.15 : 0.19); E.T(0, -0.5, 0); E.part('cyl', sc, fl); E.pop();
-      E.push(); E.T(0.11, 0.06, 0.02); E.Sc(0.045); E.part('sphL', trim, fl, { ow: 0.01 }); E.pop();
+      E.push(); E.T(0.06, 0.04, 0.01); E.Sc(0.05, w === 'mace' ? 0.17 : 0.21, w === 'mace' ? 0.15 : 0.18); E.part('sph', sc, fl); E.pop();
+      E.push(); E.T(0.075, 0.04, 0.01); E.RZ(Math.PI / 2); E.Sc(w === 'mace' ? 0.13 : 0.16, 0.03, w === 'mace' ? 0.15 : 0.18); E.part('torusT', trim, fl, { ow: 0.006 }); E.pop();
+      E.push(); E.T(0.11, 0.05, 0.01); E.Sc(0.035); E.part('sphL', c3(METAL[3]), fl, { ow: 0.006 }); E.pop();
     }
     E.pop();
+    if (EV.wings) gearWings(E, EV.wings, fl, t);
     // head
-    E.push(); E.T(0, 0.97, 0);
-    E.push(); E.Sc(0.3); E.part('sph', WHITE, fl, { tex: texOf(E, fem ? 'faceF' : 'faceM', () => faceCanvas(fem)) }); E.pop();
-    const st = look.hair | 0, sway = Math.sin(t * 2.4) * 0.06 + (A.walking ? Math.sin(t * 10) * 0.08 : 0);
-    if (st === 2) { E.push(); E.T(0, -0.3, -0.17); E.Sc(0.29, 0.46, 0.13); E.part('sph', hc, fl); E.pop(); for (const s of [-1, 1]) { E.push(); E.T(s * 0.26, -0.2, 0.06); E.Sc(0.07, 0.22, 0.07); E.part('sph', hc, fl); E.pop(); } }
-    if (st === 3) for (const s of [-1, 1]) {
-      E.push(); E.T(s * 0.3, 0.06, -0.12); E.RZ(s * 0.35 + sway * s); E.T(0, -0.24, 0); E.Sc(0.1, 0.27, 0.1); E.part('sph', hc, fl); E.pop();
-      E.push(); E.T(s * 0.29, 0.1, -0.1); E.Sc(0.065, 0.05, 0.045); E.part('sphL', c3('#e8576b'), fl, { ow: 0.01 }); E.pop();
-    }
-    if (st === 4) { E.push(); E.T(0, 0.14, -0.31); E.RX(-0.55 + sway); E.T(0, -0.22, 0); E.Sc(0.1, 0.26, 0.1); E.part('sph', hc, fl); E.pop(); E.push(); E.T(0, 0.15, -0.3); E.Sc(0.06); E.part('sphL', c3('#4a7be0'), fl, { ow: 0.01 }); E.pop(); }
-    if (st === 0) for (const [yw, pt, sz] of [[0, -0.25, 1], [0.75, -0.55, 0.9], [-0.75, -0.55, 0.9], [0, -0.95, 1], [1.25, -1.05, 0.8], [-1.25, -1.05, 0.8], [0.55, -1.45, 0.85], [-0.55, -1.45, 0.85]]) {
-      E.push(); E.RY(yw); E.RX(pt); E.T(0, 0.26, 0); E.Sc(0.085 * sz, 0.17 * sz, 0.085 * sz); E.part('cone', hc, fl, { ow: 0.014 }); E.pop();
-    }
-    if (st === 5) { E.push(); E.T(-0.17, -0.02, 0.24); E.RZ(-0.3); E.Sc(0.07, 0.15, 0.05); E.part('sph', hc, fl, { ow: 0.014 }); E.pop(); }
-    E.push(); E.T(0, 0.01, -0.012); E.Sc(0.322, 0.33, 0.33); E.part('hair' + st, hc, fl); E.pop();
+    E.push(); E.T(0, HY, 0); if (!A.dead) E.RZ(Math.sin(t * 1.3) * 0.03);
+    E.push(); E.Sc(HR, HR * 0.97, HR * 0.96); E.part('sph', WHITE, fl, { tex: texOf(E, 'face' + (fem ? 'F' : 'M') + (look.hc || ''), () => faceCanvas(fem, look.hc)) }); E.pop();
+    if (O.mask && !EV.mouth) { E.push(); E.T(0, 0, 0.005); E.Sc(HR * 1.04); E.part('mask', c3(pal.trim), fl, { ow: 0.01 }); E.pop(); }
+    const hatT = EV.head ? null : O.hat;
+    hair3(E, look, hc, fl, t, A.walking, hatT === 'veil' && !fem ? null : hatT);
+    if (EV.head) gearHead(E, EV.head, hc, fl, t); else hat3(E, O.hat, pal, tier, fl, t, fem);
+    if (EV.face) gearFace(E, EV.face, fl);
+    if (EV.mouth) gearMouth(E, EV.mouth, fl);
     E.pop();
+    if (O.halo) { E.push(); E.T(0, HY + 0.05, -0.3); E.RX(Math.PI / 2 - 0.2); E.RZ(t * 0.6); E.Sc(0.3); E.part('torusT', c3('#ffe08a'), 0, { emit: true, outline: false }); E.pop(); }
+    if (O.orbs) for (let i = 0; i < 3; i++) { const a = t * 1.6 + i * TAU / 3; E.push(); E.T(Math.cos(a) * 0.48, 0.95 + Math.sin(t * 2 + i) * 0.08, Math.sin(a) * 0.48); E.Sc(0.055); E.part('sphL', c3(['#7ff0ff', '#c9a7ff', '#ffd36b'][i]), 0, { emit: true, ow: 0.008 }); E.pop(); }
     E.pop();
   }
 
@@ -2554,9 +2832,9 @@ void main(){
     for (const m of ents) if (m.alpha > 0.02 && m._vis) drawMon(E, m, t);
     const h = S.hero;
     E.push(); E.T(P.X, 0, P.Z); E.RY(P._fa || 0);
-    drawChar(E, h.look, h.job, h.wstyle, { t, walking: P.walking, swing: (t - P.swingT) / 0.3, flash: t - P.hurtT < 0.1 ? 0.45 : 0, dead: P.dead });
+    drawChar(E, h.look, h.job, h.wstyle, { t, walking: P.walking, swing: (t - P.swingT) / 0.3, flash: t - P.hurtT < 0.1 ? 0.45 : 0, dead: P.dead, eq: eqVis(h) });
     E.pop();
-    for (const o of oth) { E.push(); E.T(o.X, 0, o.Z); E.RY(o._fa || 0); drawChar(E, o.look, o.job, o.ws, { t: t + 0.37, walking: o.walking, swing: (t - o.swingT) / 0.3, dead: o.dead }); E.pop(); }
+    for (const o of oth) { E.push(); E.T(o.X, 0, o.Z); E.RY(o._fa || 0); drawChar(E, o.look, o.job, o.ws, { t: t + 0.37, walking: o.walking, swing: (t - o.swingT) / 0.3, dead: o.dead, eq: o.eqv }); E.pop(); }
     // additive volumetric fx
     E.blend('add');
     for (const p of R3.props) if (p.type === 'brazier') {
@@ -2645,26 +2923,29 @@ void main(){
   };
 
   /* ---------- preview & snapshots ---------- */
-  R3.preview = function (canvas, look, jobId, ang, t) {
-    try { if (!R3.pv || R3.pv.cv !== canvas) R3.pv = makeEngine(canvas, { alpha: true }); } catch (e) { return false; }
-    const E = R3.pv, w = canvas.width, h = canvas.height;
-    E.setCam([0, 1.15, 4.6], [0, 0.52, 0], 0.5, w / h, 0.1, 30); E.fogR = [50, 60]; E.amb = [0.55, 0.57, 0.66];
+  const ENG = new Map();
+  function engFor(cv) { let e = ENG.get(cv); if (!e) { e = makeEngine(cv, { alpha: true }); ENG.set(cv, e); } return e; }
+  R3.preview = function (canvas, look, jobId, ang, t, eq) {
+    let E; try { E = engFor(canvas); } catch (e) { return false; }
+    const w = canvas.width, h = canvas.height;
+    E.setCam([0, 1.3, 5.0], [0, 0.68, 0], 0.5, w / h, 0.1, 30); E.fogR = [50, 60]; E.amb = [0.55, 0.57, 0.66];
     E.begin(w, h, [0, 0, 0, 0]);
     E.blend('add'); E.useFx();
     E.push(); E.T(0, 0.005, 0); E.Sc(0.95); E.flat('disc', [1, 0.85, 0.5, 0.35], { fade: 2 }); E.pop();
     E.push(); E.T(0, 0.01, 0); E.RY(t * 0.5); E.Sc(0.85); E.flat('plane', [1, 0.86, 0.55, 0.55], { tex: texOf(E, 'circle', circleCanvas) }); E.pop();
     E.blend(null);
-    E.push(); E.RY(ang); drawChar(E, look, jobId, 'dual', { t }); E.pop();
+    E.push(); E.RY(ang); drawChar(E, look, jobId, R3.pvWs || 'dual', { t, eq }); E.pop();
     return true;
   };
-  R3.snap = function (ctx2d, w, h, look, jobId, wstyle, mode) {
+  R3.view = function (canvas, h, ang, t) { R3.pvWs = h.wstyle; const ok = R3.preview(canvas, h.look, h.job, ang, t, eqVis(h)); R3.pvWs = null; return ok; };
+  R3.snap = function (ctx2d, w, h, look, jobId, wstyle, mode, eq) {
     if (!R3.on) return false;
     const E = R3.th, cv = R3.thCv;
-    if (mode === 'head') E.setCam([0.5, 1.12, 1.55], [0, 0.93, 0], 0.5, 1, 0.1, 20);
-    else E.setCam([0.9, 1.3, 3.1], [0, 0.64, 0], 0.55, 1, 0.1, 20);
+    if (mode === 'head') E.setCam([0.45, 1.38, 1.6], [0, 1.12, 0], 0.5, 1, 0.1, 20);
+    else E.setCam([0.9, 1.45, 3.4], [0, 0.78, 0], 0.55, 1, 0.1, 20);
     E.fogR = [50, 60]; E.amb = [0.58, 0.6, 0.7];
     E.begin(cv.width, cv.height, [0, 0, 0, 0]);
-    E.push(); E.RY(0.35); drawChar(E, look, jobId, wstyle, { t: 0.4 }); E.pop();
+    E.push(); E.RY(0.35); drawChar(E, look, jobId, wstyle, { t: 0.4, eq }); E.pop();
     const z = Math.max(w, h); ctx2d.drawImage(cv, (w - z) / 2, (h - z) / 2, z, z);
     return true;
   };
@@ -2881,119 +3162,308 @@ const AU = (() => {
   };
   return A;
 })();
-/* =================== ITEMS, INVENTORY & CARDS =================== */
+/* =================== ITEMS, EQUIPMENT & CARDS =================== */
 const INV_MAX = 40;
 const LOOT_PRE = { blob: 'เมือก', shroom: 'สปอร์', beast: 'ขน', bat: 'ปีก', plant: 'กลีบ', bones: 'กระดูก', ghost: 'ผงวิญญาณ', brute: 'เขี้ยว', drake: 'เกล็ด' };
 const ARCH_ICON = { blob: '💧', shroom: '🍄', beast: '🐾', bat: '🦇', plant: '🌸', bones: '🦴', ghost: '👻', brute: '🦷', drake: '🐉' };
 const CARD_B = { blob: ['vit', 'hpPct'], shroom: ['int', 'matkPct'], beast: ['agi', 'aspdPct'], bat: ['luk', 'flee'], plant: ['int', 'dex'],
   bones: ['str', 'atkPct'], ghost: ['matkPct', 'flee'], brute: ['str', 'hpPct'], drake: ['atkPct', 'matkPct'] };
 const CARD_KEYS = ['str', 'agi', 'vit', 'int', 'dex', 'luk', 'atkPct', 'matkPct', 'hpPct', 'aspdPct', 'flee', 'crit', 'def'];
+const SLOT_TH = { head: 'หมวก', face: 'ใบหน้า', mouth: 'ปาก', weapon: 'อาวุธ', off: 'มือซ้าย', armor: 'เสื้อเกราะ', wings: 'ปีก', shoes: 'รองเท้า', ring1: 'แหวนขวา', ring2: 'แหวนซ้าย' };
+const GEAR_TYPE_TH = { head: 'หมวก', face: 'ใบหน้า', mouth: 'ปาก', shoes: 'รองเท้า', ring: 'แหวน', wings: 'ปีก' };
+const baseSlot = (k) => (k === 'ring1' || k === 'ring2') ? 'ring' : k;
+const GEAR = {
+  ribbon:    { slot: 'head', nm: 'ริบบิ้นแดง', ic: '🎀', b: { int: 1, matkPct: 2 }, pr: 800 },
+  catears:   { slot: 'head', nm: 'หูแมว', ic: '🐱', b: { agi: 1, luk: 1 }, pr: 1200 },
+  flower:    { slot: 'head', nm: 'ดอกไม้ทัดหู', ic: '🌼', b: { dex: 1, luk: 2 }, pr: 600 },
+  crown:     { slot: 'head', nm: 'มงกุฎทอง', ic: '👑', b: { str: 1, int: 1, hpPct: 2 }, pr: 6000 },
+  glasses:   { slot: 'face', nm: 'แว่นกลม', ic: '👓', b: { dex: 2 }, pr: 700 },
+  blindfold: { slot: 'face', nm: 'ผ้าปิดตา', ic: '🥷', b: { crit: 3 }, pr: 1500 },
+  butterfly: { slot: 'face', nm: 'หน้ากากผีเสื้อ', ic: '🦋', b: { flee: 5, luk: 1 }, pr: 2200 },
+  pipe:      { slot: 'mouth', nm: 'ไปป์', ic: '🪈', b: { vit: 1, def: 2 }, pr: 600 },
+  clothmask: { slot: 'mouth', nm: 'ผ้าปิดปาก', ic: '😷', b: { flee: 3 }, pr: 900 },
+  lolli:     { slot: 'mouth', nm: 'อมยิ้ม', ic: '🍭', b: { hpPct: 3 }, pr: 500 },
+  leather:   { slot: 'shoes', nm: 'รองเท้าหนัง', ic: '👞', b: { flee: 2 }, pr: 300 },
+  ironboots: { slot: 'shoes', nm: 'บูทเหล็ก', ic: '🥾', b: { def: 6, hpPct: 2 }, pr: 2500 },
+  wingboots: { slot: 'shoes', nm: 'รองเท้าติดปีก', ic: '🪽', b: { agi: 2, aspdPct: 3 }, pr: 4500 },
+  ringstr:   { slot: 'ring', nm: 'แหวนพลัง', ic: '💍', b: { str: 2 }, pr: 1500 },
+  ringint:   { slot: 'ring', nm: 'แหวนปัญญา', ic: '💍', b: { int: 2 }, pr: 1500 },
+  ringluk:   { slot: 'ring', nm: 'แหวนนำโชค', ic: '💍', b: { luk: 2, crit: 2 }, pr: 1800 },
+  ringvit:   { slot: 'ring', nm: 'แหวนชีวิต', ic: '💍', b: { vit: 2, hpPct: 3 }, pr: 1800 },
+  angel:     { slot: 'wings', nm: 'ปีกนางฟ้า', ic: '🕊️', b: { str: 1, agi: 1, vit: 1, int: 1, dex: 1, luk: 1, matkPct: 3 }, pr: 15000 },
+  demon:     { slot: 'wings', nm: 'ปีกปีศาจ', ic: '😈', b: { atkPct: 5, crit: 2 }, pr: 15000 },
+  fairy:     { slot: 'wings', nm: 'ปีกภูตพราย', ic: '🧚', b: { agi: 2, flee: 6 }, pr: 9000 }
+};
+const GEAR_SLOTS = ['head', 'face', 'mouth', 'shoes', 'ring1', 'ring2', 'wings'];
+const WNAME = { knife: 'มีดสั้น', sword: 'ดาบ', mace: 'คทาศักดิ์สิทธิ์', staff: 'ไม้เท้าเวท', bow: 'ธนู', katar: 'คาตาร์', dual: 'มีดมือขวา', axe: 'ขวาน' };
+const WICON = { knife: '🔪', sword: '🗡️', mace: '🔱', staff: '🪄', bow: '🏹', katar: '⚔️', dual: '🗡️', axe: '🪓' };
+const TIER_SFX = ['ฝึกหัด', 'เหล็ก', 'ชั้นสูง', 'ตำนาน'];
+
 function cardBonus(tpl) {
   const o = {}, keys = CARD_B[tpl.arch] || ['str'];
   for (const k of keys) o[k] = k.endsWith('Pct') ? 2 + Math.floor(tpl.lv / 15) + (tpl.boss ? 5 : 0) : 1 + Math.floor(tpl.lv / 12) + (tpl.boss ? 3 : 0);
   return o;
 }
 function lootItem(tpl) { return { k: 'L:' + tpl.id, kind: 'loot', nm: (LOOT_PRE[tpl.arch] || 'ชิ้นส่วน') + tpl.name, ar: tpl.arch, pr: Math.max(2, Math.round(tpl.gold * 0.9)), lv: tpl.lv, col: tpl.color }; }
-function cardItem(tpl) { return { k: 'C:' + tpl.id, kind: 'card', nm: 'การ์ด' + tpl.name, ar: tpl.arch, pr: 400 + tpl.lv * 30, lv: tpl.lv, b: cardBonus(tpl), col: tpl.color }; }
+function cardItem(tpl) { return { k: 'C:' + tpl.id, kind: 'card', nm: 'การ์ด' + tpl.name, ar: tpl.arch, pr: 400 + tpl.lv * 30, lv: tpl.lv, b: cardBonus(tpl), col: tpl.color, cs: CS_TH[tpl.cs] ? tpl.cs : (ARCH_CS[tpl.arch] || 'armor') }; }
+function gearItem(id) { const g = GEAR[id]; return { k: 'G:' + id + ':' + Math.random().toString(36).slice(2, 8), kind: 'gear', id, nm: g.nm, pr: Math.round(g.pr / 2), cards: [] }; }
+function sanitizeCard(x) { const c = sanitizeItem(x, false); return c && c.kind === 'card' ? c : null; }
 function sanitizeItem(x, withN) {
   if (!x || typeof x !== 'object' || typeof x.k !== 'string') return null;
-  const kind = x.kind === 'card' ? 'card' : x.kind === 'loot' ? 'loot' : null;
+  const kind = ['card', 'loot', 'gear'].includes(x.kind) ? x.kind : null;
   if (!kind) return null;
+  if (kind === 'gear') {
+    if (!GEAR[x.id]) return null;
+    const it = { k: x.k.slice(0, 60), kind, id: x.id, nm: GEAR[x.id].nm, pr: Math.round(GEAR[x.id].pr / 2), cards: [] };
+    it.cards = (Array.isArray(x.cards) ? x.cards : []).slice(0, 1).map((c) => (c ? sanitizeCard(c) : null));
+    if (withN) it.n = 1;
+    return it;
+  }
   const it = { k: x.k.slice(0, 60), kind, nm: str(x.nm, kind === 'card' ? 'การ์ด' : 'วัตถุดิบ', 40), ar: ARCHES.includes(x.ar) ? x.ar : 'blob',
     pr: int(x.pr, 1, 0, 1e7), lv: int(x.lv, 1, 1, 999), col: color(x.col, '#8899aa') };
-  if (kind === 'card') { it.b = {}; const b = x.b || {}; for (const k of CARD_KEYS) { const v = int(b[k], 0, 0, 99); if (v) it.b[k] = v; } }
+  if (kind === 'card') {
+    it.b = {}; const b = x.b || {}; for (const k of CARD_KEYS) { const v = int(b[k], 0, 0, 99); if (v) it.b[k] = v; }
+    it.cs = CS_TH[x.cs] ? x.cs : (ARCH_CS[it.ar] || 'armor');
+  }
   if (withN) it.n = int(x.n, 1, 1, 999);
   return it;
 }
-function addItem(it, n) {
-  const h = S.hero, ex = h.inv.find((x) => x.k === it.k);
-  if (ex) ex.n = Math.min(999, ex.n + n);
-  else { if (h.inv.length >= INV_MAX) { toast('ช่องเก็บของเต็ม ขายของบางส่วนก่อน'); return false; } h.inv.push(Object.assign(sanitizeItem(it, false), { n })); }
-  S.dirty = true; return true;
+function pushInv(h, it, n) {
+  const ex = it.kind !== 'gear' && h.inv.find((x) => x.k === it.k);
+  if (ex) { ex.n = Math.min(999, ex.n + n); return true; }
+  if (h.inv.length >= INV_MAX) return false;
+  h.inv.push(Object.assign(sanitizeItem(it, false), { n: it.kind === 'gear' ? 1 : n })); return true;
 }
+function addItem(it, n) { const ok = pushInv(S.hero, it, n); if (!ok) toast('ช่องเก็บของเต็ม ขายของบางส่วนก่อน'); else S.dirty = true; return ok; }
 function takeItem(k, n) {
   const h = S.hero, i = h.inv.findIndex((x) => x.k === k);
   if (i < 0) return false;
   h.inv[i].n -= n; if (h.inv[i].n <= 0) h.inv.splice(i, 1);
   S.dirty = true; return true;
 }
-function cardSum(h) { const o = {}; for (const c of h.cards || []) if (c && c.b) for (const k in c.b) o[k] = (o[k] || 0) + c.b[k]; return o; }
-function bonusText(b) { return Object.keys(b || {}).map((k) => (BUFF_TH[k] || k.toUpperCase()) + ' +' + b[k] + (PCT_KEYS[k] ? '%' : '')).join('  ') || 'ไม่มีค่าสถานะ'; }
-function equipCard(k) {
-  const h = S.hero, it = h.inv.find((x) => x.k === k && x.kind === 'card');
-  if (!it) return;
-  const slot = h.cards.indexOf(null);
-  if (slot < 0) { toast('ช่องการ์ดเต็ม ถอดใบเดิมก่อน'); return; }
-  const c = sanitizeItem(it, false); takeItem(k, 1); h.cards[slot] = c;
-  P.D = derived(); AU.sfx('buff'); toast('ใส่' + c.nm + ' แล้ว'); renderSheet(); hudText();
+
+/* ---------- equipment & sockets ---------- */
+function sockets(h, key) {
+  const w = weaponOf(h.job, h.wstyle);
+  if (key === 'weapon') return { knife: 1, sword: 1, mace: 1, staff: 2, bow: 2, katar: 2, dual: 2, axe: 2 }[w] || 1;
+  if (key === 'off') return (w === 'sword' || w === 'mace') ? 1 : w === 'dual' ? 2 : 0;
+  if (key === 'armor') return 1;
+  if (key === 'head' || key === 'face' || key === 'mouth' || key === 'shoes' || key === 'ring1' || key === 'ring2') return h.eq[key] ? 1 : 0;
+  return 0;
 }
-function unequipCard(i) {
-  const h = S.hero, c = h.cards[i]; if (!c) return;
+function accepts(h, key) { if (key === 'weapon') return 'weapon'; if (key === 'off') return weaponOf(h.job, h.wstyle) === 'dual' ? 'weapon' : 'shield'; return baseSlot(key); }
+function slotCards(h, key) { const s = h.eq[key]; return s ? s.cards : []; }
+function sanitizeEq(d, h) {
+  const e = d.eq || {}, out = {};
+  if (e.ring && !e.ring1) e.ring1 = e.ring;
+  for (const k of GEAR_SLOTS) { const x = e[k]; out[k] = (x && GEAR[x.id] && GEAR[x.id].slot === baseSlot(k)) ? { id: x.id, cards: (Array.isArray(x.cards) ? x.cards : []).slice(0, 1).map((c) => (c ? sanitizeCard(c) : null)) } : null; }
+  for (const k of ['weapon', 'off', 'armor']) { const x = e[k] || {}; out[k] = { cards: (Array.isArray(x.cards) ? x.cards : []).slice(0, 4).map((c) => (c ? sanitizeCard(c) : null)) }; }
+  if (!d.eq) out.shoes = { id: 'leather', cards: [] };
+  h.eq = out;
+  if (Array.isArray(d.cards)) for (const c of d.cards) { const cc = c && sanitizeCard(c); if (cc) pushInv(h, cc, 1); }
+  normalizeGear(h);
+}
+function normalizeGear(h) {
+  for (const k of Object.keys(SLOT_TH)) {
+    const s = h.eq[k]; if (!s) continue;
+    const n = sockets(h, k), acc = accepts(h, k);
+    s.cards = s.cards || [];
+    for (let i = 0; i < s.cards.length; i++) {
+      const c = s.cards[i];
+      if (c && (i >= n || c.cs !== acc)) { pushInv(h, c, 1); s.cards[i] = null; }
+    }
+    s.cards.length = Math.max(n, 0);
+    for (let i = 0; i < n; i++) if (s.cards[i] === undefined) s.cards[i] = null;
+  }
+}
+function gearSum(h) {
+  const o = {}, add = (b) => { for (const k in b) o[k] = (o[k] || 0) + b[k]; };
+  for (const k of Object.keys(SLOT_TH)) {
+    const s = h.eq && h.eq[k]; if (!s) continue;
+    if (s.id && GEAR[s.id]) add(GEAR[s.id].b);
+    for (const c of s.cards || []) if (c && c.b) add(c.b);
+  }
+  return o;
+}
+function eqVis(h) { const e = h.eq || {}; return { head: e.head && e.head.id, face: e.face && e.face.id, mouth: e.mouth && e.mouth.id, wings: e.wings && e.wings.id }; }
+function bonusText(b) { return Object.keys(b || {}).map((k) => (BUFF_TH[k] || k.toUpperCase()) + ' +' + b[k] + (PCT_KEYS[k] ? '%' : '')).join('  ') || 'ไม่มีค่าสถานะ'; }
+function afterGear() { P.D = derived(); P.hp = Math.min(P.hp, P.D.maxHp); S.dirty = true; drawAvatar(); hudText(); renderEquip(); }
+function insertCard(key, idx, cardK) {
+  const h = S.hero, it = h.inv.find((x) => x.k === cardK && x.kind === 'card'); if (!it) return;
+  const s = h.eq[key]; if (!s || idx >= sockets(h, key) || s.cards[idx]) return;
+  if (it.cs !== accepts(h, key)) { toast('การ์ดนี้ใส่ได้เฉพาะช่อง' + CS_TH[it.cs]); return; }
+  s.cards[idx] = sanitizeCard(it); takeItem(cardK, 1); EQ.pick = null;
+  AU.sfx('buff'); toast('ใส่' + it.nm + ' แล้ว'); afterGear();
+}
+function autoInsert(cardK) {
+  const h = S.hero, it = h.inv.find((x) => x.k === cardK); if (!it) return;
+  for (const key of Object.keys(SLOT_TH)) {
+    if (!h.eq[key] || accepts(h, key) !== it.cs) continue;
+    const n = sockets(h, key);
+    for (let i = 0; i < n; i++) if (!h.eq[key].cards[i]) { EQ.sel = key; insertCard(key, i, cardK); return; }
+  }
+  toast(it.cs === 'shield' ? 'ต้องมีโล่ก่อน การ์ดโล่ใช้ได้กับสายนักดาบและนักบวช' : 'ไม่มีช่องการ์ด' + CS_TH[it.cs] + 'ว่าง');
+}
+function removeCard(key, idx) {
+  const h = S.hero, s = h.eq[key], c = s && s.cards[idx]; if (!c) return;
   if (!addItem(c, 1)) return;
-  h.cards[i] = null; P.D = derived(); P.hp = Math.min(P.hp, P.D.maxHp); S.dirty = true; renderSheet(); hudText();
+  s.cards[idx] = null; afterGear();
+}
+function equipGear(k) {
+  const h = S.hero, it = h.inv.find((x) => x.k === k && x.kind === 'gear'); if (!it) return;
+  let slot = GEAR[it.id].slot;
+  if (slot === 'ring') slot = (EQ.sel === 'ring1' || EQ.sel === 'ring2') && EQ.picking ? EQ.sel : !h.eq.ring1 ? 'ring1' : !h.eq.ring2 ? 'ring2' : (EQ.sel === 'ring2' ? 'ring2' : 'ring1');
+  const old = h.eq[slot];
+  takeItem(k, 1);
+  if (old) pushInv(h, Object.assign(gearItem(old.id), { cards: old.cards }), 1);
+  h.eq[slot] = { id: it.id, cards: it.cards && it.cards.length ? it.cards : [] };
+  normalizeGear(h); EQ.sel = slot; EQ.invSel = null; AU.sfx('buff'); afterGear();
+}
+function unequipGear(slot) {
+  const h = S.hero, old = h.eq[slot]; if (!old) return;
+  if (!addItem(Object.assign(gearItem(old.id), { cards: old.cards }), 1)) return;
+  h.eq[slot] = null; afterGear();
 }
 function sellItem(k, n) {
   const h = S.hero, it = h.inv.find((x) => x.k === k); if (!it) return;
   n = Math.min(n, it.n); const g = it.pr * n;
-  h.gold += g; takeItem(k, n); if (!h.inv.some((x) => x.k === k)) invSel = null;
-  AU.sfx('coin'); toast('ขายได้ ' + fmt(g) + ' G'); renderSheet(); hudText();
+  if (it.kind === 'gear') for (const c of it.cards || []) if (c) pushInv(h, c, 1);
+  h.gold += g; takeItem(k, n); if (!h.inv.some((x) => x.k === k)) EQ.invSel = null;
+  AU.sfx('coin'); toast('ขายได้ ' + fmt(g) + ' G'); hudText(); renderEquip();
 }
 function sellAllLoot() {
   const h = S.hero; let g = 0;
   for (const it of h.inv.filter((x) => x.kind === 'loot')) { g += it.pr * it.n; takeItem(it.k, it.n); }
   if (!g) { toast('ไม่มีวัตถุดิบให้ขาย'); return; }
-  h.gold += g; invSel = null; AU.sfx('coin'); toast('ขายวัตถุดิบทั้งหมดได้ ' + fmt(g) + ' G'); renderSheet(); hudText();
+  h.gold += g; EQ.invSel = null; AU.sfx('coin'); toast('ขายวัตถุดิบทั้งหมดได้ ' + fmt(g) + ' G'); hudText(); renderEquip();
 }
 function gotCard(c) {
-  toast('🃏 ได้รับ' + c.nm + '! ' + bonusText(c.b));
+  toast('🃏 ได้รับ' + c.nm + ' (ใส่ช่อง' + CS_TH[c.cs] + ') ' + bonusText(c.b));
   AU.sfx('card');
   addFx({ kind: 'pillar', x: P.x, y: P.y, color: '#d9a8ff', dur: 1.4, w: 40 });
   addNum(P.x, P.y - 96, 'CARD!', '#e9c8ff', 18, { dur: 2, pop: true });
   chatSend(S.hero.name + ' ได้รับ' + c.nm + '!', 'w', true);
 }
-let invSel = null;
-function panelBag(body) {
-  const h = S.hero;
-  body.append(el('div', { class: 'sub', style: 'margin-top:0', text: 'การ์ดที่ใส่อยู่' }));
-  const cs = el('div', { class: 'cslots' });
-  h.cards.forEach((c, i) => {
-    const box = el('div', { class: 'cslot' + (c ? ' on' : '') },
-      el('div', { class: 'nm2', text: c ? '🃏 ' + c.nm : 'ช่องการ์ด ' + (i + 1) }),
-      el('div', { class: 'ds', text: c ? bonusText(c.b) : 'ว่าง' }),
-      c ? el('button', { class: 'mini', text: 'ถอด', onclick: () => unequipCard(i) }) : null);
-    if (c) box.style.setProperty('--c', c.col);
-    cs.append(box);
-  });
-  body.append(cs);
-  const tiles = [{ k: 'P:hp', icon: '🧪', n: h.potHp, nm: 'ยาแดง' }, { k: 'P:sp', icon: '🧪', n: h.potSp, nm: 'ยาฟ้า', blue: true }];
-  for (const it of h.inv) tiles.push({ k: it.k, icon: it.kind === 'card' ? '🃏' : (ARCH_ICON[it.ar] || '📦'), n: it.n, nm: it.nm, it });
-  const sel = tiles.find((t) => t.k === invSel);
-  const det = el('div', { class: 'invdet' });
-  if (!sel) det.append(el('p', { class: 'note', style: 'margin:0', text: 'แตะไอเทมเพื่อดูรายละเอียด การ์ดดรอปจากมอนสเตอร์ทุกตัว โอกาส ' + CONFIG.cardChance + '%' }));
-  else if (!sel.it) {
-    det.append(el('div', { class: 'nm2', text: sel.nm + '  x' + sel.n }), el('div', { class: 'ds', text: sel.k === 'P:hp' ? 'ฟื้น HP 30%' : 'ฟื้น SP 30%' }),
-      el('div', { class: 'acts' }, el('button', { class: 'mini pri', text: 'ใช้', disabled: !sel.n, onclick: () => { usePot(sel.k === 'P:hp' ? 'hp' : 'sp'); renderSheet(); } })));
-  } else {
-    const it = sel.it;
-    det.append(el('div', { class: 'nm2', text: (it.kind === 'card' ? '🃏 ' : '') + it.nm + '  x' + it.n }),
-      el('div', { class: 'ds', text: it.kind === 'card' ? 'ค่าสถานะ: ' + bonusText(it.b) : 'วัตถุดิบจากมอนสเตอร์ Lv ' + it.lv }),
-      el('div', { class: 'meta', text: 'ขายได้ชิ้นละ ' + fmt(it.pr) + ' G' }),
-      el('div', { class: 'acts' },
-        it.kind === 'card' ? el('button', { class: 'mini pri', text: 'ใส่การ์ด', onclick: () => equipCard(it.k) }) : null,
-        el('button', { class: 'mini', text: 'ขาย 1', onclick: () => sellItem(it.k, 1) }),
-        it.n > 1 ? el('button', { class: 'mini', text: 'ขายทั้งหมด', onclick: () => sellItem(it.k, it.n) }) : null));
+
+/* ---------- equipment screen ---------- */
+const EQ = { open: false, sel: 'weapon', invSel: null, pick: null, ang: 0.35, cv: null, drag: null };
+function slotInfo(h, key) {
+  const w = weaponOf(h.job, h.wstyle), tier = JOBS[h.job].tier;
+  if (key === 'weapon') return { ic: WICON[w], nm: (w === 'dual' ? WNAME.dual : WNAME[w]) + TIER_SFX[tier], ref: h.refineW, note: w === 'bow' || w === 'staff' || w === 'katar' || w === 'axe' ? 'อาวุธสองมือ ใส่การ์ดอาวุธได้ 2 ใบ' : w === 'dual' ? 'มีดมือขวา ใส่การ์ดอาวุธได้ 2 ใบ' : 'ใส่การ์ดอาวุธได้ 1 ใบ' };
+  if (key === 'off') { const n = sockets(h, 'off'); if (!n) return { ic: '🚫', nm: 'ไม่ได้ใช้', empty: true, note: 'อาวุธสองมือ มือซ้ายจึงว่าง' };
+    return w === 'dual' ? { ic: '🗡️', nm: 'มีดมือซ้าย' + TIER_SFX[tier], note: 'มีดมือซ้าย ใส่การ์ดอาวุธได้ 2 ใบ' } : { ic: '🛡️', nm: 'โล่' + TIER_SFX[tier], note: 'ใส่การ์ดโล่ได้ 1 ใบ' }; }
+  if (key === 'armor') return { ic: '👕', nm: 'ชุด' + jobName(h.job), ref: h.refineA, note: 'ใส่การ์ดเสื้อเกราะได้ 1 ใบ' };
+  const s = h.eq[key];
+  if (!s) return { ic: '', nm: 'ว่าง', empty: true, note: 'ซื้อได้ที่ร้าน แล้วกดสวมใส่จากกระเป๋า' };
+  const g = GEAR[s.id];
+  return { ic: g.ic, nm: g.nm, b: g.b, note: sockets(h, key) ? 'ใส่การ์ด' + CS_TH[baseSlot(key)] + 'ได้ 1 ใบ' : 'ไม่มีช่องการ์ด' };
+}
+function ensureEquipDom() {
+  if ($('#eqWrap')) return;
+  const w = el('div', { class: 'eqwrap', id: 'eqWrap', hidden: true },
+    el('div', { class: 'eqbox', role: 'dialog', 'aria-modal': 'true', 'aria-label': 'ตัวละครและอุปกรณ์' },
+      el('div', { class: 'sheet-title' }, el('span', { text: 'ตัวละคร' }), el('button', { 'aria-label': 'ปิด', text: '✕', onclick: closeEquip })),
+      el('div', { class: 'eqbody', id: 'eqBody' })));
+  document.body.append(w);
+  w.addEventListener('pointerdown', (e) => { if (e.target === w) closeEquip(); });
+  const cv = el('canvas', { class: 'eqcv', 'aria-label': 'ภาพตัวละคร ลากเพื่อหมุน' });
+  cv.addEventListener('pointerdown', (e) => { EQ.drag = e.clientX; cv.setPointerCapture(e.pointerId); });
+  cv.addEventListener('pointermove', (e) => { if (EQ.drag == null) return; EQ.ang += (e.clientX - EQ.drag) * 0.012; EQ.drag = e.clientX; });
+  cv.addEventListener('pointerup', () => { EQ.drag = null; });
+  EQ.cv = cv;
+}
+function openEquip(focus) {
+  ensureEquipDom(); closeSheet();
+  EQ.open = true; $('#eqWrap').hidden = false; renderEquip();
+  const d = Math.min(2, window.devicePixelRatio || 1), r = EQ.cv.getBoundingClientRect();
+  EQ.cv.width = Math.max(1, Math.round(r.width * d)); EQ.cv.height = Math.max(1, Math.round(r.height * d));
+  if (focus === 'bag') setTimeout(() => { const b = $('#eqInv'); if (b) b.scrollIntoView({ block: 'start' }); }, 30);
+  else $('#eqBody').scrollTop = 0;
+}
+function closeEquip() { EQ.open = false; EQ.pick = null; const w = $('#eqWrap'); if (w) w.hidden = true; }
+function slotBtn(h, key) {
+  const inf = slotInfo(h, key), n = sockets(h, key), cards = slotCards(h, key);
+  const dots = el('span', { class: 'sdots' });
+  for (let i = 0; i < n; i++) dots.append(el('i', { class: cards[i] ? 'on' : '' }));
+  return el('button', { class: 'eqslot' + (EQ.sel === key ? ' sel' : '') + (inf.empty ? ' empty' : ''), 'aria-label': SLOT_TH[key] + ': ' + inf.nm, onclick: () => { EQ.sel = key; EQ.pick = null; renderEquip(); } },
+    el('span', { class: 'ei', text: inf.ic || '＋' }), inf.ref ? el('b', { class: 'eref', text: '+' + inf.ref }) : null, el('small', { text: SLOT_TH[key] }), dots);
+}
+function renderEquip() {
+  if (!EQ.open || !S.hero) return;
+  const h = S.hero, body = $('#eqBody'), st = body.scrollTop, D = derived();
+  body.textContent = '';
+  const left = el('div', { class: 'eqcol' }), right = el('div', { class: 'eqcol' });
+  for (const k of ['head', 'face', 'mouth', 'weapon', 'off']) left.append(slotBtn(h, k));
+  for (const k of ['armor', 'wings', 'shoes', 'ring1', 'ring2']) right.append(slotBtn(h, k));
+  right.append(el('button', { class: 'eqslot stat', onclick: () => { closeEquip(); openPanel('stats'); } }, el('span', { class: 'ei', text: '📊' }), el('small', { text: 'สถานะ' })));
+  body.append(el('div', { class: 'eqmain' }, left,
+    el('div', { class: 'eqcenter' }, EQ.cv, el('div', { class: 'eqname', text: h.name }), el('div', { class: 'eqjob', text: jobName(h.job) + '  Base ' + h.level + '  Job ' + h.jobLv }),
+      el('div', { class: 'eqmini' }, el('span', null, 'ATK ', el('b', { text: fmt(D.atk) })), el('span', null, 'MATK ', el('b', { text: fmt(D.matk) })), el('span', null, 'DEF ', el('b', { text: fmt(D.def) })))),
+    right));
+  // selected slot detail
+  const key = EQ.sel, inf = slotInfo(h, key), n = sockets(h, key), acc = accepts(h, key), det = el('div', { class: 'eqdet' });
+  det.append(el('div', { class: 'nm2', text: (inf.ic ? inf.ic + ' ' : '') + inf.nm + (inf.ref ? ' +' + inf.ref : '') + '  (' + SLOT_TH[key] + ')' }));
+  if (inf.b) det.append(el('div', { class: 'ds', text: bonusText(inf.b) }));
+  det.append(el('div', { class: 'meta', text: inf.note }));
+  for (let i = 0; i < n; i++) {
+    const c = slotCards(h, key)[i];
+    if (c) det.append(el('div', { class: 'sock on' }, el('span', { text: '🃏 ' + c.nm }), el('small', { text: bonusText(c.b) }), el('button', { class: 'mini', text: 'ถอด', onclick: () => removeCard(key, i) })));
+    else {
+      const have = h.inv.filter((x) => x.kind === 'card' && x.cs === acc);
+      det.append(el('div', { class: 'sock' }, el('span', { text: 'ช่องการ์ด' + CS_TH[acc] + ' ว่าง' }),
+        el('button', { class: 'mini pri', text: have.length ? 'ใส่การ์ด' : 'ไม่มีการ์ดชนิดนี้', disabled: !have.length, onclick: () => { EQ.pick = { key, i }; renderEquip(); } })));
+      if (EQ.pick && EQ.pick.key === key && EQ.pick.i === i) {
+        const list = el('div', { class: 'picklist' });
+        for (const it of have) list.append(el('button', { class: 'pickc', onclick: () => insertCard(key, i, it.k) }, el('b', { text: it.nm + '  x' + it.n }), el('small', { text: bonusText(it.b) })));
+        det.append(list);
+      }
+    }
   }
-  body.append(el('div', { class: 'sub', text: 'ช่องเก็บของ ' + h.inv.length + '/' + INV_MAX }), det);
+  if (GEAR_SLOTS.includes(key) && h.eq[key]) det.append(el('div', { class: 'acts' }, el('button', { class: 'mini warn', text: 'ถอดอุปกรณ์', onclick: () => unequipGear(key) })));
+  if (GEAR_SLOTS.includes(key) && !h.eq[key]) {
+    const owned = h.inv.filter((x) => x.kind === 'gear' && GEAR[x.id].slot === baseSlot(key));
+    if (owned.length) { const l = el('div', { class: 'picklist' }); for (const it of owned) l.append(el('button', { class: 'pickc', onclick: () => { EQ.picking = true; equipGear(it.k); EQ.picking = false; } }, el('b', { text: GEAR[it.id].ic + ' สวม' + it.nm }), el('small', { text: bonusText(GEAR[it.id].b) }))); det.append(l); }
+  }
+  body.append(det);
+  // inventory
+  const tiles = [{ k: 'P:hp', icon: '🧪', n: h.potHp, nm: 'ยาแดง' }, { k: 'P:sp', icon: '🧪', n: h.potSp, nm: 'ยาฟ้า', blue: true }];
+  for (const it of h.inv) tiles.push({ k: it.k, icon: it.kind === 'card' ? '🃏' : it.kind === 'gear' ? GEAR[it.id].ic : (ARCH_ICON[it.ar] || '📦'), n: it.n, nm: it.nm, it });
+  body.append(el('div', { class: 'sub', id: 'eqInv', text: 'กระเป๋า ' + h.inv.length + '/' + INV_MAX }));
+  const sel = tiles.find((t) => t.k === EQ.invSel), idet = el('div', { class: 'invdet' });
+  if (!sel) idet.append(el('p', { class: 'note', style: 'margin:0', text: 'แตะไอเทมเพื่อดูรายละเอียด การ์ดดรอปจากมอนทุกตัว ' + CONFIG.cardChance + '% และแต่ละใบใส่ได้เฉพาะช่องของมัน' }));
+  else if (!sel.it) idet.append(el('div', { class: 'nm2', text: sel.nm + '  x' + sel.n }), el('div', { class: 'ds', text: sel.k === 'P:hp' ? 'ฟื้น HP 30%' : 'ฟื้น SP 30%' }),
+    el('div', { class: 'acts' }, el('button', { class: 'mini pri', text: 'ใช้', disabled: !sel.n, onclick: () => { usePot(sel.k === 'P:hp' ? 'hp' : 'sp'); renderEquip(); } })));
+  else {
+    const it = sel.it;
+    idet.append(el('div', { class: 'nm2', text: sel.icon + ' ' + it.nm + (it.kind === 'gear' ? '' : '  x' + it.n) }));
+    if (it.kind === 'card') idet.append(el('div', { class: 'ds', text: 'ใส่ช่อง' + CS_TH[it.cs] + '  ' + bonusText(it.b) }));
+    else if (it.kind === 'gear') idet.append(el('div', { class: 'ds', text: GEAR_TYPE_TH[GEAR[it.id].slot] + (GEAR[it.id].slot === 'wings' ? '' : '  ใส่การ์ด' + CS_TH[GEAR[it.id].slot] + ' 1 ใบ') + '  ' + bonusText(GEAR[it.id].b) }));
+    else idet.append(el('div', { class: 'ds', text: 'วัตถุดิบจากมอนสเตอร์ Lv ' + it.lv }));
+    idet.append(el('div', { class: 'meta', text: 'ขายได้ ' + fmt(it.pr) + ' G' + (it.kind === 'gear' ? '' : ' ต่อชิ้น') }));
+    idet.append(el('div', { class: 'acts' },
+      it.kind === 'card' ? el('button', { class: 'mini pri', text: 'ใส่การ์ด', onclick: () => autoInsert(it.k) }) : null,
+      it.kind === 'gear' ? el('button', { class: 'mini pri', text: 'สวมใส่', onclick: () => equipGear(it.k) }) : null,
+      el('button', { class: 'mini', text: 'ขาย 1', onclick: () => sellItem(it.k, 1) }),
+      it.n > 1 ? el('button', { class: 'mini', text: 'ขายทั้งหมด', onclick: () => sellItem(it.k, it.n) }) : null));
+  }
+  body.append(idet);
   const g = el('div', { class: 'grid5' });
   for (const t of tiles) {
-    const b = el('button', { class: 'tile' + (invSel === t.k ? ' sel' : '') + (t.it && t.it.kind === 'card' ? ' card' : ''), 'aria-label': t.nm + ' ' + t.n },
-      el('span', { text: t.icon, style: t.blue ? 'filter:hue-rotate(200deg)' : null }), el('b', { text: String(t.n) }));
+    const b = el('button', { class: 'tile' + (EQ.invSel === t.k ? ' sel' : '') + (t.it && t.it.kind === 'card' ? ' card' : ''), 'aria-label': t.nm + ' ' + t.n },
+      el('span', { text: t.icon, style: t.blue ? 'filter:hue-rotate(200deg)' : null }), t.it && t.it.kind === 'gear' ? null : el('b', { text: String(t.n) }),
+      t.it && t.it.kind === 'card' ? el('em', { text: CS_TH[t.it.cs] }) : null);
     if (t.it && t.it.kind === 'card') b.style.setProperty('--c', t.it.col);
-    b.addEventListener('click', () => { invSel = t.k; renderSheet(); });
+    b.addEventListener('click', () => { EQ.invSel = t.k; renderEquip(); });
     g.append(b);
   }
   for (let i = tiles.length; i < INV_MAX + 2; i++) g.append(el('div', { class: 'tile empty' }));
   body.append(g, el('div', { class: 'acts' }, el('button', { class: 'mini', text: 'ขายวัตถุดิบทั้งหมด', onclick: sellAllLoot })));
+  body.scrollTop = st;
+}
+function drawEquipPreview(now) {
+  if (!EQ.open || !EQ.cv || !S.hero) return;
+  if (R3.on) R3.view(EQ.cv, S.hero, EQ.ang, now);
+  else { const c = EQ.cv.getContext('2d'), w = EQ.cv.width, hh = EQ.cv.height; c.setTransform(1, 0, 0, 1, 0, 0); c.clearRect(0, 0, w, hh); drawHero(c, w / 2, hh * 0.85, hh / 80, S.hero.look, S.hero.job, { t: now, wstyle: S.hero.wstyle }); }
 }
 /* =================== ONLINE: shared world, party, chat =================== */
 const ONLINE = { room: null, peers: [], others: new Map(), lastSend: 0, sig: '', swc: 0, lastSwing: -9, ready: false };
@@ -3028,7 +3498,8 @@ function readPresence(p) {
     mt: num(pr.mt, 0, 0, 1e15), pk: typeof pr.pk === 'string' ? pr.pk.slice(0, 24) : '',
     pi: (arr(pr.pi, 6) || []).filter((x) => typeof x === 'string'), hit: arr(pr.hit, 20), kd: arr(pr.kd, 12),
     ms: Array.isArray(pr.ms) ? pr.ms : null, tp: (arr(pr.tp, 12) || []).filter((x) => typeof x === 'string'),
-    bb: Array.isArray(pr.bb) && typeof pr.bb[0] === 'string' ? [pr.bb[0].slice(0, 40), int(pr.bb[1], 0, 0, 1e9)] : null
+    bb: Array.isArray(pr.bb) && typeof pr.bb[0] === 'string' ? [pr.bb[0].slice(0, 40), int(pr.bb[1], 0, 0, 1e9)] : null,
+    eqv: (() => { const a = Array.isArray(pr.ev) ? pr.ev : [], g = (x, sl) => (typeof x === 'string' && GEAR[x] && GEAR[x].slot === sl ? x : null); return { head: g(a[0], 'head'), face: g(a[1], 'face'), mouth: g(a[2], 'mouth'), wings: g(a[3], 'wings') }; })()
   };
 }
 function syncOthers() {
@@ -3177,7 +3648,7 @@ function onlineTick(dt) {
   const pr = { v: 1, n: h.name, j: h.job, l: h.level, jl: h.jobLv, m: W.map.id,
     x: Math.round(P.x / WORLD.w * 1000) / 1000, y: Math.round(P.y / WORLD.h * 1000) / 1000,
     g: h.look.g, h: h.look.hair, c: h.look.hc, ws: h.wstyle, sw: ONLINE.swc, d: P.dead ? 1 : 0, hp: Math.round(clamp(P.hp / D.maxHp, 0, 1) * 100),
-    mt: NET.mapT, pk: PARTY.key, pi: PARTY.invited.slice(-4), hit: NET.hits, bb: NET.bb };
+    mt: NET.mapT, pk: PARTY.key, pi: PARTY.invited.slice(-4), hit: NET.hits, bb: NET.bb, ev: (() => { const v = eqVis(h); return [v.head || '', v.face || '', v.mouth || '', v.wings || '']; })() };
   if (NET.isHost) {
     const tp = [], ms = [];
     for (const m of W.mons) {
@@ -3326,10 +3797,10 @@ function drawBubbles(ctx, proj) {
 /* ---------- panels ---------- */
 function renderOnlineDot() { const d = $('#dotOnline'); if (!d) return; const n = ONLINE.others.size; d.hidden = n < 1; d.textContent = n; }
 function mapName(id) { const m = CONFIG.maps.find((x) => x.id === id); return m ? m.name : 'ไม่ทราบแผนที่'; }
-function headCanvas(look, job, ws) {
+function headCanvas(look, job, ws, eqv) {
   const cv = el('canvas', { width: 72, height: 72, style: 'width:36px;height:36px;border-radius:8px;background:#26304a;flex-shrink:0' });
   const c = cv.getContext('2d'); c.scale(2, 2);
-  if (!R3.snap(c, 36, 36, look, job, ws, 'head')) drawHero(c, 18, 58, 0.95, look, job, { noShadow: true, t: 0.3, wstyle: ws });
+  if (!R3.snap(c, 36, 36, look, job, ws, 'head', eqv)) drawHero(c, 18, 58, 0.95, look, job, { noShadow: true, t: 0.3, wstyle: ws });
   return cv;
 }
 function panelOnline(body) {
@@ -3337,9 +3808,9 @@ function panelOnline(body) {
   if (PARTY.offer) body.append(el('div', { class: 'pts' }, PARTY.offer.from + ' ชวนคุณเข้าปาร์ตี้ ดูปุ่มตอบรับด้านบนจอ'));
   if (PARTY.key) {
     const mates = partyMates(true);
-    body.append(el('div', { class: 'list-row' }, headCanvas(S.hero.look, S.hero.job, S.hero.wstyle),
+    body.append(el('div', { class: 'list-row' }, headCanvas(S.hero.look, S.hero.job, S.hero.wstyle, eqVis(S.hero)),
       el('div', { class: 'grow' }, el('div', { class: 'nm2', text: S.hero.name + ' (คุณ)' }), el('div', { class: 'ds', text: jobName(S.hero.job) + '  B' + S.hero.level + ' J' + S.hero.jobLv }))));
-    for (const o of mates) body.append(el('div', { class: 'list-row' }, headCanvas(o.look, o.job, o.ws),
+    for (const o of mates) body.append(el('div', { class: 'list-row' }, headCanvas(o.look, o.job, o.ws, o.eqv),
       el('div', { class: 'grow' }, el('div', { class: 'nm2', text: o.name }), el('div', { class: 'ds', text: jobName(o.job) + '  B' + o.lv + ' J' + o.jl + '  HP ' + o.hp + '%' }), el('div', { class: 'meta', text: mapName(o.map) }))));
     if (!mates.length) body.append(el('p', { class: 'note', text: 'ยังไม่มีใครตอบรับ ชวนผู้เล่นจากรายชื่อด้านล่างได้' }));
     body.append(el('p', { class: 'note', text: 'สมาชิกที่อยู่แผนที่เดียวกันแบ่ง EXP กัน และได้โบนัสเพิ่ม 25% ต่อสมาชิกหนึ่งคน ส่วนทองและไอเทมเป็นของคนที่ตีปิด' }));
@@ -3356,7 +3827,7 @@ function panelOnline(body) {
   list.sort((a, b) => (b.map === W.map.id) - (a.map === W.map.id) || b.lv - a.lv);
   for (const o of list) {
     const same = W.map && o.map === W.map.id, mate = PARTY.key && o.pk === PARTY.key, invited = PARTY.invited.includes(o.key);
-    body.append(el('div', { class: 'list-row' }, headCanvas(o.look, o.job, o.ws),
+    body.append(el('div', { class: 'list-row' }, headCanvas(o.look, o.job, o.ws, o.eqv),
       el('div', { class: 'grow' }, el('div', { class: 'nm2', text: o.name + (mate ? '  👥' : '') }), el('div', { class: 'ds', text: jobName(o.job) + '  B' + o.lv + ' J' + o.jl }),
         el('div', { class: 'meta', text: (o.dead ? 'กำลังฟื้นคืนชีพ  ' : '') + mapName(o.map) })),
       mate ? null : el('button', { class: 'mini', text: invited ? 'ชวนแล้ว' : 'ชวน', disabled: invited, onclick: () => partyInvite(o) }),
@@ -3500,7 +3971,7 @@ function drawAvatar() {
   const cv = $('#avatar'), d = Math.min(2, window.devicePixelRatio || 1);
   cv.width = 54 * d; cv.height = 54 * d;
   const c = cv.getContext('2d'); c.setTransform(d, 0, 0, d, 0, 0); c.clearRect(0, 0, 54, 54);
-  if (!R3.snap(c, 54, 54, S.hero.look, S.hero.job, S.hero.wstyle, 'head')) drawHero(c, 27, 86, 1.42, S.hero.look, S.hero.job, { noShadow: true, t: 0.3, wstyle: S.hero.wstyle });
+  if (!R3.snap(c, 54, 54, S.hero.look, S.hero.job, S.hero.wstyle, 'head', eqVis(S.hero))) drawHero(c, 27, 86, 1.42, S.hero.look, S.hero.job, { noShadow: true, t: 0.3, wstyle: S.hero.wstyle });
 }
 function renderNotice() { const n = $('#notice'); n.hidden = !CONFIG.announcement; n.textContent = '📜 ' + CONFIG.announcement; }
 function renderSaveTxt() {
@@ -3585,6 +4056,8 @@ function panelAuto(body) {
 }
 $('#potHp').addEventListener('click', () => usePot('hp'));
 $('#chatBtn').addEventListener('click', () => openPanel('chat'));
+$('#avatar').addEventListener('click', () => openEquip('eq'));
+$('#hName').addEventListener('click', () => openEquip('eq'));
 $('#potSp').addEventListener('click', () => usePot('sp'));
 document.querySelectorAll('.sbtn').forEach((b) => b.addEventListener('click', () => openPanel(b.dataset.panel)));
 $('#world').addEventListener('pointerdown', (e) => {
@@ -3613,9 +4086,10 @@ $('#world').addEventListener('pointerdown', (e) => {
 const PANELS = {
   stats: ['สถานะตัวละคร', panelStats], skills: ['สกิล', panelSkills], job: ['เปลี่ยนอาชีพ', panelJob],
   map: ['แผนที่', panelMap], shop: ['ร้านช่างตีเหล็ก', panelShop], rank: ['ทำเนียบนักผจญภัย', panelRank], gm: ['ห้องควบคุม GM', panelGM],
-  auto: ['โหมดออโต้', panelAuto], online: ['ผู้เล่นและปาร์ตี้', panelOnline], sound: ['ตั้งค่า', panelSound], bag: ['กระเป๋า', panelBag], chat: ['แชท', panelChat]
+  auto: ['โหมดออโต้', panelAuto], online: ['ผู้เล่นและปาร์ตี้', panelOnline], sound: ['ตั้งค่า', panelSound], chat: ['แชท', panelChat]
 };
 function openPanel(name) {
+  if (name === 'bag' || name === 'equip') { openEquip(name === 'bag' ? 'bag' : 'eq'); return; }
   if (!PANELS[name]) return;
   S.sheet = name; $('#sheetTitle').textContent = PANELS[name][0];
   if (name === 'gm' && !S.draftDirty) S.draft = clone(CONFIG);
@@ -3728,7 +4202,7 @@ function changeJob(nid) {
   const h = S.hero;
   if (!canJobChange(h) || !JOBS[h.job].next.includes(nid)) return;
   h.job = nid; h.jobLv = 1; h.jobExp = 0;
-  recalcPoints(h);
+  recalcPoints(h); normalizeGear(h);
   P.D = derived(); P.hp = P.D.maxHp; P.sp = P.D.maxSp;
   addFx({ kind: 'pillar', x: P.x, y: P.y, color: '#ffe27a', dur: 1.4, w: 46 });
   addFx({ kind: 'ring', x: P.x, y: P.y, r: 80, color: '#ffe27a', dur: 0.9 });
@@ -3813,12 +4287,20 @@ function panelShop(body) {
       el('button', { class: 'mini', text: 'x1', disabled: h.gold < unit, onclick: () => buyPot(kind, 1) }),
       el('button', { class: 'mini pri', text: 'x10', disabled: h.gold < unit * 10, onclick: () => buyPot(kind, 10) })));
   }
+  body.append(el('div', { class: 'sub', text: 'อุปกรณ์สวมใส่' }));
+  body.append(el('p', { class: 'note', text: 'ซื้อแล้วไปสวมได้ที่หน้าตัวละคร (แตะรูปตัวละครมุมซ้ายบน)' }));
+  for (const id in GEAR) {
+    const g = GEAR[id], price = Math.max(1, Math.round(g.pr * (1 - disc / 100)));
+    body.append(el('div', { class: 'list-row' }, el('span', { style: 'font-size:1.5rem', text: g.ic }),
+      el('div', { class: 'grow' }, el('div', { class: 'nm2', text: g.nm + '  (' + GEAR_TYPE_TH[g.slot] + ')' }), el('div', { class: 'ds', text: bonusText(g.b) })),
+      el('button', { class: 'mini pri', text: fmt(price) + ' G', disabled: h.gold < price, onclick: () => { if (h.gold < price) return; if (!addItem(gearItem(id), 1)) return; h.gold -= price; AU.sfx('coin'); toast('ซื้อ' + g.nm + ' แล้ว ไปสวมที่หน้าตัวละคร'); renderSheet(); hudText(); } })));
+  }
   if (JOBS[h.job].weapon === 'dagger') {
     body.append(el('div', { class: 'sub', text: 'อาวุธสายโจร' }));
-    body.append(el('p', { class: 'note', text: 'มีดสองข้างตีสองครั้งต่อรอบ ส่วนคาตาร์ตีครั้งเดียวแต่คริติคอลสูงกว่า' }));
+    body.append(el('p', { class: 'note', text: 'มีดสองข้างตีสองครั้งต่อรอบ ใส่การ์ดได้ข้างละ 2 ใบ ส่วนคาตาร์ตีครั้งเดียวแต่คริติคอลสูงกว่า ใส่การ์ดได้ 2 ใบ การ์ดที่เกินช่องจะกลับเข้ากระเป๋า' }));
     body.append(el('div', { class: 'acts' },
-      el('button', { class: 'mini' + (w === 'dual' ? ' on' : ''), text: 'มีดสองข้าง', 'aria-pressed': String(w === 'dual'), onclick: () => { h.wstyle = 'dual'; S.dirty = true; drawAvatar(); renderSheet(); } }),
-      el('button', { class: 'mini' + (w === 'katar' ? ' on' : ''), text: 'คาตาร์', 'aria-pressed': String(w === 'katar'), onclick: () => { h.wstyle = 'katar'; S.dirty = true; drawAvatar(); renderSheet(); } })));
+      el('button', { class: 'mini' + (w === 'dual' ? ' on' : ''), text: 'มีดสองข้าง', 'aria-pressed': String(w === 'dual'), onclick: () => { h.wstyle = 'dual'; normalizeGear(h); P.D = derived(); S.dirty = true; drawAvatar(); renderSheet(); } }),
+      el('button', { class: 'mini' + (w === 'katar' ? ' on' : ''), text: 'คาตาร์', 'aria-pressed': String(w === 'katar'), onclick: () => { h.wstyle = 'katar'; normalizeGear(h); P.D = derived(); S.dirty = true; drawAvatar(); renderSheet(); } })));
   }
 }
 
@@ -3907,7 +4389,7 @@ function panelGM(body) {
       el('div', { class: 'g3', style: 'margin-top:6px' }, fNum('Lv ต่ำสุด', m.min, (v) => { m.min = v; }), fNum('Lv สูงสุด', m.max, (v) => { m.max = v; }), fNum('มอนต่อหน้าจอ', m.count, (v) => { m.count = v; })));
     m.monsters.forEach((x, xi) => {
       det.append(el('div', { class: 'medit' },
-        el('div', { class: 'g2' }, fText('ชื่อ', x.name, (v) => { x.name = v; }, { max: 30 }), fSel('รูปร่าง', x.arch, ARCH_TH, (v) => { x.arch = v; })),
+        el('div', { class: 'g3' }, fText('ชื่อ', x.name, (v) => { x.name = v; }, { max: 30 }), fSel('รูปร่าง', x.arch, ARCH_TH, (v) => { x.arch = v; }), fSel('การ์ดใส่ช่อง', x.cs || ARCH_CS[x.arch], CS_TH, (v) => { x.cs = v; })),
         el('div', { class: 'g3', style: 'margin-top:6px;align-items:end' }, fColor('สี', x.color, (v) => { x.color = v; }), fNum('เลเวล', x.lv, (v) => { x.lv = Math.max(1, Math.round(v)); }),
           el('button', { class: 'mini', text: 'คำนวณจากเลเวล', onclick: () => { Object.assign(x, monStats(x.lv, x.boss)); markDraft(); rebuildGM(); } })),
         el('div', { class: 'g3', style: 'margin-top:6px' }, fNum('HP', x.hp, (v) => { x.hp = v; }), fNum('ATK', x.atk, (v) => { x.atk = v; }), fNum('DEF', x.def, (v) => { x.def = v; }),
@@ -4029,6 +4511,7 @@ function frame(ts) {
   try {
     if (S.screen === 'game' && S.hero && W.map) { update(dt); onlineTick(dt); draw(); hud(); }
     else if (S.screen === 'create') drawPreview(now);
+    drawEquipPreview(now);
   } catch (e) { console.error(e); }
   requestAnimationFrame(frame);
 }
