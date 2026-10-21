@@ -819,8 +819,8 @@ function MON(id, name, arch, color, lv, extra) {
 }
 
 const DEFAULT_CONFIG = {
-  version: '2.5.0',
-  patchNotes: 'อัปเดต 2.5: ดันเจี้ยนเรดบอสและตลาดกลาง\n• 4 ดันเจี้ยน (ปุ่ม 🏰) เข้าเป็นปาร์ตี้ 2–6 คน ใช้กุญแจคนละดอก กุญแจดรอปจากมอนและบอสแผนที่\n• บอสเรดตัวใหญ่ สกิลทุบพื้น คำราม ลมหายใจน้ำแข็ง ฝนอุกกาบาต มึนงงและแช่แข็งได้ ดูวงเตือนแล้วหลบ!\n• ดรอป Epic, Legendary, Mythic, Ultimate พร้อมออปชั่นสุ่มและเซ็ตโบนัส อาวุธแยก 6 สายอาชีพ โอกาสเท่ากัน\n• ตลาดซื้อ-ขาย (ปุ่ม 🏪) ได้ของไม่ตรงอาชีพก็ลงขายได้\n• ออร่าตามระดับของที่ใส่ อาวุธ +15 สีรุ้ง Lv99 มีแสงใต้เท้า\n• บอสแผนที่ใหม่ทุกแมพ',
+  version: '2.5.1',
+  patchNotes: 'อัปเดต 2.5.1: คริติคอลสะใจ\n• ติดคริมีระเบิดหนาม เลขทองเด้ง จอสั่น และหยุดภาพชั่วพริบตา\n• ติดคริต่อเนื่องขึ้น CRITICAL x2, x3… เสียงไต่สูงขึ้นเรื่อยๆ\n• (จาก 2.5) ดันเจี้ยนปาร์ตี้ 2–6 คน และตลาดซื้อ-ขายกลาง',
   announcement: 'ยินดีต้อนรับสู่ช่วงทดสอบ! เจอบั๊กบอก GM ได้เลย',
   rates: { bexp: 1, jexp: 1, gold: 1, drop: 1 },
   deathPenalty: 1,
@@ -1570,6 +1570,88 @@ function spawnMon() {
 }
 
 /* ---------- fx helpers ---------- */
+/* ---------- critical hit popups ---------- */
+const CRIT = { chain: 0, last: -9, hsT: 0 };
+function critPop(x, y, text, o) {
+  const spk = []; for (let i = 0; i < 14; i++) spk.push(0.72 + Math.random() * 0.5);
+  const sparks = []; for (let i = 0; i < 9; i++) sparks.push([Math.random() * TAU, 0.6 + Math.random() * 0.8]);
+  W.nums.push(Object.assign({ x, y, text, col: '#ffd84a', size: 30, t0: W.t, dur: 1.15, crit: true, burst: true, rot: Math.random() * TAU, spk, sparks, chain: 1 }, o || {}));
+  if (W.nums.length > 100) W.nums.shift();
+}
+function myCrit(tg, per, i) {
+  if (i === 0) { CRIT.chain = W.t - CRIT.last < 1.6 ? Math.min(CRIT.chain + 1, 9) : 1; CRIT.last = W.t; }
+  const s = tg.size || 1;
+  critPop(tg.x + (Math.random() * 10 - 5), tg.y - 34 * s - i * 14, fmt(per), { burst: i === 0, chain: CRIT.chain, size: i === 0 ? 31 : 22 });
+  AU.sfx('crit', { chain: CRIT.chain, sub: i });
+  if (i === 0) {
+    addFx({ kind: 'ring', x: tg.x, y: tg.y, r: 38 * s, color: '#ffcf3a', dur: 0.32 });
+    if (R3.on && R3.shake) R3.shake(0.12, 0.045 + Math.min(CRIT.chain, 5) * 0.006);
+    if (performance.now() - CRIT.hsT > 140) { CRIT.hsT = performance.now(); W.hitstop = performance.now() + 65; }
+  }
+}
+function drawCrit(ctx, n, x, baseY, t) {
+  const ts = t - n.t0, p = ts / n.dur, size = n.size;
+  ctx.save();
+  // starburst
+  if (n.burst && ts < 0.62) {
+    const bp = ts / 0.62, sc = ts < 0.09 ? ts / 0.09 * 1.3 : ts < 0.18 ? 1.3 - (ts - 0.09) / 0.09 * 0.3 : 1 + (ts - 0.18) * 0.12;
+    const R = size * 1.75 * sc, a = bp < 0.55 ? 1 : 1 - (bp - 0.55) / 0.45;
+    ctx.translate(x, baseY); ctx.rotate(n.rot + ts * 0.5);
+    ctx.globalAlpha = a * 0.9;
+    for (let i = 0; i < 10; i++) {
+      const ang = i / 10 * TAU + n.rot * 0.7, r0 = R * (0.75 + bp * 0.6), r1 = R * (1.15 + bp * 1.1);
+      ctx.strokeStyle = i % 2 ? '#fff6c8' : '#ffd84a'; ctx.lineWidth = Math.max(1, 3 * (1 - bp)); ctx.beginPath();
+      ctx.moveTo(Math.cos(ang) * r0, Math.sin(ang) * r0 * 0.8); ctx.lineTo(Math.cos(ang) * r1, Math.sin(ang) * r1 * 0.8); ctx.stroke();
+    }
+    ctx.globalAlpha = a;
+    ctx.beginPath();
+    const k = n.spk.length;
+    for (let i = 0; i < k * 2; i++) {
+      const ang = i / (k * 2) * TAU, rr = (i % 2 ? R * 0.5 : R * n.spk[i >> 1]);
+      const px = Math.cos(ang) * rr, py = Math.sin(ang) * rr * 0.82;
+      i ? ctx.lineTo(px, py) : ctx.moveTo(px, py);
+    }
+    ctx.closePath();
+    const g = ctx.createRadialGradient(0, 0, R * 0.05, 0, 0, R * 1.1);
+    g.addColorStop(0, '#fffbe0'); g.addColorStop(0.28, '#ffd13a'); g.addColorStop(0.6, '#ff5a1a'); g.addColorStop(1, '#a3100a');
+    ctx.fillStyle = g; ctx.shadowColor = '#ff6a00'; ctx.shadowBlur = 18 * (1 - bp); ctx.fill();
+    ctx.shadowBlur = 0; ctx.lineWidth = 2; ctx.strokeStyle = 'rgba(60,6,0,.85)'; ctx.stroke();
+    for (const [ang, sp] of n.sparks) {
+      const d = R * (0.6 + bp * 1.6 * sp); ctx.fillStyle = '#fff3b0';
+      ctx.beginPath(); ctx.arc(Math.cos(ang) * d, Math.sin(ang) * d * 0.8, Math.max(0.5, 2.6 * (1 - bp)), 0, TAU); ctx.fill();
+    }
+    ctx.restore(); ctx.save();
+  }
+  // number: punch-in, shake, then float
+  const sc = ts < 0.07 ? 2.5 - ts / 0.07 * 1.6 : ts < 0.14 ? 0.9 + (ts - 0.07) / 0.07 * 0.2 : ts < 0.2 ? 1.1 - (ts - 0.14) / 0.06 * 0.1 : 1;
+  const sh = ts < 0.16 ? (1 - ts / 0.16) * 3.5 : 0;
+  const nx = x + (Math.random() - 0.5) * sh, ny = baseY - 22 * easeOut(Math.max(0, (p - 0.4) / 0.6)) + (Math.random() - 0.5) * sh;
+  const fs = size * sc, alpha = p > 0.72 ? 1 - (p - 0.72) / 0.28 : 1;
+  ctx.globalAlpha = alpha; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.lineJoin = 'round';
+  const gold = (y, h) => { const g = ctx.createLinearGradient(0, y - h / 2, 0, y + h / 2); g.addColorStop(0, '#fffde8'); g.addColorStop(0.45, '#ffd84a'); g.addColorStop(1, '#ff8c00'); return g; };
+  // echo copy above (like the classic double number)
+  if (n.burst && ts < 0.75) {
+    const ep = ts / 0.75, es = fs * 0.6, ey = ny - fs * 0.95 - ep * 26;
+    ctx.globalAlpha = alpha * (1 - ep) * 0.9;
+    ctx.font = '700 ' + es + 'px Silkscreen,"Courier New",monospace';
+    ctx.lineWidth = Math.max(2, es * 0.28); ctx.strokeStyle = '#2a1200'; ctx.strokeText(n.text, nx, ey);
+    ctx.fillStyle = gold(ey, es); ctx.fillText(n.text, nx, ey);
+    ctx.globalAlpha = alpha;
+  }
+  ctx.font = '700 ' + fs + 'px Silkscreen,"Courier New",monospace';
+  ctx.lineWidth = Math.max(4, fs * 0.36); ctx.strokeStyle = '#1e0c00'; ctx.strokeText(n.text, nx, ny);
+  ctx.lineWidth = Math.max(2, fs * 0.14); ctx.strokeStyle = '#7a2a00'; ctx.strokeText(n.text, nx, ny);
+  ctx.fillStyle = gold(ny, fs); ctx.fillText(n.text, nx, ny);
+  if (ts < 0.1) { ctx.globalAlpha = alpha * (1 - ts / 0.1); ctx.fillStyle = '#ffffff'; ctx.fillText(n.text, nx, ny); ctx.globalAlpha = alpha; }
+  // label
+  if (n.burst && ts > 0.04) {
+    const ls = Math.max(9, size * 0.36), lb = n.chain > 1 ? 'CRITICAL x' + n.chain + '!' : 'CRITICAL!';
+    ctx.font = '700 ' + ls + 'px Silkscreen,"Courier New",monospace';
+    ctx.lineWidth = Math.max(3, ls * 0.4); ctx.strokeStyle = '#4a0000'; ctx.strokeText(lb, nx, ny + fs * 0.78);
+    ctx.fillStyle = n.chain >= 3 ? 'hsl(' + ((t * 360) % 360) + ',100%,70%)' : '#ffffff'; ctx.fillText(lb, nx, ny + fs * 0.78);
+  }
+  ctx.restore();
+}
 function addFx(o) { o.t0 = W.t; W.fx.push(o); if (W.fx.length > 140) W.fx.shift(); }
 function addNum(x, y, text, col, size, o) { W.nums.push(Object.assign({ x, y, text, col, size, t0: W.t, dur: 0.9, font: 'px' }, o || {})); if (W.nums.length > 100) W.nums.shift(); }
 function later(d, fn) { W.pend.push({ at: W.t + d, fn }); }
@@ -1601,9 +1683,9 @@ function applyHit(tg, res, hits) {
     later(i * 0.075, () => {
       if (tg.state === 'dead' || tg.hp <= 0) return;
       tg.hp -= per; tg.hitT = 0.12; tg.angry = true; tg.state = 'chase'; tg.tgt = myKey(); tg.predT = W.t;
-      AU.sfx(res.crit ? 'crit' : 'hit');
       if (!NET.isHost) netPushHit(tg.uid, per, res.crit);
-      addNum(tg.x + (Math.random() * 18 - 9), tg.y - 32 * s - i * 11, fmt(per), res.crit ? '#ffd84a' : '#ffffff', res.crit ? 19 : 15, { pop: true });
+      if (res.crit) myCrit(tg, per, i);
+      else { AU.sfx('hit'); addNum(tg.x + (Math.random() * 18 - 9), tg.y - 32 * s - i * 11, fmt(per), '#ffffff', 15, { pop: true }); }
       if (tg.hp <= 0) { if (NET.isHost) killMon(tg, myKey()); else tg.hp = 0; }
     });
   }
@@ -2055,6 +2137,7 @@ function draw() {
   ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.lineJoin = 'round';
   for (const n of W.nums) {
     const p = (t - n.t0) / n.dur; if (p < 0 || p > 1) continue;
+    if (n.crit) { drawCrit(ctx, n, n.x, n.y, t); continue; }
     const yy = n.y - 26 * easeOut(p), sc = n.pop && p < 0.12 ? 1 + (0.12 - p) * 4 : 1, size = n.size * sc;
     ctx.globalAlpha = p > 0.7 ? 1 - (p - 0.7) / 0.3 : 1;
     ctx.font = n.font === 'th' ? '700 ' + size + 'px "Bai Jamjuree","Noto Sans Thai",sans-serif' : '700 ' + size + 'px Silkscreen,"Courier New",monospace';
@@ -3133,6 +3216,7 @@ void main(){
     ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.lineJoin = 'round';
     for (const n of W.nums) {
       const p = (t - n.t0) / n.dur; if (p < 0 || p > 1) continue;
+      if (n.crit) { const qc = proj(n.x, n.y); drawCrit(ctx, n, qc.x, qc.y - 22, t); continue; }
       const q = proj(n.x, n.y), yy = q.y - 22 - 26 * easeOut(p), sc = n.pop && p < 0.12 ? 1 + (0.12 - p) * 4 : 1, size = n.size * sc * 1.1;
       ctx.globalAlpha = p > 0.7 ? 1 - (p - 0.7) / 0.3 : 1;
       ctx.font = n.font === 'th' ? '700 ' + size + 'px "Bai Jamjuree","Noto Sans Thai",sans-serif' : '700 ' + size + 'px Silkscreen,"Courier New",monospace';
@@ -3252,10 +3336,24 @@ const AU = (() => {
     arrow(t) { tone('triangle', 200, t, 0.12, 0.22, { to: 120 }); noise(t, 0.08, 0.1, 'highpass', 3500); },
     cast(t) { tone('sine', 660, t, 0.18, 0.1, { to: 990 }); tone('triangle', 1320, t + 0.03, 0.15, 0.04); },
     hit(t) { tone('sine', 175, t, 0.12, 0.42, { to: 55 }); noise(t, 0.06, 0.28, 'lowpass', 1800); },
-    crit(t) {
-      tone('sine', 120, t, 0.24, 0.6, { to: 38 }); noise(t, 0.14, 0.42, 'lowpass', 3200);
-      tone('square', 1046, t, 0.09, 0.09, { to: 2093, lp: 5000 });
-      tone('sine', 1568, t + 0.04, 0.28, 0.13); tone('sine', 2093, t + 0.08, 0.32, 0.1);
+    crit(t, o) {
+      o = o || {};
+      const ch = Math.max(1, o.chain || 1), sub = o.sub || 0, k = Math.pow(2, Math.min(ch - 1, 8) * 2 / 12) * (0.985 + Math.random() * 0.03);
+      if (sub > 0) { noise(t, 0.05, 0.3, 'highpass', 3000); tone('sine', 1760 * k, t, 0.18, 0.08); tone('sine', 140, t, 0.12, 0.35, { to: 50 }); return; }
+      // crack + punch
+      noise(t, 0.045, 0.55, 'highpass', 2600);
+      tone('sine', 165, t, 0.26, 0.75, { to: 40 });
+      tone('square', 82, t, 0.2, 0.18, { to: 40, lp: 420 });
+      noise(t + 0.01, 0.16, 0.3, 'lowpass', 1400, 300);
+      // metallic "shing" (bell-like partials)
+      const f = 1318 * k;
+      tone('sine', f, t + 0.012, 0.55, 0.16, { r: 0.55 }); tone('sine', f * 1.5, t + 0.012, 0.45, 0.1, { r: 0.45 }); tone('sine', f * 2.76, t + 0.012, 0.3, 0.06, { r: 0.3 });
+      tone('triangle', f * 0.5, t + 0.012, 0.35, 0.08, { det: 7 });
+      noise(t + 0.02, 0.28, 0.1, 'bandpass', 7000, 2500, 2);
+      // sparkle run, climbs with the chain
+      const run = [0, 4, 7, 12].slice(0, ch >= 3 ? 4 : 3);
+      run.forEach((s, i) => tone('sine', 2093 * k * Math.pow(2, s / 12), t + 0.07 + i * 0.045, 0.22, 0.055));
+      if (ch >= 4) tone('sine', 4186 * k, t + 0.26, 0.4, 0.04, { vib: true });
     },
     miss(t) { noise(t, 0.1, 0.1, 'bandpass', 2200, 3600, 2); },
     hurt(t) { tone('triangle', 115, t, 0.14, 0.28, { to: 70 }); noise(t, 0.05, 0.14, 'lowpass', 900); },
@@ -3302,12 +3400,12 @@ const AU = (() => {
     legend(t) { [1319, 1568, 1976, 2637, 3136].forEach((f, i) => tone('sine', f, t + i * 0.07, 0.9, 0.08)); tone('triangle', 659, t, 1.2, 0.1, { vib: true }); },
     chat(t) { tone('sine', 1320, t, 0.08, 0.045); tone('sine', 1760, t + 0.07, 0.1, 0.04); }
   };
-  A.sfx = (name) => {
+  A.sfx = (name, o) => {
     if (!A.ctx || A.ctx.state !== 'running' || A.mute || A.svol <= 0 || !SFX[name]) return;
     const now = A.ctx.currentTime, gap = name === 'hit' || name === 'crit' ? 0.05 : 0.035;
     if ((A.last[name] || 0) + gap > now) return;
     A.last[name] = now;
-    try { SFX[name](now + 0.005); } catch (e) {}
+    try { SFX[name](now + 0.005, o); } catch (e) {}
   };
   A.skillSfx = (sk) => {
     if (sk.type === 'heal') return 'heal';
@@ -3962,7 +4060,8 @@ function processOthersHits() {
       const m = W.mons.find((x) => x.uid === int(hh[1], -1, -1, 1e9) && x.state !== 'dead');
       if (!m) continue;
       const dmg = int(hh[2], 0, 0, 1e9), cr = !!hh[3], s = m.size || 1;
-      addNum(m.x + (Math.random() * 18 - 9), m.y - 30 * s, fmt(dmg), cr ? '#ffd84a' : '#cfe3ff', cr ? 15 : 12, { pop: cr });
+      if (cr) critPop(m.x + (Math.random() * 18 - 9), m.y - 30 * s, fmt(dmg), { size: 20, burst: true, chain: 1 });
+      else addNum(m.x + (Math.random() * 18 - 9), m.y - 30 * s, fmt(dmg), '#cfe3ff', 12, { pop: false });
       m.hitT = 0.1;
     }
     NET.seenHit.set(o.key, mx);
@@ -5568,7 +5667,8 @@ async function init() {
 }
 let lastTs = 0;
 function frame(ts) {
-  const now = ts / 1000, dt = Math.min(0.1, Math.max(0, now - (lastTs || now)));
+  const now = ts / 1000; let dt = Math.min(0.1, Math.max(0, now - (lastTs || now)));
+  if (W.hitstop && performance.now() < W.hitstop) dt *= 0.06;
   lastTs = now;
   try {
     if (S.screen === 'game' && S.hero && W.map) { update(dt); onlineTick(dt); bossTick(); draw(); hud(); }
