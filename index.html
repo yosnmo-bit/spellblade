@@ -227,6 +227,64 @@ button:disabled{cursor:default}
 .rcol .money{text-align:center;min-width:86px}
 @media (max-height:760px){.side{display:grid;grid-template-columns:repeat(2,46px);direction:rtl}.side>*{direction:ltr}}
 
+.raidbar{position:absolute;left:8px;right:104px;top:calc(8px + 54px);z-index:6;padding:5px 9px 7px;border-radius:10px;background:linear-gradient(180deg,rgba(40,6,8,.92),rgba(18,4,6,.92));border:1px solid #8a1a1a;box-shadow:0 0 14px rgba(200,20,20,.45),inset 0 0 12px rgba(0,0,0,.6);pointer-events:none}
+.raidbar[hidden]{display:none}
+.rbtop{display:flex;align-items:baseline;gap:6px;color:#ffd9c8;font-size:.78rem;line-height:1.2;white-space:nowrap;overflow:hidden}
+.rbtop b{color:#fff;letter-spacing:.02em;overflow:hidden;text-overflow:ellipsis;text-shadow:0 0 6px #ff3b2f}
+.rbtop span{font:700 8px "Silkscreen",monospace;color:#ff9b8a}
+.rbtop em{margin-left:auto;font-style:normal;color:#ff5a3a;font-weight:700}
+.rbbar{position:relative;height:15px;margin-top:4px;border-radius:4px;background:#1a0405;border:1px solid #4a0a0a;overflow:hidden}
+.rbbar i{position:absolute;left:0;top:0;bottom:0}
+.rbtrail{background:#ffcfb8}
+.rbfill{background:linear-gradient(180deg,#ff6a4a,#d01818 55%,#7a0606);box-shadow:0 0 8px #ff2a1a}
+.rbbar b{position:absolute;inset:0;text-align:center;font:700 10px/15px "Silkscreen",monospace;color:#fff;text-shadow:0 0 3px #000,0 0 3px #000}
+.raidbar.enr{animation:rbpulse .6s ease-in-out infinite alternate}
+@keyframes rbpulse{from{box-shadow:0 0 10px rgba(255,40,20,.5)}to{box-shadow:0 0 26px rgba(255,40,20,1)}}
+@media (prefers-reduced-motion: reduce){.raidbar.enr{animation:none;box-shadow:0 0 22px rgba(255,40,20,.9)}}
+.game.raidon .lcol{top:calc(8px + 54px + 50px)}
+.dgexit{pointer-events:auto;padding:5px 10px;border-radius:10px;border:1px solid #ffb04a;background:rgba(30,12,8,.85);color:#ffe0b0;font-size:.76rem;font-weight:700}
+.dgexit[hidden]{display:none}
+.bossann.k-world{border-image:linear-gradient(90deg,#ff3b5c,#ffd23f,#5dff7a,#4fc3ff,#b366ff) 1;border-width:2px;border-style:solid;box-shadow:0 0 26px rgba(255,210,63,.6);color:#fff}
+.bossann.k-warn{border-color:#ffd166}
+.rchip{display:inline-block;margin:3px 4px 0 0;padding:1px 7px;border-radius:999px;font-size:.66rem;font-weight:700;color:var(--rc);border:1px solid var(--rc);background:color-mix(in srgb,var(--rc) 14%,transparent)}
+.rchips{margin:4px 0}
+.ds.gopt{color:var(--accent-ink)}
+.setln{margin-top:6px;padding:6px 8px;border-radius:8px;background:var(--chip);display:flex;flex-direction:column;gap:2px;font-size:.78rem}
+.setln small{color:var(--ink-soft)}.setln small.on{color:#2e9e57;font-weight:700}
+.tile.rar,.eqslot.rar{border-color:var(--rc);box-shadow:inset 0 0 0 1px var(--rc),0 0 8px color-mix(in srgb,var(--rc) 55%,transparent)}
+.dgcard{margin:8px 0;padding:10px;border-radius:12px;background:var(--panel-2);border-left:4px solid var(--dc)}
+.dgtop{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.dgdiff{font-size:.72rem;font-weight:700;color:var(--dc);border:1px solid var(--dc);border-radius:999px;padding:1px 8px}
+.dgkey{display:flex;flex-direction:column;margin:6px 0;font-size:.8rem}.dgkey small{color:var(--ink-soft)}
+.rwcard{max-width:400px;width:100%}
+.rwtitle{background:linear-gradient(90deg,#7a4a00,#d89a1a,#7a4a00)!important}
+.rwsub{margin:0 0 8px;text-align:center;color:var(--ink-soft)}
+.rwlist{display:flex;flex-direction:column;gap:8px;max-height:46vh;overflow-y:auto;margin-bottom:10px}
+.rwit{display:flex;gap:10px;align-items:center;padding:8px 10px;border-radius:12px;border:2px solid var(--rc);background:color-mix(in srgb,var(--rc) 10%,var(--panel));box-shadow:0 0 14px color-mix(in srgb,var(--rc) 45%,transparent)}
+.rwit b{color:var(--rc);display:block}.rwit small{display:block;color:var(--ink-soft);font-size:.74rem}.rwit small.gopt{color:var(--accent-ink)}
+.rwic{font-size:1.8rem}
+.rwit.r4{animation:ultglow 1.2s ease-in-out infinite alternate}
+@keyframes ultglow{from{box-shadow:0 0 8px #ff2a3a}to{box-shadow:0 0 26px #ff2a3a}}
+@media (prefers-reduced-motion: reduce){.rwit.r4{animation:none}}
+
+.dgparty{display:flex;flex-direction:column;padding:8px 10px;border-radius:10px;margin-bottom:6px;background:color-mix(in srgb,var(--bad) 12%,var(--panel-2));border:1px solid color-mix(in srgb,var(--bad) 45%,transparent)}
+.dgparty.ok{background:color-mix(in srgb,#2e9e57 12%,var(--panel-2));border-color:color-mix(in srgb,#2e9e57 45%,transparent)}
+.dgparty small{color:var(--ink-soft);font-size:.74rem}
+.mktabs{display:flex;gap:6px;margin-bottom:6px}
+.mkt{flex:1;padding:8px 4px;border-radius:10px;border:1px solid var(--line);background:var(--chip);font-size:.82rem;font-weight:600}
+.mkt.on{background:var(--accent);color:#fff;border-color:var(--accent)}
+.mkf{display:flex;flex-wrap:wrap;gap:5px;align-items:center;margin:4px 0 8px}
+.mkf .chip{padding:4px 10px;border-radius:999px;border:1px solid var(--line);background:var(--chip);font-size:.74rem}
+.mkf .chip.on{background:var(--accent);color:#fff;border-color:var(--accent)}
+.mkf select{margin-left:auto;font-size:.76rem;padding:4px 6px;border-radius:8px;border:1px solid var(--line);background:var(--panel);color:var(--ink)}
+.mkrow{display:flex;gap:8px;align-items:center;padding:8px 10px;margin:6px 0;border-radius:12px;background:var(--panel-2);border-left:4px solid var(--rc)}
+.mkrow.pick{box-shadow:0 0 0 2px var(--accent)}
+.mkrow .grow{min-width:0}
+.mkbuy{display:flex;flex-direction:column;align-items:flex-end;gap:3px;flex-shrink:0;text-align:right}
+.mkbuy b{color:#b8860b;font:700 11px "Silkscreen",monospace}
+.mkbuy small{color:var(--ink-soft);font-size:.68rem;max-width:96px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.mkprice{width:96px;padding:5px 6px;border-radius:8px;border:1px solid var(--line);background:var(--panel);color:var(--ink);font-size:.82rem;text-align:right}
+
 /* sheet */
 .sheet-wrap{position:fixed;inset:0;z-index:30;display:flex;flex-direction:column;justify-content:flex-end;background:rgba(5,8,15,.28)}
 .sheet-wrap[hidden]{display:none}
@@ -362,7 +420,9 @@ details.box summary{font-weight:700;cursor:pointer}
         </div>
       </div>
     </div>
+    <div class="raidbar" id="raidBar" hidden><div class="rbtop"><b id="rbName"></b><span id="rbLv"></span><em id="rbSt"></em></div><div class="rbbar"><i class="rbtrail" id="rbTrail"></i><i class="rbfill" id="rbFill"></i><b id="rbPct"></b></div></div>
     <div class="lcol">
+      <button class="dgexit" id="dgExit" hidden>🚪 ออกจากดันเจี้ยน</button>
       <div class="notice" id="notice" hidden></div>
       <div class="bossbar" id="bossBar" hidden></div>
       <div class="partyhud" id="partyHud" hidden></div>
@@ -376,7 +436,9 @@ details.box summary{font-weight:700;cursor:pointer}
       <button class="sbtn" data-panel="bag"><span>🎒</span><small>กระเป๋า</small></button>
       <button class="sbtn" data-panel="job" id="btnJob"><span>🎖️</span><small>อาชีพ</small></button>
       <button class="sbtn" data-panel="map"><span>🗺️</span><small>แผนที่</small></button>
+      <button class="sbtn" data-panel="dungeon"><span>🏰</span><small>ดันเจี้ยน</small></button>
       <button class="sbtn" data-panel="shop"><span>🔨</span><small>ร้าน</small></button>
+      <button class="sbtn" data-panel="market"><span>🏪</span><small>ตลาด</small></button>
       <button class="sbtn" data-panel="rank"><span>🏆</span><small>อันดับ</small></button>
       <button class="sbtn" data-panel="online"><span>👥</span><small>ผู้เล่น</small><span class="dot" id="dotOnline" hidden></span></button>
       <button class="sbtn" data-panel="sound"><span>⚙️</span><small>ตั้งค่า</small></button>
@@ -407,6 +469,13 @@ details.box summary{font-weight:700;cursor:pointer}
   </div>
 </div>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
+<div class="modal" id="raidWin" hidden role="dialog" aria-modal="true" aria-labelledby="rwTitle">
+  <div class="mcard rwcard">
+    <div class="sheet-title rwtitle"><span id="rwTitle">🏆 เคลียร์ดันเจี้ยน!</span></div>
+    <div class="mb"><p class="rwsub" id="rwSub"></p><div class="rwlist" id="rwList"></div>
+      <div class="acts" style="justify-content:center"><button class="mini" id="rwBag">ดูกระเป๋า</button><button class="mini pri" id="rwExit">ออกจากดันเจี้ยน</button><button class="mini" id="rwStay">อยู่ต่อ</button></div></div>
+  </div>
+</div>
 <div class="modal" id="patchModal" hidden role="dialog" aria-modal="true" aria-labelledby="patchTitle">
   <div class="mcard">
     <div class="sheet-title"><span id="patchTitle"></span></div>
@@ -549,6 +618,14 @@ window.__NET_RATE = 250;
       set: (d) => ref.set(enc(d)).catch((e) => { throw errOf(e); }),
       update: (d) => ref.once('value').then((s) => { const cur = dec(s.val()); if (cur === undefined) throw { code: 'invalid_argument', message: 'missing' }; return ref.set(enc(merge(cur, d))); }).catch((e) => { throw e && e.code ? e : errOf(e); }),
       delete: () => ref.remove(),
+      acquire: async (o) => {
+        const now = Date.now() + (window.__srvOff || 0), ttl = Math.min(600000, Math.max(1000, (o && o.ttlMs) || 30000)), hold = String((o && o.holder) || uid);
+        const lref = rtdb.ref('leases/' + path.replace(/[\/.#$\[\]]/g, '~'));
+        try {
+          const res = await lref.transaction((cur) => { if (cur && cur.exp > now && cur.h !== hold) return; return { h: hold, exp: now + ttl, by: uid }; });
+          return res.committed ? { acquired: true, holder: hold, expiresAt: new Date(now + ttl).toISOString() } : { acquired: false, expiresAt: new Date(now + ttl).toISOString() };
+        } catch (e) { return { acquired: false }; }
+      },
       onSnapshot: (next, err) => { const cb = (s) => next(docSnap(s.key, s.val())); ref.on('value', cb, (e) => err && err(errOf(e))); return () => ref.off('value', cb); },
       collection: (c) => colRef(path + '/' + c) }; };
     const colRef = (path) => { const ref = rtdb.ref(path); const q = { path,
@@ -702,12 +779,23 @@ defSkill('ws_execute', 'whitesmith', 'ประหารเหล็กกล้
 defSkill('ws_quake', 'whitesmith', 'ขวานถล่มปฐพี', '🌋', 'aoe', { m: [3.2, 0.45], r: 150, self: true, hits: 3, sp: [42, 3], cd: 6, color: '#ff8f3d', fx: 'quake' });
 defSkill('ws_titan', 'whitesmith', 'พลังไททัน', '💪', 'buff', { b: { atk: 6, def: 3 }, dur: 90, sp: [35, 2], cd: 120, color: '#fff3c4' });
 
-const BUFF_TH = { str: 'STR', agi: 'AGI', vit: 'VIT', int: 'INT', luk: 'LUK', matkPct: 'MATK', atk: 'ATK', matk: 'MATK', aspd: 'ความเร็วตี', def: 'DEF', crit: 'คริ', flee: 'หลบ', hpPct: 'HP สูงสุด', atkPct: 'ATK', aspdPct: 'ความเร็วตี', discount: 'ส่วนลดร้าน', dex: 'DEX' };
+const BUFF_TH = { watk: 'ATK', wmatk: 'MATK', str: 'STR', agi: 'AGI', vit: 'VIT', int: 'INT', luk: 'LUK', matkPct: 'MATK', atk: 'ATK', matk: 'MATK', aspd: 'ความเร็วตี', def: 'DEF', crit: 'คริ', flee: 'หลบ', hpPct: 'HP สูงสุด', atkPct: 'ATK', aspdPct: 'ความเร็วตี', discount: 'ส่วนลดร้าน', dex: 'DEX' };
 const PCT_KEYS = { matkPct: 1, atk: 1, matk: 1, aspd: 1, hpPct: 1, atkPct: 1, aspdPct: 1, discount: 1, crit: 1 };
 
 /* ---------- monsters & maps ---------- */
 const ARCHES = ['blob', 'shroom', 'beast', 'bat', 'plant', 'bones', 'ghost', 'brute', 'drake'];
 const ARCH_TH = { blob: 'สไลม์', shroom: 'เห็ด', beast: 'สัตว์สี่ขา', bat: 'ค้างคาว', plant: 'พืช', bones: 'โครงกระดูก', ghost: 'วิญญาณ', brute: 'ยักษ์', drake: 'มังกร' };
+const RAR = [
+  { id: 'n', nm: 'ธรรมดา', col: '#cfd6e2', mult: 1, opts: 0 },
+  { id: 'e', nm: 'Epic', col: '#b366ff', mult: 1, opts: 0 },
+  { id: 'l', nm: 'Legendary', col: '#ff8a1f', mult: 1.15, opts: 1 },
+  { id: 'm', nm: 'Mythic', col: '#ffd23f', mult: 1.3, opts: 2 },
+  { id: 'u', nm: 'Ultimate', col: '#ff2a3a', mult: 1.5, opts: 3 }
+];
+const LINE_TH = { sword: 'นักดาบ', acolyte: 'นักบวช', magician: 'นักเวท', archer: 'นักธนู', thief: 'โจร', merchant: 'พ่อค้า' };
+const DG_LINES = ['sword', 'acolyte', 'magician', 'archer', 'thief', 'merchant'];
+const DG_SKILL_TH = { slam: 'ทุบพื้น (มึนงง)', roar: 'คำราม (มึนงงรอบตัว)', breath: 'ลมหายใจน้ำแข็ง (แช่แข็ง)', meteor: 'ฝนอุกกาบาต', summon: 'เรียกสมุน' };
+const DG_SETS = { slime: { nm: 'ราชาเมือก', t: 1 }, temple: { nm: 'ฟาโรห์', t: 2 }, demon: { nm: 'จอมมาร', t: 3 }, dragon: { nm: 'มังกรนิรันดร์', t: 4 } };
 const CS_TH = { weapon: 'อาวุธ', shield: 'โล่', armor: 'เสื้อเกราะ', head: 'หมวก', face: 'ใบหน้า', mouth: 'ปาก', shoes: 'รองเท้า', ring: 'แหวน' };
 const ARCH_CS = { blob: 'armor', shroom: 'head', beast: 'shoes', bat: 'face', plant: 'mouth', bones: 'weapon', ghost: 'shield', brute: 'weapon', drake: 'ring' };
 const THEME_LIST = ['grass', 'forest', 'sand', 'ruins', 'lava'];
@@ -731,8 +819,8 @@ function MON(id, name, arch, color, lv, extra) {
 }
 
 const DEFAULT_CONFIG = {
-  version: '2.4.0',
-  patchNotes: 'อัปเดต 2.4: หน้าเลือกตัวละคร\n• เปิดเกมจะเริ่มที่หน้าเลือกตัวละคร\n• ถ้าพับจอหรือสลับแอปเกิน 20 วินาที ตัวละครจะออกจากโลก กลับมาแล้วกดเข้าสู่เกมเพื่อเล่นต่อ\n• ผู้เล่นที่ไม่อยู่หน้าจอจะหายจากแผนที่และรายชื่อออนไลน์\n• แก้บั๊กบอสไม่ตีและมอนตายแล้วเลือดเด้งกลับ',
+  version: '2.5.0',
+  patchNotes: 'อัปเดต 2.5: ดันเจี้ยนเรดบอสและตลาดกลาง\n• 4 ดันเจี้ยน (ปุ่ม 🏰) เข้าเป็นปาร์ตี้ 2–6 คน ใช้กุญแจคนละดอก กุญแจดรอปจากมอนและบอสแผนที่\n• บอสเรดตัวใหญ่ สกิลทุบพื้น คำราม ลมหายใจน้ำแข็ง ฝนอุกกาบาต มึนงงและแช่แข็งได้ ดูวงเตือนแล้วหลบ!\n• ดรอป Epic, Legendary, Mythic, Ultimate พร้อมออปชั่นสุ่มและเซ็ตโบนัส อาวุธแยก 6 สายอาชีพ โอกาสเท่ากัน\n• ตลาดซื้อ-ขาย (ปุ่ม 🏪) ได้ของไม่ตรงอาชีพก็ลงขายได้\n• ออร่าตามระดับของที่ใส่ อาวุธ +15 สีรุ้ง Lv99 มีแสงใต้เท้า\n• บอสแผนที่ใหม่ทุกแมพ',
   announcement: 'ยินดีต้อนรับสู่ช่วงทดสอบ! เจอบั๊กบอก GM ได้เลย',
   rates: { bexp: 1, jexp: 1, gold: 1, drop: 1 },
   deathPenalty: 1,
@@ -742,31 +830,46 @@ const DEFAULT_CONFIG = {
   maxBase: 99,
   potion: { hp: 30, sp: 80 },
   shop: { gear: {}, refineW: 150, refineA: 120 },
+  party: { min: 2, max: 6 },
   jobNames: {},
+  dungeons: [
+    { id: 'slime', name: 'ถ้ำราชาเมือก', theme: 'forest', diff: 1, minLv: 15, boss: 'ราชาเมือกยักษ์', arch: 'blob', color: '#55d39a', bossLv: 30, hpMul: 4,
+      keyName: 'กุญแจถ้ำเมือก', keyMaps: ['meadow', 'darkwood'], keyChance: 0.8, rar: [85, 15, 0, 0], skills: ['slam', 'roar', 'summon'], minion: ['blob', 'สไลม์พิษ', '#7be08a'], on: true },
+    { id: 'temple', name: 'วิหารต้องสาป', theme: 'sand', diff: 2, minLv: 35, boss: 'ฟาโรห์อมตะ', arch: 'bones', color: '#e3c46a', bossLv: 52, hpMul: 4.5,
+      keyName: 'กุญแจวิหาร', keyMaps: ['desert'], keyChance: 0.7, rar: [60, 32, 8, 0], skills: ['slam', 'breath', 'roar', 'summon'], minion: ['ghost', 'วิญญาณทราย', '#e8d9a8'], on: true },
+    { id: 'demon', name: 'ป้อมปีศาจทมิฬ', theme: 'ruins', diff: 3, minLv: 55, boss: 'จอมมารทมิฬ', arch: 'brute', color: '#4b2d6e', bossLv: 78, hpMul: 5,
+      keyName: 'กุญแจป้อมปีศาจ', keyMaps: ['castle'], keyChance: 0.6, rar: [40, 38, 18, 4], skills: ['slam', 'breath', 'roar', 'meteor', 'summon'], minion: ['bat', 'ค้างคาวปีศาจ', '#7a2a5a'], on: true },
+    { id: 'dragon', name: 'รังมังกรนิรันดร์', theme: 'lava', diff: 4, minLv: 80, boss: 'ราชันมังกรนิรันดร์', arch: 'drake', color: '#3a1a5a', bossLv: 99, hpMul: 6,
+      keyName: 'กุญแจรังมังกร', keyMaps: ['volcano'], keyChance: 0.5, rar: [20, 40, 28, 12], skills: ['slam', 'breath', 'roar', 'meteor', 'summon'], minion: ['drake', 'มังกรพิทักษ์', '#c2452c'], on: true }
+  ],
   maps: [
     { id: 'meadow', name: 'ทุ่งหญ้าอรุณ', theme: 'grass', min: 1, max: 15, count: 7, monsters: [
       MON('slime', 'สไลม์หยดน้ำ', 'blob', '#6cc3f0', 1),
       MON('shroom', 'เห็ดหมวกแดง', 'shroom', '#e0503f', 4),
       MON('rabbit', 'กระต่ายป่า', 'beast', '#efe2cf', 8),
-      MON('flower', 'ดอกไม้กัดได้', 'plant', '#f07fb0', 12)
+      MON('flower', 'ดอกไม้กัดได้', 'plant', '#f07fb0', 12),
+      MON('kingslime', 'ราชาสไลม์', 'blob', '#8ad8ff', 16, { aggro: true, boss: true, rs: 30 })
     ] },
     { id: 'darkwood', name: 'ป่าเงามืด', theme: 'forest', min: 15, max: 35, count: 7, monsters: [
       MON('wolf', 'หมาป่าเงา', 'beast', '#707890', 16, { aggro: true }),
       MON('bat', 'ค้างคาวถ้ำ', 'bat', '#6b5a8e', 21),
       MON('treant', 'ต้นไม้ผีสิง', 'plant', '#4e8a44', 27),
-      MON('goblin', 'ก็อบลินโจร', 'brute', '#79b356', 32, { aggro: true })
+      MON('goblin', 'ก็อบลินโจร', 'brute', '#79b356', 32, { aggro: true }),
+      MON('alphawolf', 'จ่าฝูงหมาป่าเงา', 'beast', '#3e4458', 36, { aggro: true, boss: true, rs: 30 })
     ] },
     { id: 'desert', name: 'ทะเลทรายสนธยา', theme: 'sand', min: 35, max: 55, count: 7, monsters: [
       MON('sandslime', 'สไลม์ทราย', 'blob', '#e0b860', 36),
       MON('fox', 'จิ้งจอกทะเลทราย', 'beast', '#d98a3d', 42),
       MON('bones', 'นักรบโครงกระดูก', 'bones', '#c9a35a', 48, { aggro: true }),
-      MON('mummy', 'มัมมี่ยักษ์', 'brute', '#d8ccb0', 53)
+      MON('mummy', 'มัมมี่ยักษ์', 'brute', '#d8ccb0', 53),
+      MON('sandlord', 'เจ้าแห่งพายุทราย', 'brute', '#c99a4a', 57, { aggro: true, boss: true, rs: 30 })
     ] },
     { id: 'castle', name: 'ซากปราสาทต้องสาป', theme: 'ruins', min: 55, max: 80, count: 8, monsters: [
       MON('bknight', 'อัศวินกระดูก', 'bones', '#6d7a99', 58, { aggro: true }),
       MON('wraith', 'วิญญาณอาฆาต', 'ghost', '#9fd8e8', 64),
       MON('vampbat', 'ค้างคาวแวมไพร์', 'bat', '#a33a4a', 70, { aggro: true }),
-      MON('darkknight', 'อัศวินทมิฬ', 'brute', '#3d3858', 76, { aggro: true })
+      MON('darkknight', 'อัศวินทมิฬ', 'brute', '#3d3858', 76, { aggro: true }),
+      MON('lich', 'ลิชผู้ต้องสาป', 'ghost', '#6a5acd', 80, { aggro: true, boss: true, rs: 30 })
     ] },
     { id: 'volcano', name: 'ภูเขาไฟมังกร', theme: 'lava', min: 80, max: 99, count: 8, monsters: [
       MON('golem', 'โกเลมลาวา', 'brute', '#9a4426', 82),
@@ -807,6 +910,16 @@ function sanitizeConfig(raw) {
     maxBase: int(raw.maxBase, 99, 10, 999),
     potion: { hp: int(raw.potion && raw.potion.hp, 30, 0, 1e9), sp: int(raw.potion && raw.potion.sp, 80, 0, 1e9) },
     jobNames: jn,
+    party: (() => { const p = raw.party || {}, mx = int(p.max, 6, 2, 12); return { min: Math.min(mx, int(p.min, 2, 1, 12)), max: mx }; })(),
+    dungeons: DEFAULT_CONFIG.dungeons.map((d0) => {
+      const x = (Array.isArray(raw.dungeons) ? raw.dungeons : []).find((y) => y && y.id === d0.id) || {};
+      return Object.assign({}, d0, {
+        name: str(x.name, d0.name, 30), boss: str(x.boss, d0.boss, 30), keyName: str(x.keyName, d0.keyName, 30),
+        minLv: int(x.minLv, d0.minLv, 1, 999), bossLv: int(x.bossLv, d0.bossLv, 1, 999), hpMul: num(x.hpMul, d0.hpMul, 0.3, 50),
+        keyChance: num(x.keyChance, d0.keyChance, 0, 100), rar: [0, 1, 2, 3].map((i) => num(Array.isArray(x.rar) ? x.rar[i] : undefined, d0.rar[i], 0, 1000)),
+        on: x.on !== false
+      });
+    }),
     shop: (() => {
       const sh = raw.shop || {}, g = {};
       if (sh.gear && typeof sh.gear === 'object') for (const id of Object.keys(sh.gear).slice(0, 80)) {
@@ -1351,7 +1464,8 @@ function sanitizeHero(d) {
     gold: int(d.gold, 0, 0, 1e13), refineW: int(d.refineW, 0, 0, 15), refineA: int(d.refineA, 0, 0, 15),
     potHp: int(d.potHp, 0, 0, 99999), potSp: int(d.potSp, 0, 0, 99999),
     mapId: typeof d.mapId === 'string' ? d.mapId.slice(0, 40) : '', kills: int(d.kills, 0, 0, 1e12),
-    wstyle: d.wstyle === 'katar' ? 'katar' : 'dual', gmStamp: num(d.gmStamp, 0, 0, 1e15)
+    wstyle: d.wstyle === 'katar' ? 'katar' : 'dual', gmStamp: num(d.gmStamp, 0, 0, 1e15),
+    mkDone: (Array.isArray(d.mkDone) ? d.mkDone : []).filter((x) => typeof x === 'string').map((x) => x.slice(0, 40)).slice(-80)
   };
   const st = d.stats || {}; for (const k of STATS) h.stats[k] = int(st[k], 1, 1, 99);
   const seenK = new Set();
@@ -1396,9 +1510,9 @@ function derived(h) {
   const base = L.atk === 'ranged'
     ? st.dex * 2 + Math.pow(Math.floor(st.dex / 10), 2) + st.str * 0.4 + st.luk * 0.3
     : st.str * 2 + Math.pow(Math.floor(st.str / 10), 2) + st.dex * 0.4 + st.luk * 0.3;
-  const atk = (base + watk + h.level) * L.atkMod * (1 + ((pa.atkPct || 0) + (bu.atk || 0)) / 100);
+  const atk = (base + watk + (pa.watk || 0) + h.level) * L.atkMod * (1 + ((pa.atkPct || 0) + (bu.atk || 0)) / 100);
   const wm = w === 'staff' ? [14, 34, 64, 98][tier] * 1.2 + h.refineW * 5 : w === 'mace' ? [8, 24, 46, 72][tier] + h.refineW * 4 : 0;
-  const matk = (st.int * 2 + Math.pow(Math.floor(st.int / 7), 2) + wm + h.level) * (1 + ((pa.matkPct || 0) + (bu.matk || 0)) / 100);
+  const matk = (st.int * 2 + Math.pow(Math.floor(st.int / 7), 2) + wm + (pa.wmatk || 0) + h.level) * (1 + ((pa.matkPct || 0) + (bu.matk || 0)) / 100);
   const hpMod = tier === 0 ? 1 : L.hp[ti], spMod = tier === 0 ? 1 : L.sp[ti];
   const maxHp = Math.round((70 + 12 * h.level + 0.35 * h.level * h.level) * hpMod * (1 + st.vit / 100) * (1 + ((pa.hpPct || 0) + h.refineA * 2) / 100));
   const maxSp = Math.round((20 + 4 * h.level) * spMod * (1 + st.int / 100));
@@ -1418,15 +1532,16 @@ const spCost = (sk, lv) => Math.round(sk.sp[0] + sk.sp[1] * lv);
 function bounds() { return { x0: 30, x1: WORLD.w - 30, y0: 40, y1: WORLD.h - 30 }; }
 function currentMap() { return CONFIG.maps.find((m) => m.id === S.hero.mapId) || CONFIG.maps[0]; }
 function buildGround() { if (!W.map) return; if (R3.on) R3.setMap(W.map); else W.ground = renderGround(W.map.theme, WORLD.w, WORLD.h, Math.min(1.5, W.dpr), W.map.id); }
-function enterMap(id, silent) {
-  S.hero.mapId = id;
-  const map = currentMap();
-  S.hero.mapId = map.id;
+function enterMap(id, silent, dmap) {
+  let map;
+  if (dmap) map = dmap;
+  else { S.hero.mapId = id; map = currentMap(); S.hero.mapId = map.id; }
+  dgReset();
   W.map = map; W.mapSig = JSON.stringify(map);
   W.mons = []; W.fx = []; W.nums = []; W.pend = [];
   buildGround();
   const b = bounds();
-  P.x = WORLD.w / 2; P.y = WORLD.h * 0.62; P.target = null; P.tx = null; P.queued = null; W.cam2 = null; R3.camSnap = true;
+  P.x = WORLD.w / 2; P.y = WORLD.h * (map.dg ? 0.86 : 0.62); P.target = null; P.tx = null; P.queued = null; W.cam2 = null; R3.camSnap = true;
   NET.mapT = Date.now(); NET.kd = []; NET.hostRef = null; NET.dmg.clear(); NET.dmgT.clear(); NET.dmgBase.clear();
   const hostThere = activeOthers().some((o) => o.map === map.id && isLive(o));
   NET.isHost = !hostThere;
@@ -1434,13 +1549,13 @@ function enterMap(id, silent) {
   updAutoBadge(); bossEnterMap(map);
   addFx({ kind: 'ring', x: P.x, y: P.y, r: 46, color: '#9fe3ff', dur: 0.7 });
   if (!silent) { toast(map.name + '  Lv ' + map.min + '–' + map.max); AU.sfx('warp'); }
-  AU.music(map.theme);
+  AU.music(map.dg ? 'raid' : map.theme);
   S.dirty = true;
 }
 function makeMon(tpl, ti, x, y) {
-  const size = tpl.boss ? 1.7 : (tpl.arch === 'brute' || tpl.arch === 'drake') ? 1.15 : 1.05;
+  const size = tpl.raid ? 3.1 : tpl.boss ? 1.7 : (tpl.arch === 'brute' || tpl.arch === 'drake') ? 1.15 : 1.05;
   return { uid: W.uid++, ti, id: tpl.id, name: tpl.name, arch: tpl.arch, color: tpl.color, lv: tpl.lv, hp: tpl.hp, maxHp: tpl.hp,
-    atk: tpl.atk, def: tpl.def, bexp: tpl.bexp, jexp: tpl.jexp, gold: tpl.gold, aggro: tpl.aggro, boss: tpl.boss, size,
+    atk: tpl.atk, def: tpl.def, bexp: tpl.bexp, jexp: tpl.jexp, gold: tpl.gold, aggro: tpl.aggro, boss: tpl.boss, raid: !!tpl.raid, size,
     x, y, dir: Math.random() < 0.5 ? -1 : 1, state: 'idle', wx: x, wy: y, idleT: Math.random() * 2, atkT: 1.2, hitT: 0, lungeT: 0,
     angry: false, tgt: null, atkN: 0, seed: Math.random() * 10, alpha: 0, moving: false, dieT: 0 };
 }
@@ -1518,13 +1633,15 @@ function killMon(m, killer) {
   const k = killer || myKey();
   NET.kdSeq++; NET.kd.push([NET.kdSeq, m.uid, m.ti, k]); if (NET.kd.length > 8) NET.kd.shift();
   processKill(m, k, m.ti);
-  if (m.boss) bossKilled(m, k);
+  if (m.boss && !m.raid) bossKilled(m, k);
   later(3 + Math.random() * 3, () => { W.mons = W.mons.filter((x) => x !== m); if (NET.isHost && !m.boss) spawnMon(); });
 }
 function processKill(m, killer, ti) {
   const h = S.hero, R = CONFIG.rates, tpl = W.map && W.map.monsters[ti != null ? ti : m.ti];
-  if (!tpl || P.dead) return;
+  if (!tpl) return;
   const mine = killer === myKey();
+  if (tpl.raid && (mine || (PARTY.key && partyMates(false).some((o) => o.key === killer)) || isDg())) raidVictory(tpl);
+  if (P.dead) return;
   let n = 1, ok = mine;
   if (PARTY.key) { const mates = partyMates(false).filter((o) => !o.dead); n += mates.length; if (!mine && mates.some((o) => o.key === killer)) ok = true; }
   if (!ok) return;
@@ -1540,6 +1657,7 @@ function processKill(m, killer, ti) {
     }
     if (Math.random() < Math.min(1, 0.35 * R.drop)) { const it = lootItem(tpl); if (addItem(it, 1)) addNum(m.x, m.y + 22, '+' + it.nm, '#d8e6ff', 10, { font: 'th', dur: 1.3 }); }
     if (Math.random() * 100 < CONFIG.cardChance) { const c = cardItem(tpl); if (addItem(c, 1)) gotCard(c); }
+    dropKeys(m, tpl);
   } else addNum(P.x, P.y - 60, 'ปาร์ตี้ +' + fmt(b) + ' EXP', '#8dff9a', 10, { font: 'th', dur: 1.2 });
   gainExp(b, j);
   S.dirty = true;
@@ -1588,7 +1706,7 @@ function playerDie() {
 }
 function respawn() {
   P.dead = false; P.D = derived(); P.hp = P.D.maxHp; P.sp = Math.max(P.sp, P.D.maxSp * 0.5);
-  P.x = WORLD.w / 2; P.y = WORLD.h * 0.62; R3.camSnap = true;
+  P.x = WORLD.w / 2; P.y = WORLD.h * (W.map && W.map.dg ? 0.86 : 0.62); R3.camSnap = true; P.ccUntil = 0;
   $('#dead').hidden = true;
   for (const m of W.mons) { m.angry = false; if (m.state === 'chase') m.state = 'idle'; }
   addFx({ kind: 'pillar', x: P.x, y: P.y, color: '#9fe3ff', dur: 0.8, w: 30 });
@@ -1614,6 +1732,7 @@ function skillRange(sk) {
   return 9999;
 }
 function castSkill(id, fromQueue) {
+  if (ccActive()) { toast(P.ccType === 'freeze' ? 'ถูกแช่แข็ง ใช้สกิลไม่ได้' : 'มึนงงอยู่ ใช้สกิลไม่ได้'); return; }
   const h = S.hero, sk = SKILLS[id], lv = h.skills[id] | 0;
   if (!sk || !lv || sk.type === 'passive' || P.dead) return false;
   if ((P.cds[id] || 0) > W.t) return false;
@@ -1719,9 +1838,10 @@ function updateMons(dt) {
     if (m.state === 'dead') { m.alpha = Math.max(0, 1 - (W.t - m.dieT) / 0.5); continue; }
     if (m.alpha < 1) m.alpha = Math.min(1, m.alpha + dt * 2.5);
     m.hitT = Math.max(0, m.hitT - dt); m.lungeT = Math.max(0, m.lungeT - dt);
+    if (m.castUntil && W.t < m.castUntil) { m.moving = false; continue; }
     let tg = m.tgt ? pl.find((p) => p.key === m.tgt) : null;
     if (!tg && m.tgt) { m.tgt = null; m.angry = false; if (m.state === 'chase') m.state = 'idle'; }
-    if (!tg && m.aggro) { let bd = 150; for (const p of pl) { const d = Math.hypot(p.x - m.x, p.y - m.y); if (d < bd) { bd = d; tg = p; } } if (tg) { m.tgt = tg.key; m.state = 'chase'; } }
+    if (!tg && m.aggro) { let bd = m.raid ? 320 : 150; for (const p of pl) { const d = Math.hypot(p.x - m.x, p.y - m.y); if (d < bd) { bd = d; tg = p; } } if (tg) { m.tgt = tg.key; m.state = 'chase'; } }
     if (!tg && m.state === 'chase') m.state = 'idle';
     m.moving = false;
     if (tg && m.state === 'chase') {
@@ -1730,9 +1850,10 @@ function updateMons(dt) {
       if (dp > reach) {
         const sp = 52 + Math.min(30, m.lv * 0.2), k = Math.min(dp - reach, sp * dt) / dp;
         m.x += (tg.x - m.x) * k; m.y += (tg.y - m.y) * k; m.moving = true;
-      } else { m.atkT -= dt; if (m.atkT <= 0) { m.atkT = 1.8; m.lungeT = 0.25; m.atkN = (m.atkN || 0) + 1; if (tg.me) monHit(m); } }
+      } else { m.atkT -= dt; if (m.atkT <= 0) { m.atkT = m.raid ? (m.enr ? 1.25 : 1.6) : 1.8; m.lungeT = 0.25; m.atkN = (m.atkN || 0) + 1; if (tg.me) monHit(m); } }
       if (dp > 420 && !m.angry) { m.state = 'idle'; m.tgt = null; }
-    } else if (m.idleT > 0) m.idleT -= dt;
+    } else if (m.raid) { /* raid boss guards its arena */ }
+    else if (m.idleT > 0) m.idleT -= dt;
     else {
       const dx = m.wx - m.x, dy = m.wy - m.y, d = Math.hypot(dx, dy);
       if (d < 3) { m.idleT = 1 + Math.random() * 3; m.wx = clamp(m.x + (Math.random() - 0.5) * 160, b.x0, b.x1); m.wy = clamp(m.y + (Math.random() - 0.5) * 120, b.y0, b.y1); }
@@ -1751,10 +1872,12 @@ function update(dt) {
   }
   for (const id in P.buffs) if (P.buffs[id].until <= W.t) delete P.buffs[id];
   if (NET.isHost) updateMons(dt); else mirrorMons(dt);
+  dgTick();
   if (P.dead) { $('#deadT').textContent = Math.max(1, Math.ceil(P.deadUntil - W.t)); if (W.t >= P.deadUntil) respawn(); return; }
   P.hp = Math.min(D.maxHp, P.hp + (D.maxHp * 0.006 + D.st.vit * 0.08) * dt);
   P.sp = Math.min(D.maxSp, P.sp + (D.maxSp * 0.012 + D.st.int * 0.05) * dt);
   P.atkT -= dt;
+  if (ccActive()) { P.walking = false; return; }
   if (P.target && (P.target.state === 'dead' || P.target.hp <= 0 || !W.mons.includes(P.target))) { P.target = null; P.queued = null; }
   if (S.auto) { if (!P.target) P.target = pickTarget(); autoAct(); }
   let moving = false;
@@ -1957,7 +2080,7 @@ function heroDoc() {
   const h = S.hero;
   return { name: h.name, look: h.look, job: h.job, level: h.level, exp: h.exp, jobLv: h.jobLv, jobExp: h.jobExp, stats: h.stats,
     skills: h.skills, hotbar: h.hotbar, gold: h.gold, refineW: h.refineW, refineA: h.refineA, potHp: h.potHp, potSp: h.potSp,
-    mapId: h.mapId, kills: h.kills, wstyle: h.wstyle, gmStamp: h.gmStamp || 0, inv: h.inv, eq: h.eq, updatedAt: Date.now() };
+    mapId: h.mapId, kills: h.kills, wstyle: h.wstyle, gmStamp: h.gmStamp || 0, inv: h.inv, eq: h.eq, mkDone: h.mkDone || [], updatedAt: Date.now() };
 }
 function saveLocal() { if (S.hero) lsSet(LS_SAVE + (S.uid || ''), JSON.stringify(heroDoc())); }
 async function save() {
@@ -2457,8 +2580,10 @@ void main(){
         E.push(); E.T(0, 0.2, 0.22); E.RX(0.25); E.Sc(0.17, 0.018, 0.12); E.part('cyl', c3(pal.trim, -0.15), fl, { ow: 0.008 }); E.pop(); break;
     }
   }
-  function weapon3(E, w, tier, fl) {
-    const bl = c3(BLADE[tier]), wood = c3('#6b4a2b'), gold = c3('#e2bb52'), glow = tier >= 3;
+  const hue3 = (hh) => { const f = (n) => { const k = (n + hh * 12) % 12; return 0.6 - 0.4 * Math.max(-1, Math.min(k - 3, 9 - k, 1)); }; return [f(0), f(8), f(4)]; };
+  function weapon3(E, w, tier, fl, gc, rb) {
+    const tt = performance.now() / 1000; if (rb) gc = hue3((tt * 0.35) % 1);
+    const bl = gc || c3(BLADE[tier]), wood = c3('#6b4a2b'), gold = c3('#e2bb52'), glow = tier >= 3 || !!gc;
     E.push();
     switch (w) {
       case 'knife': case 'dual':
@@ -2482,7 +2607,7 @@ void main(){
       case 'staff':
         E.push(); E.T(0, -0.5, 0); E.Sc(0.03, 1.4, 0.03); E.part('cyl', wood, fl); E.pop();
         E.push(); E.T(0, 0.98, 0); E.RX(Math.PI / 2); E.Sc(0.1); E.part('torusT', gold, fl, { ow: 0.008 }); E.pop();
-        E.push(); E.T(0, 0.98, 0); E.Sc(0.07, 0.11, 0.07); E.part('sph', c3(['#b8e1ff', '#c9a7ff', '#ff9be0', '#7ff0ff'][tier]), 0, { emit: true, ow: 0.012 }); E.pop();
+        E.push(); E.T(0, 0.98, 0); E.Sc(0.07, 0.11, 0.07); E.part('sph', gc || c3(['#b8e1ff', '#c9a7ff', '#ff9be0', '#7ff0ff'][tier]), 0, { emit: true, ow: 0.012 }); E.pop();
         break;
       case 'bow':
         E.push(); E.RX(-0.3); E.Sc(0.026, 0.5, 0.026); E.part('cyl', tier >= 2 ? c3('#3d2a1a') : wood, fl, { ow: 0.01 }); E.pop();
@@ -2501,6 +2626,10 @@ void main(){
         E.push(); E.T(0, 0.7, 0.22); E.Sc(0.022, 0.21, 0.075); E.part('sph', bl, fl, { emit: glow, ow: 0.012 }); E.pop();
         E.push(); E.T(0, 0.72, -0.08); E.Sc(0.024, 0.12, 0.12); E.part('box', bl, fl, { ow: 0.01 }); E.pop();
         break;
+    }
+    if (gc) {
+      const L = { staff: 1.0, sword: 0.85, bow: 0.45, mace: 0.55, axe: 0.75, katar: 0.45, knife: 0.4, dual: 0.4 }[w] || 0.5, n = rb ? 7 : 5;
+      for (let i = 0; i < n; i++) { const ph = (tt * 0.8 + i / n) % 1, a = tt * 5 + i * 2.4; E.push(); E.T(Math.cos(a) * 0.075, (w === 'bow' ? -0.45 : 0) + ph * L * (w === 'bow' ? 2 : 1), Math.sin(a) * 0.075); E.Sc(0.024 * (1 - ph * 0.5)); E.part('sphL', rb ? hue3((tt * 0.35 + i / n) % 1) : gc, 0, { emit: true, outline: false }); E.pop(); }
     }
     E.pop();
   }
@@ -2536,7 +2665,7 @@ void main(){
   }
   function drawChar(E, look, jobId, wstyle, A) {
     const J = JOBS[jobId] || JOBS.novice, pal = J.look, tier = J.tier, w = weaponOf(jobId, wstyle), O = OUT[jobId] || OUT.novice;
-    const fem = look.g === 'f', t = A.t || 0, fl = A.flash || 0, hc = c3(look.hc || '#2b2230'), EV = A.eq || {};
+    const fem = look.g === 'f', t = A.t || 0, fl = A.flash || 0, hc = c3(look.hc || '#2b2230'), EV = A.eq || {}, WG = A.wg && A.wg !== 'rainbow' ? c3(A.wg) : A.wg === 'rainbow' ? [1, 1, 1] : null;
     const main = c3(pal.main), trim = c3(pal.trim), pants = c3(pal.pants), boots = c3(pal.boots), metal = c3(METAL[tier]), capeC = c3(pal.cape || pal.main);
     const wk = A.walking ? Math.sin(t * 10) : 0;
     const bob = A.walking ? Math.abs(Math.sin(t * 10)) * 0.03 : Math.sin(t * 2.2) * 0.008;
@@ -2611,10 +2740,10 @@ void main(){
       if (guard) { E.push(); E.T(0, -0.3, 0); E.Sc(0.062, 0.11, 0.062); E.part('cyl', c3('#7a5532'), fl, { ow: 0.008 }); E.pop(); }
       E.T(0, -0.37, 0); E.push(); E.Sc(0.058, 0.065, 0.055); E.part('sphL', gaunt === 2 ? metal : SKIN3, fl); E.pop();
     };
-    arm(-0.215, thW, yaw * 1.1, -1, O.gaunt, 0); E.RZ(0.25); E.RX(phW); weapon3(E, w, tier, fl); E.pop();
+    arm(-0.215, thW, yaw * 1.1, -1, O.gaunt, 0); E.RZ(0.25); E.RX(phW); weapon3(E, w, tier, fl, WG, A.wg === 'rainbow'); E.pop();
     const thOff = w === 'dual' ? (k > 0 ? -0.15 - 1.3 * Math.max(0, Math.sin(Math.PI * clamp(sw * 1.12 - 0.3, 0, 1))) : thO) : (mode === 'aim' ? thW : thO);
     arm(0.215, thOff, w === 'dual' ? -yaw : 0, 1, O.gaunt, O.guard);
-    if (w === 'dual') { E.RZ(-0.25); E.RX(0.55 + 2.4 * k); weapon3(E, 'dual', tier, fl); }
+    if (w === 'dual') { E.RZ(-0.25); E.RX(0.55 + 2.4 * k); weapon3(E, 'dual', tier, fl, WG, A.wg === 'rainbow'); }
     if (w === 'sword' || w === 'mace') {
       const sc = c3(w === 'mace' ? ['#e9e2cf', '#f2ebd8', '#f6f0ff', '#fff6dc'][tier] : ['#9aa7b8', '#8fa0bd', '#6f8fd0', '#d8b04a'][tier]);
       E.push(); E.T(0.06, 0.04, 0.01); E.Sc(0.05, w === 'mace' ? 0.17 : 0.21, w === 'mace' ? 0.15 : 0.18); E.part('sph', sc, fl); E.pop();
@@ -2732,7 +2861,8 @@ void main(){
   };
   function drawMon(E, m, t) {
     const sc = (m.size || 1) * clamp(m.alpha == null ? 1 : m.alpha, 0.01, 1);
-    const fl = m.hitT > 0 ? 0.55 : 0, c = c3(m.color), d = c3(m.color, -0.32), l = c3(m.color, 0.38);
+    const fl = m.hitT > 0 ? 0.55 : 0, ek = m.enr ? 0.35 + 0.18 * Math.sin(t * 8) : 0, red = (q) => ek ? [q[0] * (1 - ek) + ek, q[1] * (1 - ek), q[2] * (1 - ek)] : q;
+    const c = red(c3(m.color)), d = red(c3(m.color, -0.32)), l = red(c3(m.color, 0.38));
     E.push(); E.T(m.X, 0, m.Z); E.RY(m._fa || 0); E.Sc(sc);
     if (m.lungeT > 0) E.T(0, 0, Math.sin((1 - m.lungeT / 0.25) * Math.PI) * 0.18);
     (MON3[m.arch] || MON3.blob)(E, c, d, l, t + (m.seed || 0), !!m.moving, fl);
@@ -2825,10 +2955,16 @@ void main(){
     const [px, pz] = L2W(P.x, P.y), tz = pz - 0.5;
     if (R3.camSnap || R3.cx == null) { R3.cx = px; R3.cz = tz; R3.camSnap = false; }
     const k = Math.min(1, dt * 6); R3.cx += (px - R3.cx) * k; R3.cz += (tz - R3.cz) * k;
-    const tgt = [R3.cx, 0, R3.cz];
+    const sh = R3.shakeUntil > performance.now() ? R3.shakeAmp : 0;
+    const tgt = [R3.cx + (Math.random() - 0.5) * sh, 0, R3.cz + (Math.random() - 0.5) * sh];
     E.setCam([tgt[0], D * Math.sin(elev), tgt[2] + D * Math.cos(elev)], tgt, fovy, aspect, 0.5, D * 4);
     E.fogR = [D * 1.08, D * 2.0];
   };
+  function ccVis(E, X, Z, type, t) {
+    if (type === 'stun') for (let i = 0; i < 4; i++) { const a = t * 4.5 + i * 1.57; E.push(); E.T(X + Math.cos(a) * 0.24, 1.78 + Math.sin(t * 6 + i) * 0.03, Z + Math.sin(a) * 0.24); E.Sc(0.055); E.part('sphL', c3(i % 2 ? '#ffe14d' : '#fff6b0'), 0, { emit: true, outline: false }); E.pop(); }
+    else for (let i = 0; i < 7; i++) { const a = i * 0.9; E.push(); E.T(X + Math.cos(a) * 0.32, 0.3, Z + Math.sin(a) * 0.32); E.RZ(Math.cos(a) * 0.35); E.RX(Math.sin(a) * 0.35); E.Sc(0.11, 0.55 + (i % 3) * 0.2, 0.11); E.part('cone', c3('#c8f0ff'), 0, { emit: true, ow: 0.012 }); E.pop(); }
+  }
+  R3.shake = function (sec, amp) { R3.shakeUntil = performance.now() + sec * 1000; R3.shakeAmp = amp * 3.2; };
   R3.setMap = function (map) {
     if (!R3.on) return;
     const E = R3.eng, gl = E.gl, T3 = THEME3[map.theme] || THEME3.grass;
@@ -2876,6 +3012,27 @@ void main(){
       if (p.type === 'pool') { E.push(); E.T(p.X, 0.015, p.Z); E.Sc(0.9 * p.s, 1, 0.55 * p.s); E.flat('disc', [1, 0.45, 0.12, 0.9], { fade: 2 }); E.pop(); }
       if (p.type === 'brazier') { E.push(); E.T(p.X, 0.015, p.Z); E.Sc(1.6, 1, 1.6); E.flat('disc', [1, 0.55, 0.2, 0.35 + Math.sin(t * 9 + p.seed) * 0.05], { fade: 2 }); E.pop(); }
     }
+    const myA = myAura();
+    const auraDecal = (X, Z, A, sd) => {
+      if (A.lv99) {
+        E.push(); E.T(X, 0.017, Z); E.Sc(0.66 + Math.sin(t * 3 + sd) * 0.03); E.flat('disc', [0.7, 0.88, 1, 0.45], { fade: 2 }); E.pop();
+        E.push(); E.T(X, 0.021, Z); E.RY(t * 1.4); E.Sc(0.6); E.flat('ring', [0.8, 0.95, 1, 0.9], { fade: 4, dash: t * 0.8 }); E.pop();
+        E.push(); E.T(X, 0.022, Z); E.RY(-t * 1.1); E.Sc(0.44); E.flat('ring', [1, 1, 1, 0.6], { fade: 4 }); E.pop();
+      }
+      if (A.aura) { const c = c3(A.aura); E.push(); E.T(X, 0.016, Z); E.Sc(0.8 + Math.sin(t * 4 + sd) * 0.05); E.flat('disc', [c[0], c[1], c[2], 0.9], { fade: 1.6 }); E.pop(); E.push(); E.T(X, 0.02, Z); E.RY(-t * 1.8); E.Sc(0.72); E.flat('ring', [c[0], c[1], c[2], 1], { fade: 4, dash: t }); E.pop(); }
+    };
+    auraDecal(P.X, P.Z, myA, 0);
+    for (const o of oth) { o._A = auraArgs(o.au ? o.au[0] : 0, o.au ? o.au[1] : 0, o.au ? o.au[2] : 0, o.lv); auraDecal(o.X, o.Z, o._A, o.X); }
+    for (const m of ents) if (m.raid && m.state !== 'dead') { const k = 0.6 + Math.sin(t * 3) * 0.08; E.push(); E.T(m.X, 0.02, m.Z); E.RY(t * 0.6); E.Sc(m.size * k); E.flat('ring', m.enr ? [1, 0.15, 0.1, 0.95] : [0.75, 0.12, 0.2, 0.8], { fade: 5, dash: t * 0.4 }); E.flat('disc', [0.6, 0.05, 0.08, 0.35], { fade: 2 }); E.pop(); }
+    for (const tl of W.tele || []) {
+      if (tl.done) continue;
+      const p = clamp((W.t - tl.t0) / Math.max(0.01, tl.t1 - tl.t0), 0, 1), col = tl.type === 'breath' ? [0.35, 0.8, 1] : [1, 0.16, 0.1];
+      for (const c of tl.cs) {
+        const [X, Z] = L2W(c[0], c[1]), r = c[2] / R3.U;
+        E.push(); E.T(X, 0.026, Z); E.Sc(r); E.flat('disc', [col[0], col[1], col[2], 0.16 + 0.34 * p], { fade: 1.2 }); E.flat('ring', [col[0], col[1], col[2], 0.95], { fade: 7 }); E.pop();
+        E.push(); E.T(X, 0.028, Z); E.Sc(Math.max(0.01, r * p)); E.flat('ring', [1, 1, 1, 0.7], { fade: 5 }); E.pop();
+      }
+    }
     if (Object.keys(P.buffs).length) { E.push(); E.T(P.X, 0.02, P.Z); E.Sc(0.7 + Math.sin(t * 4) * 0.04); E.flat('disc', [1, 0.88, 0.5, 0.45], { fade: 2 }); E.pop(); }
     if (P.target && P.target.state !== 'dead') {
       const m = P.target, col = m.state === 'chase' ? [1, 0.35, 0.3, 0.95] : [1, 0.82, 0.4, 0.95];
@@ -2896,14 +3053,25 @@ void main(){
     for (const m of ents) if (m.alpha > 0.02 && m._vis) drawMon(E, m, t);
     const h = S.hero;
     E.push(); E.T(P.X, 0, P.Z); E.RY(P._fa || 0);
-    drawChar(E, h.look, h.job, h.wstyle, { t, walking: P.walking, swing: (t - P.swingT) / 0.3, flash: t - P.hurtT < 0.1 ? 0.45 : 0, dead: P.dead, eq: eqVis(h) });
+    drawChar(E, h.look, h.job, h.wstyle, { t, walking: P.walking, swing: (t - P.swingT) / 0.3, flash: t - P.hurtT < 0.1 ? 0.45 : 0, dead: P.dead, eq: eqVis(h), wg: myA.wg, flash: ccActive() && P.ccType === 'freeze' ? 0.32 : (t - P.hurtT < 0.1 ? 0.45 : 0) });
     E.pop();
-    for (const o of oth) { E.push(); E.T(o.X, 0, o.Z); E.RY(o._fa || 0); drawChar(E, o.look, o.job, o.ws, { t: t + 0.37, walking: o.walking, swing: (t - o.swingT) / 0.3, dead: o.dead, eq: o.eqv }); E.pop(); }
+    if (ccActive()) ccVis(E, P.X, P.Z, P.ccType, t);
+    for (const o of oth) { E.push(); E.T(o.X, 0, o.Z); E.RY(o._fa || 0); drawChar(E, o.look, o.job, o.ws, { t: t + 0.37, walking: o.walking, swing: (t - o.swingT) / 0.3, dead: o.dead, eq: o.eqv, wg: o._A && o._A.wg, flash: o.cc === 2 ? 0.32 : 0 }); E.pop(); if (o.cc) ccVis(E, o.X, o.Z, o.cc === 2 ? 'freeze' : 'stun', t); }
     // additive volumetric fx
     E.blend('add');
     for (const p of R3.props) if (p.type === 'brazier') {
       for (let i = 0; i < 3; i++) { const fl = 0.85 + Math.sin(t * (11 + i * 3) + p.seed + i) * 0.15; E.push(); E.T(p.X + (i - 1) * 0.05, 0.66 * p.s, p.Z); E.Sc(0.14 * fl * (1 - i * 0.2), 0.5 * fl * (1 - i * 0.18), 0.14 * fl); E.flat('cone', i === 0 ? [1, 0.45, 0.1, 0.8] : [1, 0.8, 0.3, 0.7], {}); E.pop(); }
     }
+    const auraVol = (X, Z, A, sd) => {
+      if (A.aura) {
+        const c = c3(A.aura);
+        E.push(); E.T(X, 0, Z); E.Sc(0.38, 1.5 + Math.sin(t * 3 + sd) * 0.12, 0.38); E.flat('pillar', [c[0], c[1], c[2], 0.5], { fade: 1 }); E.pop();
+        for (let i = 0; i < 9; i++) { const ph = (t * 0.55 + i / 9 + sd) % 1, a = i * 0.7 + t * 1.3; E.push(); E.T(X + Math.cos(a) * 0.34, ph * 1.8, Z + Math.sin(a) * 0.34); E.Sc(0.032, 0.17, 0.032); E.flat('pillar', [c[0], c[1], c[2], 0.95 * (1 - ph)], { fade: 1 }); E.pop(); }
+      }
+      if (A.lv99) for (let i = 0; i < 5; i++) { const ph = (t * 0.4 + i / 5 + sd * 0.3) % 1, a = i * 1.26 - t; E.push(); E.T(X + Math.cos(a) * 0.5, ph * 0.9, Z + Math.sin(a) * 0.5); E.Sc(0.018, 0.1, 0.018); E.flat('pillar', [0.8, 0.95, 1, 0.9 * (1 - ph)], { fade: 1 }); E.pop(); }
+    };
+    auraVol(P.X, P.Z, myA, 0);
+    for (const o of oth) if (o._A) auraVol(o.X, o.Z, o._A, o.X);
     for (const f of W.fx) {
       const p = (t - f.t0) / f.dur; if (p < 0 || p > 1) continue;
       if (f.kind !== 'pillar' && !(f.kind === 'meteor' && p > 0.55)) continue;
@@ -2947,7 +3115,7 @@ void main(){
     }
     // bars & labels
     for (const m of W.mons) {
-      if (m.state === 'dead' || m.alpha < 0.3) continue;
+      if (m.state === 'dead' || m.alpha < 0.3 || m.raid) continue;
       const s = proj(m.x, m.y), sz = m.size || 1;
       if (m.hp < m.maxHp) { const bw = 32 * sz, bx = s.x - bw / 2, by = s.y + 8; ctx.fillStyle = 'rgba(0,0,0,.7)'; ctx.fillRect(bx - 1, by - 1, bw + 2, 5); ctx.fillStyle = '#e8433a'; ctx.fillRect(bx, by, bw * Math.max(0, m.hp) / m.maxHp, 3); }
       if (m === P.target || m.boss) { const hh = { bat: 1.25, brute: 1.6, drake: 1.3, bones: 1.1 }[m.arch] || 0.95; const a = proj(m.x, m.y, hh * sz); label(ctx, 'Lv.' + m.lv + ' ' + m.name, a.x, a.y - 14, m.boss ? '#ffb27a' : '#ffffff', 10);
@@ -2958,6 +3126,7 @@ void main(){
     ctx.fillStyle = '#3fd06a'; ctx.fillRect(bx, by, bw * clamp(P.hp / D.maxHp, 0, 1), 3);
     ctx.fillStyle = '#3f86ff'; ctx.fillRect(bx, by + 4, bw * clamp(P.sp / D.maxSp, 0, 1), 2);
     label(ctx, S.hero.name, s.x, by + 17, '#ffffff', 11);
+    if (ccActive()) { const q = proj(P.x, P.y, 2.05); label(ctx, (P.ccType === 'freeze' ? '🧊 แช่แข็ง ' : '💫 มึนงง ') + Math.max(0, P.ccUntil - W.t).toFixed(1), q.x, q.y, P.ccType === 'freeze' ? '#bfeaff' : '#ffe14d', 12); }
     for (const o of othersHere()) { const q = proj(o.x, o.y); ctx.fillStyle = 'rgba(0,0,0,.7)'; ctx.fillRect(q.x - 17, q.y + 8, 34, 5); ctx.fillStyle = '#3fd06a'; ctx.fillRect(q.x - 16, q.y + 9, 32 * o.hp / 100, 3); label(ctx, o.name + '  Lv.' + o.lv, q.x, q.y + 22, PARTY.key && o.pk === PARTY.key ? '#8dff9a' : '#9fe3ff', 10); }
     drawBubbles(ctx, proj);
     // numbers
@@ -2998,10 +3167,18 @@ void main(){
     E.push(); E.T(0, 0.005, 0); E.Sc(0.95); E.flat('disc', [1, 0.85, 0.5, 0.35], { fade: 2 }); E.pop();
     E.push(); E.T(0, 0.01, 0); E.RY(t * 0.5); E.Sc(0.85); E.flat('plane', [1, 0.86, 0.55, 0.55], { tex: texOf(E, 'circle', circleCanvas) }); E.pop();
     E.blend(null);
-    E.push(); E.RY(ang); drawChar(E, look, jobId, R3.pvWs || 'dual', { t, eq }); E.pop();
+    const PA = R3.pvAura;
+    if (PA && (PA.aura || PA.lv99)) {
+      E.blend('add'); E.useFx();
+      if (PA.lv99) { E.push(); E.T(0, 0.012, 0); E.RY(t * 1.4); E.Sc(0.7); E.flat('ring', [0.8, 0.95, 1, 0.9], { fade: 4, dash: t * 0.8 }); E.flat('disc', [0.7, 0.88, 1, 0.4], { fade: 2 }); E.pop(); }
+      if (PA.aura) { const c = c3(PA.aura); E.push(); E.T(0, 0.014, 0); E.Sc(0.9); E.flat('disc', [c[0], c[1], c[2], 0.95], { fade: 1.6 }); E.pop(); E.push(); E.T(0, 0.018, 0); E.RY(-t * 1.8); E.Sc(0.8); E.flat('ring', [c[0], c[1], c[2], 1], { fade: 4, dash: t }); E.pop(); E.push(); E.Sc(0.4, 1.6, 0.4); E.flat('pillar', [c[0], c[1], c[2], 0.5], { fade: 1 }); E.pop();
+        for (let i = 0; i < 9; i++) { const ph = (t * 0.55 + i / 9) % 1, a = i * 0.7 + t * 1.3; E.push(); E.T(Math.cos(a) * 0.36, ph * 1.8, Math.sin(a) * 0.36); E.Sc(0.032, 0.17, 0.032); E.flat('pillar', [c[0], c[1], c[2], 0.95 * (1 - ph)], { fade: 1 }); E.pop(); } }
+      E.blend(null);
+    }
+    E.push(); E.RY(ang); drawChar(E, look, jobId, R3.pvWs || 'dual', { t, eq, wg: PA ? PA.wg : null }); E.pop();
     return true;
   };
-  R3.view = function (canvas, h, ang, t) { R3.pvWs = h.wstyle; const ok = R3.preview(canvas, h.look, h.job, ang, t, eqVis(h)); R3.pvWs = null; return ok; };
+  R3.view = function (canvas, h, ang, t) { R3.pvWs = h.wstyle; R3.pvAura = auraArgs(topRar(h), weaponRar(h), h.refineW, h.level); const ok = R3.preview(canvas, h.look, h.job, ang, t, eqVis(h)); R3.pvWs = null; R3.pvAura = null; return ok; };
   R3.snap = function (ctx2d, w, h, look, jobId, wstyle, mode, eq) {
     if (!R3.on) return false;
     const E = R3.th, cv = R3.thCv;
@@ -3108,6 +3285,21 @@ const AU = (() => {
     card(t) { [1047, 1319, 1568, 2093, 2637].forEach((f, i) => tone('sine', f, t + i * 0.07, 0.55, 0.1)); tone('triangle', 523, t, 1.0, 0.08, { a: 0.05 }); noise(t + 0.3, 0.6, 0.08, 'highpass', 6000); },
     boss(t) { [110, 147, 165].forEach((f, i) => tone('sawtooth', f, t + i * 0.12, 1.2, 0.12, { lp: 900, a: 0.08 })); tone('sine', 55, t, 1.4, 0.4, { to: 45 }); noise(t, 0.9, 0.18, 'lowpass', 300, 80); },
     bell(t) { [988, 1319].forEach((f, i) => tone('sine', f, t + i * 0.18, 0.9, 0.09)); },
+    roar(t) {
+      tone('sawtooth', 78, t, 1.5, 0.34, { to: 44, lp: 520, a: 0.12, vib: true });
+      tone('sawtooth', 117, t + 0.02, 1.3, 0.2, { to: 62, lp: 700, a: 0.1, vib: true, det: 12 });
+      tone('square', 58, t, 1.4, 0.14, { to: 36, lp: 300, a: 0.15 });
+      noise(t, 1.4, 0.32, 'bandpass', 420, 160, 0.8); noise(t + 0.05, 1.1, 0.22, 'lowpass', 900, 200);
+    },
+    slam(t) { tone('sine', 70, t, 0.8, 0.8, { to: 28 }); noise(t, 0.7, 0.55, 'lowpass', 700, 80); noise(t, 0.25, 0.3, 'bandpass', 2400, 600, 0.7); },
+    iceblast(t) { [2093, 2637, 3136, 2349].forEach((f, i) => tone('sine', f, t + i * 0.03, 0.6, 0.09)); noise(t, 0.5, 0.25, 'highpass', 4000); tone('triangle', 330, t, 0.4, 0.15, { to: 110 }); },
+    meteorhit(t) { SFX.boom(t); noise(t + 0.05, 0.5, 0.25, 'bandpass', 1800, 300, 0.6); },
+    summon(t) { [220, 233, 277, 311].forEach((f, i) => tone('sawtooth', f / 2, t + i * 0.09, 1.0, 0.09, { lp: 900, a: 0.06 })); noise(t, 0.9, 0.15, 'bandpass', 300, 900, 1.2); },
+    warn(t) { tone('square', 880, t, 0.09, 0.08); tone('square', 660, t + 0.11, 0.12, 0.08); },
+    stunned(t) { [988, 1175, 988, 1175].forEach((f, i) => tone('triangle', f, t + i * 0.08, 0.12, 0.08)); tone('sine', 300, t, 0.5, 0.12, { to: 180, vib: true }); },
+    frozen(t) { [1568, 2093, 2637].forEach((f, i) => tone('sine', f, t + i * 0.05, 0.7, 0.1)); noise(t, 0.4, 0.2, 'highpass', 6000); },
+    raidwin(t) { [523, 659, 784, 1047, 784, 1047, 1319].forEach((f, i) => tone(i < 4 ? 'square' : 'triangle', f, t + i * 0.12, i === 6 ? 1.2 : 0.22, 0.12, { lp: 3200 })); tone('sine', 131, t, 1.6, 0.25); },
+    legend(t) { [1319, 1568, 1976, 2637, 3136].forEach((f, i) => tone('sine', f, t + i * 0.07, 0.9, 0.08)); tone('triangle', 659, t, 1.2, 0.1, { vib: true }); },
     chat(t) { tone('sine', 1320, t, 0.08, 0.045); tone('sine', 1760, t + 0.07, 0.1, 0.04); }
   };
   A.sfx = (name) => {
@@ -3136,6 +3328,7 @@ const AU = (() => {
     forest: { bpm: 84,  root: 57, scale: [0, 2, 3, 5, 7, 9, 10], prog: [[0, 'm'], [10, 'M'], [8, 'M'], [7, 'm']], lead: 'sine', vib: true, pad: 'triangle', bass: 'drone', arp: false, drums: 'wood', lp: 1400 },
     sand:   { bpm: 92,  root: 52, scale: [0, 1, 4, 5, 7, 8, 10], prog: [[0, 'M'], [1, 'M'], [0, 'M'], [10, 'm']], lead: 'square', pad: 'sawtooth', bass: 'drone', arp: false, drums: 'hand', lp: 1100 },
     ruins:  { bpm: 70,  root: 50, scale: [0, 2, 3, 5, 7, 8, 10], prog: [[0, 'm'], [8, 'M'], [5, 'm'], [7, 'M']], lead: 'sine', bell: true, pad: 'square', bass: 'drone', arp: false, drums: 'none', lp: 900 },
+    raid:   { bpm: 150, root: 45, scale: [0, 2, 3, 5, 7, 8, 11], prog: [[0, 'm'], [8, 'M'], [5, 'm'], [7, 'M']], lead: 'sawtooth', pad: 'sawtooth', bass: 'eighth', arp: true, drums: 'rock', lp: 2000 },
     lava:   { bpm: 132, root: 52, scale: [0, 2, 3, 5, 7, 8, 11], prog: [[0, 'm'], [8, 'M'], [10, 'M'], [7, 'M']], lead: 'square', pad: 'sawtooth', bass: 'eighth', arp: false, drums: 'rock', lp: 1600 }
   };
   const triad = (q) => q === 'm' ? [0, 3, 7] : [0, 4, 7];
@@ -3236,7 +3429,7 @@ const CARD_B = { blob: ['vit', 'hpPct'], shroom: ['int', 'matkPct'], beast: ['ag
   bones: ['str', 'atkPct'], ghost: ['matkPct', 'flee'], brute: ['str', 'hpPct'], drake: ['atkPct', 'matkPct'] };
 const CARD_KEYS = ['str', 'agi', 'vit', 'int', 'dex', 'luk', 'atkPct', 'matkPct', 'hpPct', 'aspdPct', 'flee', 'crit', 'def'];
 const SLOT_TH = { head: 'หมวก', face: 'ใบหน้า', mouth: 'ปาก', weapon: 'อาวุธ', off: 'มือซ้าย', armor: 'เสื้อเกราะ', wings: 'ปีก', shoes: 'รองเท้า', ring1: 'แหวนขวา', ring2: 'แหวนซ้าย' };
-const GEAR_TYPE_TH = { head: 'หมวก', face: 'ใบหน้า', mouth: 'ปาก', shoes: 'รองเท้า', ring: 'แหวน', wings: 'ปีก' };
+const GEAR_TYPE_TH = { head: 'หมวก', face: 'ใบหน้า', mouth: 'ปาก', shoes: 'รองเท้า', ring: 'แหวน', wings: 'ปีก', weapon: 'อาวุธ', armor: 'เสื้อเกราะ' };
 const baseSlot = (k) => (k === 'ring1' || k === 'ring2') ? 'ring' : k;
 const GEAR = {
   ribbon:    { slot: 'head', nm: 'ริบบิ้นแดง', ic: '🎀', b: { int: 1, matkPct: 2 }, pr: 800 },
@@ -3261,6 +3454,23 @@ const GEAR = {
   fairy:     { slot: 'wings', nm: 'ปีกภูตพราย', ic: '🧚', b: { agi: 2, flee: 6 }, pr: 9000 }
 };
 const GEAR_SLOTS = ['head', 'face', 'mouth', 'shoes', 'ring1', 'ring2', 'wings'];
+// dungeon sets: weapon (fits every class, keeps the class look), armor and boots
+for (const sid of Object.keys(DG_SETS)) {
+  const S0 = DG_SETS[sid], t = S0.t;
+  const V = [0, 18, 45, 85, 140][t];
+  const WL = { sword: ['ดาบ', '🗡️', { watk: Math.round(V * 1.6) }], acolyte: ['คทาศักดิ์สิทธิ์', '🔱', { watk: Math.round(V * 0.8), wmatk: Math.round(V * 1.2) }],
+    magician: ['ไม้เท้า', '🪄', { wmatk: Math.round(V * 1.6) }], archer: ['ธนู', '🏹', { watk: Math.round(V * 1.6) }],
+    thief: ['กริช', '🔪', { watk: Math.round(V * 1.5) }], merchant: ['ขวาน', '🪓', { watk: Math.round(V * 1.7) }] };
+  for (const ln of DG_LINES) GEAR['w_' + sid + '_' + ln] = { slot: 'weapon', nm: WL[ln][0] + S0.nm, ic: WL[ln][1], b: WL[ln][2], pr: 1500 * t * t, set: sid, t, dg: true, line: ln };
+  GEAR['a_' + sid] = { slot: 'armor', nm: 'เกราะ' + S0.nm, ic: '🧥', b: { def: [0, 6, 14, 24, 38][t], hpPct: [0, 4, 7, 10, 14][t] }, pr: 1500 * t * t, set: sid, t, dg: true };
+  GEAR['s_' + sid] = { slot: 'shoes', nm: 'รองเท้า' + S0.nm, ic: '👢', b: { agi: t + 1, flee: 3 * t + 1, aspdPct: t }, pr: 1200 * t * t, set: sid, t, dg: true };
+}
+const canUse = (h, id) => !GEAR[id] || !GEAR[id].line || JOBS[h.job].line === GEAR[id].line;
+const lineText = (h, id) => { const g = GEAR[id]; if (!g || !g.dg) return ''; if (!g.line) return 'ใช้ได้ทุกอาชีพ'; return 'เฉพาะสาย' + LINE_TH[g.line] + (canUse(h, id) ? ' ✓' : ' (ไม่ตรงอาชีพคุณ)'); };
+const setBonus = (t, n) => n >= 3 ? { atkPct: 2 * t, matkPct: 2 * t, hpPct: 3 * t, crit: t + 1 } : n >= 2 ? { atkPct: 2 * t, matkPct: 2 * t } : null;
+function itemBase(it) { const g = GEAR[it.id], m = (RAR[it.r || 0] || RAR[0]).mult, o = {}; if (!g) return o; for (const k in g.b) o[k] = Math.round(g.b[k] * m); return o; }
+function sanitizeOpts(o) { return (Array.isArray(o) ? o : []).slice(0, 3).filter((e) => Array.isArray(e) && OPT_KEYS.includes(e[0])).map((e) => [e[0], int(e[1], 1, 1, 999)]); }
+const itemPrice = (id, r) => Math.round(gearPrice(id) * (1 + Math.max(0, (r || 0) - 1) * 0.6) / 2);
 const WNAME = { knife: 'มีดสั้น', sword: 'ดาบ', mace: 'คทาศักดิ์สิทธิ์', staff: 'ไม้เท้าเวท', bow: 'ธนู', katar: 'คาตาร์', dual: 'มีดมือขวา', axe: 'ขวาน' };
 const WICON = { knife: '🔪', sword: '🗡️', mace: '🔱', staff: '🪄', bow: '🏹', katar: '⚔️', dual: '🗡️', axe: '🪓' };
 const TIER_SFX = ['ฝึกหัด', 'เหล็ก', 'ชั้นสูง', 'ตำนาน'];
@@ -3278,11 +3488,17 @@ function gearItem(id) { const g = GEAR[id]; return { k: 'G:' + id + ':' + Math.r
 function sanitizeCard(x) { const c = sanitizeItem(x, false); return c && c.kind === 'card' ? c : null; }
 function sanitizeItem(x, withN) {
   if (!x || typeof x !== 'object' || typeof x.k !== 'string') return null;
-  const kind = ['card', 'loot', 'gear'].includes(x.kind) ? x.kind : null;
+  const kind = ['card', 'loot', 'gear', 'key'].includes(x.kind) ? x.kind : null;
   if (!kind) return null;
+  if (kind === 'key') {
+    const dg = CONFIG.dungeons.find((d) => d.id === x.dg); if (!dg) return null;
+    const it = Object.assign(keyItem(dg), {}); if (withN) it.n = int(x.n, 1, 1, 999);
+    return it;
+  }
   if (kind === 'gear') {
     if (!GEAR[x.id]) return null;
-    const it = { k: x.k.slice(0, 60), kind, id: x.id, nm: GEAR[x.id].nm, pr: Math.round(gearPrice(x.id) / 2), cards: [] };
+    const r = int(x.r, GEAR[x.id].dg ? 1 : 0, 0, 4);
+    const it = { k: x.k.slice(0, 60), kind, id: x.id, nm: GEAR[x.id].nm, pr: itemPrice(x.id, r), cards: [], r, o: sanitizeOpts(x.o) };
     it.cards = (Array.isArray(x.cards) ? x.cards : []).slice(0, 1).map((c) => (c ? sanitizeCard(c) : null));
     if (withN) it.n = 1;
     return it;
@@ -3324,9 +3540,17 @@ function slotCards(h, key) { const s = h.eq[key]; return s ? s.cards : []; }
 function sanitizeEq(d, h) {
   const e = d.eq || {}, out = {};
   if (e.ring && !e.ring1) e.ring1 = e.ring;
-  for (const k of GEAR_SLOTS) { const x = e[k]; out[k] = (x && GEAR[x.id] && GEAR[x.id].slot === baseSlot(k)) ? { id: x.id, cards: (Array.isArray(x.cards) ? x.cards : []).slice(0, 1).map((c) => (c ? sanitizeCard(c) : null)) } : null; }
-  for (const k of ['weapon', 'off', 'armor']) { const x = e[k] || {}; out[k] = { cards: (Array.isArray(x.cards) ? x.cards : []).slice(0, 4).map((c) => (c ? sanitizeCard(c) : null)) }; }
-  if (!d.eq) out.shoes = { id: 'leather', cards: [] };
+  const cardsOf = (x, n) => (Array.isArray(x.cards) ? x.cards : []).slice(0, n).map((c) => (c ? sanitizeCard(c) : null));
+  for (const k of GEAR_SLOTS) {
+    const x = e[k];
+    out[k] = (x && GEAR[x.id] && GEAR[x.id].slot === baseSlot(k)) ? { id: x.id, r: int(x.r, GEAR[x.id].dg ? 1 : 0, 0, 4), o: sanitizeOpts(x.o), cards: cardsOf(x, 1) } : null;
+  }
+  for (const k of ['weapon', 'off', 'armor']) {
+    const x = e[k] || {}, o = { cards: cardsOf(x, 4) };
+    if (k !== 'off' && GEAR[x.id] && GEAR[x.id].slot === k) Object.assign(o, { id: x.id, r: int(x.r, 1, 0, 4), o: sanitizeOpts(x.o) });
+    out[k] = o;
+  }
+  if (!d.eq) out.shoes = { id: 'leather', r: 0, o: [], cards: [] };
   h.eq = out;
   if (Array.isArray(d.cards)) for (const c of d.cards) { const cc = c && sanitizeCard(c); if (cc) pushInv(h, cc, 1); }
   normalizeGear(h);
@@ -3345,14 +3569,16 @@ function normalizeGear(h) {
   }
 }
 function gearSum(h) {
-  const o = {}, add = (b) => { for (const k in b) o[k] = (o[k] || 0) + b[k]; };
+  const o = {}, add = (b) => { for (const k in b) o[k] = (o[k] || 0) + b[k]; }, sets = {};
   for (const k of Object.keys(SLOT_TH)) {
     const s = h.eq && h.eq[k]; if (!s) continue;
-    if (s.id && GEAR[s.id]) add(GEAR[s.id].b);
+    if (s.id && GEAR[s.id]) { add(itemBase(s)); for (const op of s.o || []) add({ [op[0]]: op[1] }); if (GEAR[s.id].set) sets[GEAR[s.id].set] = (sets[GEAR[s.id].set] || 0) + 1; }
     for (const c of s.cards || []) if (c && c.b) add(c.b);
   }
+  for (const sid in sets) { const b = setBonus(DG_SETS[sid].t, sets[sid]); if (b) add(b); }
   return o;
 }
+function setInfo(h, sid) { let n = 0; for (const k of Object.keys(SLOT_TH)) { const s = h.eq && h.eq[k]; if (s && s.id && GEAR[s.id] && GEAR[s.id].set === sid) n++; } return n; }
 function eqVis(h) { const e = h.eq || {}; return { head: e.head && e.head.id, face: e.face && e.face.id, mouth: e.mouth && e.mouth.id, wings: e.wings && e.wings.id }; }
 function bonusText(b) { return Object.keys(b || {}).map((k) => (BUFF_TH[k] || k.toUpperCase()) + ' +' + b[k] + (PCT_KEYS[k] ? '%' : '')).join('  ') || 'ไม่มีค่าสถานะ'; }
 function afterGear() { P.D = derived(); P.hp = Math.min(P.hp, P.D.maxHp); S.dirty = true; drawAvatar(); hudText(); renderEquip(); }
@@ -3379,18 +3605,24 @@ function removeCard(key, idx) {
 }
 function equipGear(k) {
   const h = S.hero, it = h.inv.find((x) => x.k === k && x.kind === 'gear'); if (!it) return;
+  if (!canUse(h, it.id)) { toast('ใช้ได้เฉพาะสาย' + LINE_TH[GEAR[it.id].line] + ' ลงขายที่ตลาดได้'); AU.sfx('miss'); return; }
   let slot = GEAR[it.id].slot;
   if (slot === 'ring') slot = (EQ.sel === 'ring1' || EQ.sel === 'ring2') && EQ.picking ? EQ.sel : !h.eq.ring1 ? 'ring1' : !h.eq.ring2 ? 'ring2' : (EQ.sel === 'ring2' ? 'ring2' : 'ring1');
   const old = h.eq[slot];
   takeItem(k, 1);
-  if (old) pushInv(h, Object.assign(gearItem(old.id), { cards: old.cards }), 1);
-  h.eq[slot] = { id: it.id, cards: it.cards && it.cards.length ? it.cards : [] };
-  normalizeGear(h); EQ.sel = slot; EQ.invSel = null; AU.sfx('buff'); afterGear();
+  if (slot === 'weapon' || slot === 'armor') {
+    if (old && old.id) pushInv(h, Object.assign(gearItem(old.id), { r: old.r, o: old.o }), 1);
+    h.eq[slot] = { id: it.id, r: it.r || 0, o: it.o || [], cards: (old && old.cards) || [] };
+  } else {
+    if (old) pushInv(h, Object.assign(gearItem(old.id), { cards: old.cards, r: old.r, o: old.o }), 1);
+    h.eq[slot] = { id: it.id, r: it.r || 0, o: it.o || [], cards: it.cards && it.cards.length ? it.cards : [] };
+  }
+  normalizeGear(h); EQ.sel = slot; EQ.invSel = null; AU.sfx((it.r || 0) >= 2 ? 'legend' : 'buff'); afterGear();
 }
 function unequipGear(slot) {
-  const h = S.hero, old = h.eq[slot]; if (!old) return;
-  if (!addItem(Object.assign(gearItem(old.id), { cards: old.cards }), 1)) return;
-  h.eq[slot] = null; afterGear();
+  const h = S.hero, old = h.eq[slot]; if (!old || !old.id) return;
+  if (!addItem(Object.assign(gearItem(old.id), { cards: slot === 'weapon' || slot === 'armor' ? [] : old.cards, r: old.r, o: old.o }), 1)) return;
+  h.eq[slot] = slot === 'weapon' || slot === 'armor' ? { cards: old.cards } : null; afterGear();
 }
 function sellItem(k, n) {
   const h = S.hero, it = h.inv.find((x) => x.k === k); if (!it) return;
@@ -3417,6 +3649,8 @@ function gotCard(c) {
 const EQ = { open: false, sel: 'weapon', invSel: null, pick: null, ang: 0.35, cv: null, drag: null };
 function slotInfo(h, key) {
   const w = weaponOf(h.job, h.wstyle), tier = JOBS[h.job].tier;
+  const it0 = (key === 'weapon' || key === 'armor') && h.eq[key] && h.eq[key].id ? h.eq[key] : null;
+  if (it0) { const g = GEAR[it0.id]; return { ic: g.ic, nm: g.nm, ref: key === 'weapon' ? h.refineW : h.refineA, r: it0.r, b: itemBase(it0), o: it0.o, set: g.set, item: true, note: (key === 'weapon' ? 'ใส่การ์ดอาวุธได้ ' + sockets(h, 'weapon') + ' ใบ' : 'ใส่การ์ดเสื้อเกราะได้ 1 ใบ') + '  การ์ดอยู่กับช่อง ไม่หายเวลาเปลี่ยนอุปกรณ์' }; }
   if (key === 'weapon') return { ic: WICON[w], nm: (w === 'dual' ? WNAME.dual : WNAME[w]) + TIER_SFX[tier], ref: h.refineW, note: w === 'bow' || w === 'staff' || w === 'katar' || w === 'axe' ? 'อาวุธสองมือ ใส่การ์ดอาวุธได้ 2 ใบ' : w === 'dual' ? 'มีดมือขวา ใส่การ์ดอาวุธได้ 2 ใบ' : 'ใส่การ์ดอาวุธได้ 1 ใบ' };
   if (key === 'off') { const n = sockets(h, 'off'); if (!n) return { ic: '🚫', nm: 'ไม่ได้ใช้', empty: true, note: 'อาวุธสองมือ มือซ้ายจึงว่าง' };
     return w === 'dual' ? { ic: '🗡️', nm: 'มีดมือซ้าย' + TIER_SFX[tier], note: 'มีดมือซ้าย ใส่การ์ดอาวุธได้ 2 ใบ' } : { ic: '🛡️', nm: 'โล่' + TIER_SFX[tier], note: 'ใส่การ์ดโล่ได้ 1 ใบ' }; }
@@ -3424,7 +3658,7 @@ function slotInfo(h, key) {
   const s = h.eq[key];
   if (!s) return { ic: '', nm: 'ว่าง', empty: true, note: 'ซื้อได้ที่ร้าน แล้วกดสวมใส่จากกระเป๋า' };
   const g = GEAR[s.id];
-  return { ic: g.ic, nm: g.nm, b: g.b, note: sockets(h, key) ? 'ใส่การ์ด' + CS_TH[baseSlot(key)] + 'ได้ 1 ใบ' : 'ไม่มีช่องการ์ด' };
+  return { ic: g.ic, nm: g.nm, b: itemBase(s), r: s.r || 0, o: s.o, set: g.set, item: true, note: sockets(h, key) ? 'ใส่การ์ด' + CS_TH[baseSlot(key)] + 'ได้ 1 ใบ' : 'ไม่มีช่องการ์ด' };
 }
 function ensureEquipDom() {
   if ($('#eqWrap')) return;
@@ -3453,7 +3687,7 @@ function slotBtn(h, key) {
   const inf = slotInfo(h, key), n = sockets(h, key), cards = slotCards(h, key);
   const dots = el('span', { class: 'sdots' });
   for (let i = 0; i < n; i++) dots.append(el('i', { class: cards[i] ? 'on' : '' }));
-  return el('button', { class: 'eqslot' + (EQ.sel === key ? ' sel' : '') + (inf.empty ? ' empty' : ''), 'aria-label': SLOT_TH[key] + ': ' + inf.nm, onclick: () => { EQ.sel = key; EQ.pick = null; renderEquip(); } },
+  return el('button', { class: 'eqslot' + (EQ.sel === key ? ' sel' : '') + (inf.empty ? ' empty' : '') + (inf.r >= 1 ? ' rar' : ''), style: inf.r >= 1 ? '--rc:' + rarCol(inf.r) : null, 'aria-label': SLOT_TH[key] + ': ' + inf.nm, onclick: () => { EQ.sel = key; EQ.pick = null; renderEquip(); } },
     el('span', { class: 'ei', text: inf.ic || '＋' }), inf.ref ? el('b', { class: 'eref', text: '+' + inf.ref }) : null, el('small', { text: SLOT_TH[key] }), dots);
 }
 function renderEquip() {
@@ -3470,8 +3704,11 @@ function renderEquip() {
     right));
   // selected slot detail
   const key = EQ.sel, inf = slotInfo(h, key), n = sockets(h, key), acc = accepts(h, key), det = el('div', { class: 'eqdet' });
-  det.append(el('div', { class: 'nm2', text: (inf.ic ? inf.ic + ' ' : '') + inf.nm + (inf.ref ? ' +' + inf.ref : '') + '  (' + SLOT_TH[key] + ')' }));
+  det.append(el('div', { class: 'nm2', style: inf.r >= 1 ? 'color:' + rarCol(inf.r) : null, text: (inf.ic ? inf.ic + ' ' : '') + inf.nm + (inf.ref ? ' +' + inf.ref : '') + '  (' + SLOT_TH[key] + ')' }));
+  if (inf.r >= 1) det.append(el('span', { class: 'rchip', style: '--rc:' + rarCol(inf.r), text: RAR[inf.r].nm }));
   if (inf.b) det.append(el('div', { class: 'ds', text: bonusText(inf.b) }));
+  for (const op of inf.o || []) det.append(el('div', { class: 'ds gopt', text: '✦ ' + bonusText({ [op[0]]: op[1] }) }));
+  if (inf.set) det.append(setLine(h, inf.set));
   det.append(el('div', { class: 'meta', text: inf.note }));
   for (let i = 0; i < n; i++) {
     const c = slotCards(h, key)[i];
@@ -3487,15 +3724,16 @@ function renderEquip() {
       }
     }
   }
-  if (GEAR_SLOTS.includes(key) && h.eq[key]) det.append(el('div', { class: 'acts' }, el('button', { class: 'mini warn', text: 'ถอดอุปกรณ์', onclick: () => unequipGear(key) })));
-  if (GEAR_SLOTS.includes(key) && !h.eq[key]) {
-    const owned = h.inv.filter((x) => x.kind === 'gear' && GEAR[x.id].slot === baseSlot(key));
-    if (owned.length) { const l = el('div', { class: 'picklist' }); for (const it of owned) l.append(el('button', { class: 'pickc', onclick: () => { EQ.picking = true; equipGear(it.k); EQ.picking = false; } }, el('b', { text: GEAR[it.id].ic + ' สวม' + it.nm }), el('small', { text: bonusText(GEAR[it.id].b) }))); det.append(l); }
+  const itemSlot = key === 'weapon' || key === 'armor';
+  if ((GEAR_SLOTS.includes(key) && h.eq[key]) || (itemSlot && h.eq[key].id)) det.append(el('div', { class: 'acts' }, el('button', { class: 'mini warn', text: itemSlot ? 'ถอด (กลับไปใช้ของอาชีพ)' : 'ถอดอุปกรณ์', onclick: () => unequipGear(key) })));
+  if (GEAR_SLOTS.includes(key) && !h.eq[key] || itemSlot) {
+    const owned = h.inv.filter((x) => x.kind === 'gear' && GEAR[x.id].slot === baseSlot(key) && canUse(h, x.id));
+    if (owned.length) { const l = el('div', { class: 'picklist' }); for (const it of owned) l.append(el('button', { class: 'pickc', style: (it.r || 0) >= 1 ? 'border-color:' + rarCol(it.r) : null, onclick: () => { EQ.picking = true; equipGear(it.k); EQ.picking = false; } }, el('b', { style: (it.r || 0) >= 1 ? 'color:' + rarCol(it.r) : null, text: GEAR[it.id].ic + ' สวม' + it.nm + ((it.r || 0) >= 1 ? '  [' + RAR[it.r].nm + ']' : '') }), el('small', { text: bonusText(itemBase(it)) + (it.o && it.o.length ? '  ✦ ' + it.o.map((op) => bonusText({ [op[0]]: op[1] })).join('  ✦ ') : '') }))); det.append(l); }
   }
   body.append(det);
   // inventory
   const tiles = [{ k: 'P:hp', icon: '🧪', n: h.potHp, nm: 'ยาแดง' }, { k: 'P:sp', icon: '🧪', n: h.potSp, nm: 'ยาฟ้า', blue: true }];
-  for (const it of h.inv) tiles.push({ k: it.k, icon: it.kind === 'card' ? '🃏' : it.kind === 'gear' ? GEAR[it.id].ic : (ARCH_ICON[it.ar] || '📦'), n: it.n, nm: it.nm, it });
+  for (const it of h.inv) tiles.push({ k: it.k, icon: it.kind === 'card' ? '🃏' : it.kind === 'gear' ? GEAR[it.id].ic : it.kind === 'key' ? '🗝️' : (ARCH_ICON[it.ar] || '📦'), n: it.n, nm: it.nm, it });
   body.append(el('div', { class: 'sub', id: 'eqInv', text: 'กระเป๋า ' + h.inv.length + '/' + INV_MAX }));
   const sel = tiles.find((t) => t.k === EQ.invSel), idet = el('div', { class: 'invdet' });
   if (!sel) idet.append(el('p', { class: 'note', style: 'margin:0', text: 'แตะไอเทมเพื่อดูรายละเอียด การ์ดดรอปจากมอนทุกตัว ' + CONFIG.cardChance + '% และแต่ละใบใส่ได้เฉพาะช่องของมัน' }));
@@ -3503,21 +3741,32 @@ function renderEquip() {
     el('div', { class: 'acts' }, el('button', { class: 'mini pri', text: 'ใช้', disabled: !sel.n, onclick: () => { usePot(sel.k === 'P:hp' ? 'hp' : 'sp'); renderEquip(); } })));
   else {
     const it = sel.it;
-    idet.append(el('div', { class: 'nm2', text: sel.icon + ' ' + it.nm + (it.kind === 'gear' ? '' : '  x' + it.n) }));
+    idet.append(el('div', { class: 'nm2', style: (it.r || 0) >= 1 ? 'color:' + rarCol(it.r) : null, text: sel.icon + ' ' + it.nm + (it.kind === 'gear' ? '' : '  x' + it.n) }));
+    if ((it.r || 0) >= 1) idet.append(el('span', { class: 'rchip', style: '--rc:' + rarCol(it.r), text: RAR[it.r].nm }));
     if (it.kind === 'card') idet.append(el('div', { class: 'ds', text: 'ใส่ช่อง' + CS_TH[it.cs] + '  ' + bonusText(it.b) }));
-    else if (it.kind === 'gear') idet.append(el('div', { class: 'ds', text: GEAR_TYPE_TH[GEAR[it.id].slot] + (GEAR[it.id].slot === 'wings' ? '' : '  ใส่การ์ด' + CS_TH[GEAR[it.id].slot] + ' 1 ใบ') + '  ' + bonusText(GEAR[it.id].b) }));
+    else if (it.kind === 'gear') {
+      const gs = GEAR[it.id].slot;
+      idet.append(el('div', { class: 'ds', text: GEAR_TYPE_TH[gs] + (gs === 'wings' || gs === 'weapon' || gs === 'armor' ? '' : '  ใส่การ์ด' + CS_TH[gs] + ' 1 ใบ') + '  ' + bonusText(itemBase(it)) }));
+      for (const op of it.o || []) idet.append(el('div', { class: 'ds gopt', text: '✦ ' + bonusText({ [op[0]]: op[1] }) }));
+      if (GEAR[it.id].dg) idet.append(el('div', { class: 'meta', style: canUse(h, it.id) ? null : 'color:var(--bad)', text: lineText(h, it.id) }));
+      if (GEAR[it.id].set) idet.append(setLine(h, GEAR[it.id].set));
+    }
+    else if (it.kind === 'key') { const dg = dgDef(it.dg); idet.append(el('div', { class: 'ds', text: 'ใช้เข้า ' + (dg ? dg.name + '  (Lv.' + dg.minLv + '+)' : 'ดันเจี้ยน') })); }
     else idet.append(el('div', { class: 'ds', text: 'วัตถุดิบจากมอนสเตอร์ Lv ' + it.lv }));
     idet.append(el('div', { class: 'meta', text: 'ขายได้ ' + fmt(it.pr) + ' G' + (it.kind === 'gear' ? '' : ' ต่อชิ้น') }));
     idet.append(el('div', { class: 'acts' },
       it.kind === 'card' ? el('button', { class: 'mini pri', text: 'ใส่การ์ด', onclick: () => autoInsert(it.k) }) : null,
-      it.kind === 'gear' ? el('button', { class: 'mini pri', text: 'สวมใส่', onclick: () => equipGear(it.k) }) : null,
+      it.kind === 'gear' ? el('button', { class: 'mini pri', text: 'สวมใส่', disabled: !canUse(h, it.id), onclick: () => equipGear(it.k) }) : null,
+      it.kind === 'gear' && GEAR[it.id].dg ? el('button', { class: 'mini', text: '🏪 ลงขายตลาด', onclick: () => { closeEquip(); MK.tab = 'sell'; MK.pick = it.k; openPanel('market'); } }) : null,
+      it.kind === 'key' ? el('button', { class: 'mini pri', text: 'ไปหน้าดันเจี้ยน', onclick: () => { closeEquip(); openPanel('dungeon'); } }) : null,
       el('button', { class: 'mini', text: 'ขาย 1', onclick: () => sellItem(it.k, 1) }),
       it.n > 1 ? el('button', { class: 'mini', text: 'ขายทั้งหมด', onclick: () => sellItem(it.k, it.n) }) : null));
   }
   body.append(idet);
   const g = el('div', { class: 'grid5' });
   for (const t of tiles) {
-    const b = el('button', { class: 'tile' + (EQ.invSel === t.k ? ' sel' : '') + (t.it && t.it.kind === 'card' ? ' card' : ''), 'aria-label': t.nm + ' ' + t.n },
+    const rr = t.it && t.it.kind === 'gear' ? t.it.r || 0 : 0;
+    const b = el('button', { class: 'tile' + (EQ.invSel === t.k ? ' sel' : '') + (t.it && t.it.kind === 'card' ? ' card' : '') + (rr >= 1 ? ' rar' : ''), style: rr >= 1 ? '--rc:' + rarCol(rr) : null, 'aria-label': t.nm + ' ' + t.n },
       el('span', { text: t.icon, style: t.blue ? 'filter:hue-rotate(200deg)' : null }), t.it && t.it.kind === 'gear' ? null : el('b', { text: String(t.n) }),
       t.it && t.it.kind === 'card' ? el('em', { text: CS_TH[t.it.cs] }) : null);
     if (t.it && t.it.kind === 'card') b.style.setProperty('--c', t.it.col);
@@ -3532,6 +3781,12 @@ function drawEquipPreview(now) {
   if (!EQ.open || !EQ.cv || !S.hero) return;
   if (R3.on) R3.view(EQ.cv, S.hero, EQ.ang, now);
   else { const c = EQ.cv.getContext('2d'), w = EQ.cv.width, hh = EQ.cv.height; c.setTransform(1, 0, 0, 1, 0, 0); c.clearRect(0, 0, w, hh); drawHero(c, w / 2, hh * 0.85, hh / 80, S.hero.look, S.hero.job, { t: now, wstyle: S.hero.wstyle }); }
+}
+
+function setLine(h, sid) {
+  const n = setInfo(h, sid), t = DG_SETS[sid].t, b2 = setBonus(t, 2), b3 = setBonus(t, 3);
+  return el('div', { class: 'setln' }, el('b', { text: 'เซ็ต' + DG_SETS[sid].nm + '  สวมอยู่ ' + n + '/3' }),
+    el('small', { class: n >= 2 ? 'on' : '', text: '2 ชิ้น: ' + bonusText(b2) }), el('small', { class: n >= 3 ? 'on' : '', text: '3 ชิ้น: ' + bonusText(b3) }));
 }
 /* =================== ONLINE: shared world, party, chat =================== */
 const ONLINE = { room: null, peers: [], others: new Map(), lastSend: 0, sig: '', swc: 0, lastSwing: -9, ready: false, hb: 0, last: null };
@@ -3567,6 +3822,8 @@ function readPresence(p) {
     pi: (arr(pr.pi, 6) || []).filter((x) => typeof x === 'string'), hit: arr(pr.hit, 20), dg: arr(pr.dg, 40), kd: arr(pr.kd, 12),
     ms: Array.isArray(pr.ms) ? pr.ms : null, tp: (arr(pr.tp, 12) || []).filter((x) => typeof x === 'string'),
     bb: Array.isArray(pr.bb) && typeof pr.bb[0] === 'string' ? [pr.bb[0].slice(0, 40), int(pr.bb[1], 0, 0, 1e9)] : null,
+    au: Array.isArray(pr.au) ? [int(pr.au[0], 0, 0, 4), int(pr.au[1], 0, 0, 4), int(pr.au[2], 0, 0, 20)] : [0, 0, 0], cc: int(pr.cc, 0, 0, 2),
+    bk: arr(pr.bk, 8), dq: pr.dq == null ? null : int(pr.dq, 0, 0, 2),
     eqv: (() => { const a = Array.isArray(pr.ev) ? pr.ev : [], g = (x, sl) => (typeof x === 'string' && GEAR[x] && GEAR[x].slot === sl ? x : null); return { head: g(a[0], 'head'), face: g(a[1], 'face'), mouth: g(a[2], 'mouth'), wings: g(a[3], 'wings') }; })()
   };
 }
@@ -3643,7 +3900,8 @@ function applyMirror(o) {
     m.nx = nx; m.ny = ny;
     const hpHost = num(e[4], 1000, 0, 1000) / 1000 * m.maxHp;
     if (!(m.predT && W.t - m.predT < 2.5 && m.hp < hpHost)) m.hp = hpHost;
-    const fl = int(e[5], 0, 0, 15);
+    const fl = int(e[5], 0, 0, 31);
+    m.enr = !!(fl & 8);
     m.moving = !!(fl & 2);
     const ti2 = int(e[6], -1, -1, 99); m.tgt = ti2 >= 0 && tp[ti2] ? tp[ti2] : null;
     if (fl & 4) { if (m.state !== 'dead') { m.state = 'dead'; m.dieT = W.t; } }
@@ -3740,7 +3998,7 @@ function onlineTick(dt) {
   pruneDamage();
   if (!NET.isHost) {
     const ho = ONLINE.others.get(NET.host);
-    if (ho && ho.map === W.map.id) { if (ho.ms && ho.ms !== NET.hostRef) { NET.hostRef = ho.ms; applyMirror(ho); } processHostKills(ho); }
+    if (ho && ho.map === W.map.id) { if (ho.ms && ho.ms !== NET.hostRef) { NET.hostRef = ho.ms; applyMirror(ho); } processHostKills(ho); processBossEvents(ho); }
   }
   const room = ONLINE.room; if (!room) return;
   if (P.swingT !== ONLINE.lastSwing) { ONLINE.lastSwing = P.swingT; ONLINE.swc++; }
@@ -3750,7 +4008,7 @@ function onlineTick(dt) {
   const pr = { v: 1, n: h.name, j: h.job, l: h.level, jl: h.jobLv, m: W.map.id,
     x: Math.round(P.x / WORLD.w * 1000) / 1000, y: Math.round(P.y / WORLD.h * 1000) / 1000,
     g: h.look.g, h: h.look.hair, c: h.look.hc, ws: h.wstyle, sw: ONLINE.swc, d: P.dead ? 1 : 0, hp: Math.round(clamp(P.hp / D.maxHp, 0, 1) * 100),
-    mt: NET.mapT, pk: PARTY.key, pi: PARTY.invited.slice(-4), hit: NET.hits, dg: [...NET.dmg].slice(-30), bb: NET.bb, ev: (() => { const v = eqVis(h); return [v.head || '', v.face || '', v.mouth || '', v.wings || '']; })() };
+    mt: NET.mapT, pk: PARTY.key, pi: PARTY.invited.slice(-4), hit: NET.hits, dg: [...NET.dmg].slice(-30), bb: NET.bb, au: [topRar(h), weaponRar(h), h.refineW], cc: ccActive() ? (P.ccType === 'freeze' ? 2 : 1) : 0, ev: (() => { const v = eqVis(h); return [v.head || '', v.face || '', v.mouth || '', v.wings || '']; })() };
   if (NET.isHost) {
     const tp = [], ms = [];
     for (const m of W.mons) {
@@ -3758,9 +4016,10 @@ function onlineTick(dt) {
       let ti = -1;
       if (m.tgt) { ti = tp.indexOf(m.tgt); if (ti < 0) { tp.push(m.tgt); ti = tp.length - 1; } }
       ms.push([m.uid, m.ti, Math.round(m.x / WORLD.w * 1000), Math.round(m.y / WORLD.h * 1000), Math.round(clamp(m.hp / m.maxHp, 0, 1) * 1000),
-        (m.state === 'chase' ? 1 : 0) | (m.moving ? 2 : 0) | (m.state === 'dead' ? 4 : 0), ti, m.atkN || 0]);
+        (m.state === 'chase' ? 1 : 0) | (m.moving ? 2 : 0) | (m.state === 'dead' ? 4 : 0) | (m.enr ? 8 : 0), ti, m.atkN || 0]);
     }
     pr.ms = ms; pr.tp = tp; pr.kd = NET.kd;
+    if (isDg()) { pr.bk = NET.bk; pr.dq = DG.state; }
   }
   const sig = JSON.stringify(pr);
   if (sig === ONLINE.sig && now - ONLINE.lastSend < 1000) return;
@@ -3779,6 +4038,7 @@ window.addEventListener('pagehide', () => { if (ONLINE.room && ONLINE.last) ONLI
 /* ---------- party ---------- */
 function partyMates(anyMap) { const out = []; if (!PARTY.key) return out; for (const o of activeOthers()) if (o.pk === PARTY.key && (anyMap || (W.map && o.map === W.map.id))) out.push(o); return out; }
 function partyInvite(o) {
+  if (PARTY.key && partyMates(true).length + 1 >= CONFIG.party.max) { toast('ปาร์ตี้เต็มแล้ว สูงสุด ' + CONFIG.party.max + ' คน'); return; }
   if (!NET.me) { toast('ระบบปาร์ตี้ยังเชื่อมต่อไม่ได้'); return; }
   if (!PARTY.key) { PARTY.key = 'p' + uid36(); lsSet('spellblade_party', PARTY.key); }
   if (!PARTY.invited.includes(o.key)) PARTY.invited.push(o.key);
@@ -3789,7 +4049,7 @@ function showInvite() {
   const box = $('#invite'); if (!PARTY.offer) { box.hidden = true; return; }
   box.textContent = '';
   box.append(el('span', { text: '👥 ' + PARTY.offer.from + ' ชวนคุณเข้าปาร์ตี้' }),
-    el('button', { class: 'mini pri', text: 'เข้าร่วม', onclick: () => { PARTY.key = PARTY.offer.pk; lsSet('spellblade_party', PARTY.key); PARTY.offer = null; PARTY.invited = []; showInvite(); toast('เข้าร่วมปาร์ตี้แล้ว'); renderPartyHud(); if (S.sheet === 'online') renderSheet(); } }),
+    el('button', { class: 'mini pri', text: 'เข้าร่วม', onclick: () => { if (activeOthers().filter((x) => x.pk === PARTY.offer.pk).length >= CONFIG.party.max) { toast('ปาร์ตี้นั้นเต็มแล้ว สูงสุด ' + CONFIG.party.max + ' คน'); PARTY.offer = null; showInvite(); return; } PARTY.key = PARTY.offer.pk; lsSet('spellblade_party', PARTY.key); PARTY.offer = null; PARTY.invited = []; showInvite(); toast('เข้าร่วมปาร์ตี้แล้ว'); renderPartyHud(); if (S.sheet === 'online') renderSheet(); } }),
     el('button', { class: 'mini', text: 'ไม่ล่ะ', onclick: () => { PARTY.declined.add(PARTY.offer.pk); PARTY.offer = null; showInvite(); } }));
   box.hidden = false;
 }
@@ -3819,9 +4079,9 @@ function sanitizeMsg(m, u) {
   const id = typeof m.id === 'string' ? m.id.slice(0, 24) : '', tx = txt(m.tx, 120).trim();
   if (!id || !tx) return null;
   return { id, t: num(m.t, 0, 0, 1e15), n: str(m.n, 'นักผจญภัย', 16), j: JOBS[m.j] ? m.j : 'novice', tx, ch: m.ch === 'p' ? 'p' : 'w',
-    pk: typeof m.pk === 'string' ? m.pk.slice(0, 24) : '', sys: !!m.sys, u };
+    pk: typeof m.pk === 'string' ? m.pk.slice(0, 24) : '', sys: !!m.sys, an: m.an ? 1 : 0, u };
 }
-const stripMsg = (m) => ({ id: m.id, t: m.t, n: m.n, j: m.j, tx: m.tx, ch: m.ch, pk: m.pk, sys: m.sys });
+const stripMsg = (m) => ({ id: m.id, t: m.t, n: m.n, j: m.j, tx: m.tx, ch: m.ch, pk: m.pk, sys: m.sys, an: m.an || 0 });
 const visibleMsg = (m) => m.ch === 'w' || (m.pk && m.pk === PARTY.key);
 function mergeChat(list) {
   let fresh = 0;
@@ -3829,6 +4089,7 @@ function mergeChat(list) {
     if (CHAT.seen.has(m.id)) continue;
     CHAT.seen.add(m.id); m.rt = performance.now(); CHAT.all.push(m);
     if (!CHAT.first && m.u !== S.uid && visibleMsg(m)) { fresh++; if (S.sheet !== 'chat') CHAT.unread++; }
+    if (!CHAT.first && m.an && Date.now() - m.t < 120000) worldBanner(m.tx);
   }
   CHAT.first = false;
   if (fresh) AU.sfx('chat');
@@ -3836,7 +4097,7 @@ function mergeChat(list) {
   if (CHAT.all.length > 150) CHAT.all = CHAT.all.slice(-150);
   renderChatList(); renderChatFeed(); renderChatDot();
 }
-function chatSend(text, ch, sys) {
+function chatSend(text, ch, sys, an) {
   text = String(text || '').trim().slice(0, 120); if (!text || !S.hero) return;
   if (!sys) {
     if (performance.now() - CHAT.lastSend < 1200) { toast('ส่งเร็วไป รอสักครู่'); return; }
@@ -3844,7 +4105,7 @@ function chatSend(text, ch, sys) {
     CHAT.lastSend = performance.now();
     NET.bbSeq++; NET.bb = [text.slice(0, 40), NET.bbSeq]; NET.bbT = W.t;
   }
-  const msg = { id: uid36(), t: Date.now(), n: S.hero.name, j: S.hero.job, tx: text, ch: ch === 'p' ? 'p' : 'w', pk: ch === 'p' ? PARTY.key : '', sys: !!sys };
+  const msg = { id: uid36(), t: Date.now(), n: S.hero.name, j: S.hero.job, tx: text, ch: ch === 'p' ? 'p' : 'w', pk: ch === 'p' ? PARTY.key : '', sys: !!sys, an: an ? 1 : 0 };
   mergeChat([Object.assign({ u: S.uid }, msg)]);
   if (!S.db || !S.uid) { if (!sys) toast('แชทออนไลน์ใช้ไม่ได้ในมุมมองนี้ ข้อความแสดงเฉพาะในเครื่องคุณ'); return; }
   CHAT.mine.push(msg); CHAT.mine = CHAT.mine.slice(-12);
@@ -3906,7 +4167,7 @@ function drawBubbles(ctx, proj) {
 
 /* ---------- panels ---------- */
 function renderOnlineDot() { const d = $('#dotOnline'); if (!d) return; const n = activeOthers().length; d.hidden = n < 1; d.textContent = n; }
-function mapName(id) { const m = CONFIG.maps.find((x) => x.id === id); return m ? m.name : 'ไม่ทราบแผนที่'; }
+function mapName(id) { if (typeof id === 'string' && id.startsWith('dg:')) { const d = dgDef(id.split(':')[1]); return '🏰 ' + (d ? d.name : 'ดันเจี้ยน'); } const m = CONFIG.maps.find((x) => x.id === id); return m ? m.name : 'ไม่ทราบแผนที่'; }
 function headCanvas(look, job, ws, eqv) {
   const cv = el('canvas', { width: 72, height: 72, style: 'width:36px;height:36px;border-radius:8px;background:#26304a;flex-shrink:0' });
   const c = cv.getContext('2d'); c.scale(2, 2);
@@ -3962,7 +4223,7 @@ function panelSound(body) {
 /* =================== BOSS RESPAWN TIMERS =================== */
 const BOSS = { all: {}, local: {}, loaded: false, sub: false, seen: {}, warned: {}, annT: 0, curMap: null, first: true };
 const nowMs = () => Date.now() + (window.__srvOff || 0);
-function bossTpls(map) { return (map ? map.monsters : []).map((t, i) => [t, i]).filter(([t]) => t.boss); }
+function bossTpls(map) { return (map && !map.dg ? map.monsters : []).map((t, i) => [t, i]).filter(([t]) => t.boss && !t.raid); }
 function sanitizeBossDoc(d) {
   const o = {}; if (!d || typeof d !== 'object') return o;
   for (const id of Object.keys(d).slice(0, 20)) { const x = d[id] || {}; o[id] = { next: num(x.next, 0, 0, 1e15), alive: !!x.alive, by: txt(x.by, 16), at: num(x.at, 0, 0, 1e15) }; }
@@ -4053,6 +4314,454 @@ function renderBossBar() {
     const b = el('button', { class: 'bossrow' + (L.alive ? ' alive' : ''), onclick: () => { const m = W.mons.find((x) => x.boss && x.id === t.id && x.state !== 'dead'); if (m) { P.target = m; P.tx = null; toast('เล็งเป้า ' + t.name); } } },
       el('span', { text: '👑 ' + t.name }), el('b', { class: 'px', text: L.text }));
     box.append(b);
+  }
+}
+/* =================== DUNGEONS, RAID BOSSES & RARE GEAR =================== */
+const DG = { state: 0, t0: 0, ret: null, seq: 0, bkSeen: new Map(), winT: 0, loot: [] };
+const DIFF_TH = ['', 'ง่าย', 'ปานกลาง', 'ยาก', 'นรก'];
+const DIFF_COL = ['', '#7be08a', '#ffd166', '#ff8a3a', '#ff3b5c'];
+const OPT_KEYS = ['str', 'agi', 'vit', 'int', 'dex', 'luk', 'atkPct', 'matkPct', 'hpPct', 'aspdPct', 'crit', 'flee', 'def', 'watk', 'wmatk'];
+const BK_TYPES = ['spawn', 'enrage', 'summon', 'slam', 'roar', 'breath', 'meteor'];
+NET.bk = [];
+W.tele = [];
+
+const partySize = () => PARTY.key ? Math.min(12, partyMates(true).length + 1) : 1;
+const dgDef = (id) => CONFIG.dungeons.find((d) => d.id === id);
+const isDg = () => !!(W.map && W.map.dg);
+const rarCol = (r) => (RAR[r] || RAR[0]).col;
+
+/* ---------- rare gear ---------- */
+function rollOpt(t, used) {
+  const pool = OPT_KEYS.filter((k) => !used.has(k)), k = pool[(Math.random() * pool.length) | 0];
+  const R = (a, b) => a + Math.floor(Math.random() * (b - a + 1));
+  const v = ['str', 'agi', 'vit', 'int', 'dex', 'luk'].includes(k) ? R(1 + t, 2 + t * 2)
+    : (k === 'atkPct' || k === 'matkPct' || k === 'hpPct') ? R(2 + t, 3 + t * 2)
+    : (k === 'aspdPct' || k === 'crit') ? R(1 + t, 2 + t)
+    : k === 'flee' ? R(2 + t * 2, 3 + t * 4)
+    : k === 'def' ? R(2 + t * 2, 3 + t * 5)
+    : R(5 * t, 12 * t);
+  used.add(k); return [k, v];
+}
+function pickW(ws) { const tot = ws.reduce((a, b) => a + b, 0) || 1; let r = Math.random() * tot; for (let i = 0; i < ws.length; i++) { r -= ws[i]; if (r <= 0) return i; } return 0; }
+function rollDgItem(dg, forceR) {
+  const roll = Math.random(), id = roll < 0.4 ? 'w_' + dg.id + '_' + DG_LINES[(Math.random() * DG_LINES.length) | 0] : (roll < 0.7 ? 'a_' : 's_') + dg.id;
+  if (!GEAR[id]) return null;
+  const r = forceR || 1 + pickW(dg.rar), used = new Set(), o = [];
+  for (let i = 0; i < RAR[r].opts; i++) o.push(rollOpt(dg.diff, used));
+  return Object.assign(gearItem(id), { r, o });
+}
+function keyItem(dg) { return { k: 'K:' + dg.id, kind: 'key', nm: dg.keyName, dg: dg.id, ar: 'blob', pr: 40 * dg.diff, lv: dg.minLv, col: DIFF_COL[dg.diff] || '#ffd166' }; }
+function keyCount(id) { const it = S.hero.inv.find((x) => x.k === 'K:' + id); return it ? it.n : 0; }
+function dropKeys(m, tpl) {
+  if (!W.map || W.map.dg) return;
+  for (const dg of CONFIG.dungeons) {
+    if (!dg.on || !dg.keyMaps.includes(W.map.id)) continue;
+    const n = tpl.boss ? 1 + (Math.random() < 0.5 ? 1 : 0) : (Math.random() * 100 < dg.keyChance * CONFIG.rates.drop ? 1 : 0);
+    if (!n) continue;
+    if (addItem(keyItem(dg), n)) {
+      addNum(m.x, m.y + 36, '+🗝️ ' + dg.keyName + (n > 1 ? ' x' + n : ''), '#ffe27a', 12, { font: 'th', dur: 1.8, pop: true });
+      toast('🗝️ ได้รับ' + dg.keyName + ' ใช้เข้า ' + dg.name); AU.sfx('card');
+    }
+  }
+}
+
+/* ---------- instances ---------- */
+function dgMap(dg, inst) {
+  const mn = dg.minion || ['blob', 'สมุน', '#888888'];
+  const boss = MON(dg.id + '_boss', dg.boss, dg.arch, dg.color, dg.bossLv, { boss: true, raid: true, aggro: true });
+  boss.hp = Math.round(boss.hp * dg.hpMul); boss.atk = Math.round(boss.atk * 1.15); boss.bexp *= 3; boss.jexp *= 3; boss.gold *= 2;
+  boss.cs = ARCH_CS[dg.arch] || 'armor';
+  const minion = MON(dg.id + '_min', mn[1], mn[0], mn[2], Math.max(1, dg.bossLv - 6), { aggro: true });
+  minion.cs = ARCH_CS[mn[0]] || 'armor';
+  return { id: inst, name: dg.name, theme: dg.theme, min: dg.minLv, max: dg.bossLv, count: 0, dg: dg.id, monsters: [minion, boss] };
+}
+const dgInstance = (dg) => ('dg:' + dg.id + ':' + (PARTY.key || S.uid || NET.me || 'solo')).slice(0, 40);
+function dgReset() { DG.state = 0; DG.bkSeen.clear(); NET.bk = []; W.tele = []; P.ccUntil = 0; $('#raidWin').hidden = true; clearTimeout(DG.winT); }
+function enterDungeon(id) {
+  const dg = dgDef(id), h = S.hero;
+  if (!dg || !dg.on) return;
+  if (isDg()) { toast('ออกจากดันเจี้ยนปัจจุบันก่อน'); return; }
+  if (h.level < dg.minLv) { toast('ต้องเลเวล ' + dg.minLv + ' ขึ้นไป'); return; }
+  if (keyCount(id) < 1) { toast('ต้องมี' + dg.keyName + ' 1 ดอก'); return; }
+  const ps = partySize(), cp = CONFIG.party;
+  if (ps < cp.min) { toast('ต้องมาเป็นปาร์ตี้ ' + cp.min + '–' + cp.max + ' คน (ตอนนี้ ' + ps + ' คนออนไลน์)'); return; }
+  const inside = activeOthers().filter((o) => o.map === dgInstance(dg)).length;
+  if (inside + 1 > cp.max) { toast('ห้องเต็มแล้ว สูงสุด ' + cp.max + ' คน'); return; }
+  takeItem('K:' + id, 1);
+  closeSheet(); setAuto(false);
+  DG.ret = h.mapId;
+  enterMap(null, true, dgMap(dg, dgInstance(dg)));
+  DG.t0 = W.t;
+  P.x = WORLD.w / 2; P.y = WORLD.h * 0.86; R3.camSnap = true;
+  AU.sfx('warp');
+  raidBanner('🏰 ' + dg.name + '  ระวังตัว บอสกำลังมา!', 'warn');
+  save();
+}
+function leaveDungeon() { if (!isDg()) return; const back = DG.ret || S.hero.mapId; enterMap(back); save(); }
+
+/* ---------- host: raid boss AI ---------- */
+function spawnMinion(x, y) {
+  const ti = W.map.monsters.findIndex((t) => !t.raid), b = bounds();
+  if (ti >= 0) W.mons.push(makeMon(W.map.monsters[ti], ti, clamp(x, b.x0, b.x1), clamp(y, b.y0, b.y1)));
+}
+function spawnRaid() {
+  const ti = W.map.monsters.findIndex((t) => t.raid);
+  if (ti < 0 || W.mons.some((m) => m.raid)) return;
+  const m = makeMon(W.map.monsters[ti], ti, WORLD.w / 2, WORLD.h * 0.34), k = Math.max(1, Math.min(CONFIG.party.max, partySize()) * 0.75);
+  m.hp = m.maxHp = Math.round(m.maxHp * k); W.mons.push(m);
+  for (let i = 0; i < 4; i++) spawnMinion(WORLD.w / 2 + Math.cos(i * 1.57 + 0.78) * 150, WORLD.h * 0.34 + Math.sin(i * 1.57 + 0.78) * 110);
+  pushBk('spawn', [[WORLD.w / 2, WORLD.h * 0.34, 0]], 0);
+}
+function pushBk(type, cs, delay) {
+  DG.seq++;
+  const ev = [DG.seq, type, Math.round(delay * 100), cs.map((c) => [Math.round(c[0]), Math.round(c[1]), Math.round(c[2])])];
+  NET.bk.push(ev); if (NET.bk.length > 6) NET.bk.shift();
+  runBk(ev);
+}
+function raidAI() {
+  const m = W.mons.find((x) => x.raid && x.state !== 'dead'); if (!m) return;
+  const dg = dgDef(W.map.dg) || { skills: ['slam'] }, sk = dg.skills;
+  if (!m.rd) m.rd = { next: W.t + 4, sum: sk.includes('summon') ? [0.7, 0.4] : [] };
+  const pct = m.hp / m.maxHp;
+  if (!m.enr && pct < 0.3) { m.enr = true; pushBk('enrage', [[m.x, m.y, 0]], 0); m.rd.next = Math.min(m.rd.next, W.t + 2); }
+  if (m.rd.sum.length && pct < m.rd.sum[0]) { m.rd.sum.shift(); for (let i = 0; i < 3; i++) spawnMinion(m.x + (i - 1) * 120, m.y + 120); pushBk('summon', [[m.x, m.y, 0]], 0); }
+  if (W.t < m.rd.next) return;
+  const pl = mapPlayers().filter((p) => Math.hypot(p.x - m.x, p.y - m.y) < 560);
+  if (!pl.length || m.state !== 'chase') { m.rd.next = W.t + 1; return; }
+  const pool = sk.filter((s) => s !== 'summon'), s = pool[(Math.random() * pool.length) | 0], tg = pl[(Math.random() * pl.length) | 0], b = bounds();
+  let cs = [], delay = 1.4;
+  if (s === 'slam') { cs = [[tg.x, tg.y, 105]]; delay = 1.4; }
+  else if (s === 'roar') { cs = [[m.x, m.y, 240]]; delay = 1.2; }
+  else if (s === 'breath') { const dx = tg.x - m.x, dy = tg.y - m.y, d = Math.hypot(dx, dy) || 1; for (let i = 1; i <= 5; i++) cs.push([clamp(m.x + dx / d * 85 * i, b.x0, b.x1), clamp(m.y + dy / d * 85 * i, b.y0, b.y1), 62]); delay = 1.3; }
+  else { for (const p of pl) for (let i = 0; i < (m.enr ? 3 : 2); i++) cs.push([clamp(p.x + (Math.random() - 0.5) * 170, b.x0, b.x1), clamp(p.y + (Math.random() - 0.5) * 170, b.y0, b.y1), 72]); delay = 1.7; }
+  m.castUntil = W.t + Math.min(delay, 1.2); m.lungeT = 0.3;
+  pushBk(s, cs, delay);
+  m.rd.next = W.t + (m.enr ? 3.4 : 5.4) * (0.85 + Math.random() * 0.3);
+}
+
+/* ---------- all clients: skill events, telegraphs, crowd control ---------- */
+function sanitizeBk(e) {
+  if (!Array.isArray(e) || !BK_TYPES.includes(e[1])) return null;
+  const cs = (Array.isArray(e[3]) ? e[3] : []).slice(0, 14).filter(Array.isArray).map((c) => [num(c[0], 0, 0, WORLD.w), num(c[1], 0, 0, WORLD.h), num(c[2], 0, 0, 400)]);
+  return [int(e[0], 0, 0, 1e9), e[1], int(e[2], 0, 0, 500), cs];
+}
+function processBossEvents(ho) {
+  if (!isDg()) return;
+  if (ho.dq != null && ho.dq > DG.state) DG.state = ho.dq;
+  if (!Array.isArray(ho.bk)) return;
+  const seen = DG.bkSeen.get(ho.key); let mx = seen || 0;
+  for (const raw of ho.bk) {
+    const e = sanitizeBk(raw); if (!e) continue;
+    if (seen == null) { mx = Math.max(mx, e[0]); continue; }
+    if (e[0] <= seen) continue;
+    mx = Math.max(mx, e[0]); runBk(e);
+  }
+  DG.bkSeen.set(ho.key, mx);
+}
+function runBk(ev) {
+  const [, type, d100, cs] = ev, delay = d100 / 100, boss = W.mons.find((m) => m.raid), dg = dgDef(W.map.dg) || {}, bn = dg.boss || 'บอส';
+  if (type === 'spawn') { raidBanner('⚠️ ' + bn + ' ปรากฏตัวแล้ว!', 'spawn'); AU.sfx('roar'); R3.shake(0.9, 0.16); AU.music('raid'); return; }
+  if (type === 'enrage') { raidBanner('🔥 ' + bn + ' คลั่ง! โจมตีถี่และแรงขึ้น', 'spawn'); AU.sfx('roar'); R3.shake(1, 0.18); if (boss) { boss.enr = true; addFx({ kind: 'pillar', x: boss.x, y: boss.y, color: '#ff2a2a', dur: 1.4, w: 90 }); } return; }
+  if (type === 'summon') { raidBanner('👹 ' + bn + ' เรียกสมุน!', 'warn'); AU.sfx('summon'); if (boss) addFx({ kind: 'pillar', x: boss.x, y: boss.y, color: '#9a4aff', dur: 1, w: 70 }); return; }
+  if (type === 'roar') { AU.sfx('roar'); R3.shake(0.7, 0.12); } else AU.sfx('warn');
+  W.tele.push({ type, cs, t0: W.t, t1: W.t + delay, atk: boss ? boss.atk : 100, enr: !!(boss && boss.enr) });
+  if (type === 'meteor') for (const c of cs) later(Math.max(0, delay - 0.5), () => addFx({ kind: 'meteor', x: c[0], y: c[1], color: '#ff8a3a', dur: 0.9, w: c[2] * 0.8 }));
+}
+const TELE_FX = { slam: [2.2, 'stun', 1.2], roar: [0.9, 'stun', 1.6], breath: [1.6, 'freeze', 2], meteor: [2.6, null, 0] };
+function teleTick() {
+  for (const tl of W.tele) {
+    if (tl.done || W.t < tl.t1) continue;
+    tl.done = true;
+    for (const c of tl.cs) {
+      if (tl.type === 'slam') addFx({ kind: 'quake', x: c[0], y: c[1], r: c[2], color: '#ff7a3a', dur: 0.7 });
+      else if (tl.type === 'roar') addFx({ kind: 'ring', x: c[0], y: c[1], r: c[2], color: '#ff4a3a', dur: 0.8 });
+      else if (tl.type === 'breath') { addFx({ kind: 'ring', x: c[0], y: c[1], r: c[2], color: '#9fe3ff', dur: 0.7 }); addFx({ kind: 'pillar', x: c[0], y: c[1], color: '#bfeaff', dur: 0.6, w: c[2] * 0.6 }); }
+    }
+    AU.sfx(tl.type === 'slam' ? 'slam' : tl.type === 'breath' ? 'iceblast' : tl.type === 'meteor' ? 'meteorhit' : 'boom');
+    if (tl.type !== 'breath') R3.shake(0.35, tl.type === 'roar' ? 0.08 : 0.12);
+    if (P.dead || !P.D) continue;
+    if (!tl.cs.some((c) => Math.hypot(P.x - c[0], P.y - c[1]) <= c[2] + 10)) continue;
+    const s = TELE_FX[tl.type];
+    const dmg = Math.max(1, Math.round(tl.atk * s[0] * (tl.enr ? 1.25 : 1) * (0.9 + Math.random() * 0.2) * 100 / (100 + P.D.def)));
+    P.hp -= dmg; P.hurtT = W.t; AU.sfx('hurt');
+    addNum(P.x, P.y - 64, fmt(dmg), '#ff3b2f', 18, { pop: true, dur: 1.1 });
+    if (s[1]) applyCC(s[1], s[2]);
+    if (P.hp <= 0) playerDie();
+  }
+  W.tele = W.tele.filter((tl) => !tl.done || W.t - tl.t1 < 0.6);
+}
+function applyCC(type, dur) {
+  P.ccType = type; P.ccUntil = Math.max(P.ccUntil > W.t ? P.ccUntil : 0, W.t + dur); P.tx = null;
+  AU.sfx(type === 'freeze' ? 'frozen' : 'stunned');
+  addNum(P.x, P.y - 92, type === 'freeze' ? 'แช่แข็ง!' : 'มึนงง!', type === 'freeze' ? '#bfeaff' : '#ffe14d', 14, { font: 'th', pop: true, dur: 1.2 });
+}
+const ccActive = () => W.t < (P.ccUntil || 0);
+
+/* ---------- per-frame ---------- */
+function dgTick() {
+  if (!isDg()) return;
+  teleTick();
+  if (NET.isHost) {
+    if (DG.state === 0 && W.t - DG.t0 > 3.5) { spawnRaid(); DG.state = 1; }
+    if (DG.state === 1) raidAI();
+  }
+}
+
+/* ---------- victory & loot ---------- */
+function raidVictory(tpl) {
+  if (DG.state === 2 && DG.loot.length) return;
+  DG.state = 2;
+  const dg = dgDef(W.map.dg); if (!dg) return;
+  const h = S.hero, got = [];
+  const n = 1 + (Math.random() < 0.35 ? 1 : 0);
+  for (let i = 0; i < n; i++) { const it = rollDgItem(dg); if (it && addItem(it, 1)) got.push(it); }
+  if (Math.random() * 100 < CONFIG.cardChance * 15) { const c = cardItem(tpl); if (addItem(c, 1)) got.push(c); }
+  const g = Math.round(1500 * dg.diff * dg.diff * CONFIG.rates.gold); h.gold += g;
+  DG.loot = got;
+  for (const it of got) if (it.kind === 'gear' && it.r >= 3) chatSend('✨ ' + h.name + ' ได้รับ [' + RAR[it.r].nm + '] ' + it.nm + ' จาก ' + dg.name + '!', 'w', true, true);
+  AU.sfx('raidwin'); if (got.some((it) => it.r >= 2)) later(0.9, () => AU.sfx('legend'));
+  R3.shake(0.6, 0.1);
+  addFx({ kind: 'pillar', x: P.x, y: P.y, color: '#ffd84a', dur: 1.6, w: 50 });
+  showRaidWin(dg, got, g);
+  save();
+}
+function showRaidWin(dg, got, gold) {
+  const box = $('#raidWin'), list = $('#rwList'); list.textContent = '';
+  $('#rwSub').textContent = dg.name + '  +' + fmt(gold) + ' G';
+  if (!got.length) list.append(el('p', { class: 'note', text: 'ครั้งนี้ไม่ได้อุปกรณ์ ลองใหม่ครั้งหน้า!' }));
+  for (const it of got) {
+    const r = it.kind === 'gear' ? it.r || 0 : 0;
+    list.append(el('div', { class: 'rwit r' + r, style: '--rc:' + (it.kind === 'card' ? '#d9a8ff' : rarCol(r)) },
+      el('span', { class: 'rwic', text: it.kind === 'card' ? '🃏' : GEAR[it.id].ic }),
+      el('div', { class: 'grow' }, el('b', { text: it.nm }), el('small', { text: it.kind === 'card' ? 'การ์ด  ' + bonusText(it.b) : RAR[r].nm + '  ' + bonusText(itemBase(it)) }), it.kind === 'gear' ? el('small', { text: lineText(S.hero, it.id) }) : null,
+        ...(it.o || []).map((o) => el('small', { class: 'gopt', text: '✦ ' + bonusText({ [o[0]]: o[1] }) })))));
+  }
+  box.hidden = false;
+  let left = 90; $('#rwExit').textContent = 'ออกจากดันเจี้ยน (' + left + ')';
+  clearTimeout(DG.winT);
+  const tick = () => { left--; if (!isDg()) return; if (left <= 0) { leaveDungeon(); return; } $('#rwExit').textContent = 'ออกจากดันเจี้ยน (' + left + ')'; DG.winT = setTimeout(tick, 1000); };
+  DG.winT = setTimeout(tick, 1000);
+}
+
+/* ---------- banners & raid HP bar ---------- */
+function raidBanner(text, kind) {
+  const box = $('#bossAnn'); if (!box) return;
+  box.textContent = text; box.className = 'bossann show k-' + (kind || 'spawn');
+  clearTimeout(BOSS.annT); BOSS.annT = setTimeout(() => { box.className = 'bossann'; }, 4200);
+}
+function worldBanner(text) {
+  const box = $('#bossAnn'); if (!box || S.screen !== 'game') return;
+  box.textContent = text; box.className = 'bossann show k-world';
+  clearTimeout(BOSS.annT); BOSS.annT = setTimeout(() => { box.className = 'bossann'; }, 6000);
+  AU.sfx('legend');
+}
+const RB = { m: null, trail: 1, t: 0 };
+function raidBarBoss() {
+  if (!W.map) return null;
+  if (isDg()) return W.mons.find((m) => m.raid && m.state !== 'dead') || null;
+  if (P.target && P.target.boss && P.target.state !== 'dead') return P.target;
+  let best = null, bd = 520;
+  for (const m of W.mons) if (m.boss && m.state !== 'dead') { const d = Math.hypot(m.x - P.x, m.y - P.y); if (d < bd) { bd = d; best = m; } }
+  return best;
+}
+function renderRaidBar(dt) {
+  const bar = $('#raidBar'), game = $('#scrGame'), m = S.screen === 'game' ? raidBarBoss() : null;
+  $('#dgExit').hidden = !isDg();
+  if (!m) { if (!bar.hidden) { bar.hidden = true; game.classList.remove('raidon'); } RB.m = null; return; }
+  if (bar.hidden) { bar.hidden = false; game.classList.add('raidon'); }
+  const p = clamp(m.hp / m.maxHp, 0, 1);
+  if (RB.m !== m) { RB.m = m; RB.trail = p; $('#rbName').textContent = '💀 ' + m.name; $('#rbLv').textContent = 'Lv.' + m.lv + (m.raid ? '  RAID' : '  BOSS'); }
+  RB.trail = Math.max(p, RB.trail - (dt || 0.016) * 0.35);
+  $('#rbFill').style.width = (p * 100).toFixed(2) + '%';
+  $('#rbTrail').style.width = (RB.trail * 100).toFixed(2) + '%';
+  $('#rbPct').textContent = (p * 100).toFixed(1) + '%';
+  bar.classList.toggle('enr', !!m.enr);
+  $('#rbSt').textContent = m.enr ? '🔥 คลั่ง' : '';
+}
+
+/* ---------- dungeon panel ---------- */
+function panelDungeon(body) {
+  const h = S.hero;
+  if (isDg()) {
+    const dg = dgDef(W.map.dg);
+    body.append(el('p', { class: 'note', text: 'ตอนนี้อยู่ใน ' + (dg ? dg.name : 'ดันเจี้ยน') + (DG.state === 2 ? '  (เคลียร์แล้ว)' : '') }),
+      el('button', { class: 'btn-main', text: '🚪 ออกจากดันเจี้ยน', onclick: () => { closeSheet(); leaveDungeon(); } }));
+    return;
+  }
+  const ps = partySize(), cp = CONFIG.party, okP = ps >= cp.min;
+  body.append(el('div', { class: 'dgparty' + (okP ? ' ok' : '') }, el('b', { text: (okP ? '✅ ' : '⚠️ ') + 'ปาร์ตี้ออนไลน์ ' + ps + '/' + cp.max + ' คน' }),
+    el('small', { text: 'ต้องมาเป็นปาร์ตี้ ' + cp.min + '–' + cp.max + ' คน ชวนเพื่อนได้ที่ปุ่ม 👥 ผู้เล่น' })));
+  body.append(el('p', { class: 'note', text: 'แต่ละคนใช้กุญแจของตัวเอง 1 ดอก ทุกคนในปาร์ตี้เข้าห้องเดียวกัน บอสเลือดเพิ่มตามจำนวนคน ของดรอปสุ่มแยกให้ทุกคน อาวุธมี 6 แบบตามสายอาชีพ โอกาสเท่ากันทุกสาย ได้ไม่ตรงอาชีพก็ลงขายตลาดได้' }));
+  for (const dg of CONFIG.dungeons) {
+    if (!dg.on) continue;
+    const kc = keyCount(dg.id), low = h.level < dg.minLv, tot = dg.rar.reduce((a, b) => a + b, 0) || 1;
+    const chips = el('div', { class: 'rchips' });
+    dg.rar.forEach((w, i) => { if (w > 0) chips.append(el('span', { class: 'rchip', style: '--rc:' + RAR[i + 1].col, text: RAR[i + 1].nm + ' ' + Math.round(w / tot * 100) + '%' })); });
+    body.append(el('div', { class: 'dgcard', style: '--dc:' + DIFF_COL[dg.diff] },
+      el('div', { class: 'dgtop' }, el('b', { text: '🏰 ' + dg.name }), el('span', { class: 'dgdiff', text: DIFF_TH[dg.diff] })),
+      el('div', { class: 'ds', text: 'บอส: ' + dg.boss + '  Lv.' + dg.bossLv + '   เข้าได้ Lv.' + dg.minLv + '+' }),
+      el('div', { class: 'meta', text: 'สกิลบอส: ' + dg.skills.map((s) => DG_SKILL_TH[s]).join(' · ') }),
+      el('div', { class: 'meta', text: 'ดรอปชุด' + (DG_SETS[dg.id] ? DG_SETS[dg.id].nm : '') + ': อาวุธ 6 สายอาชีพ เกราะ รองเท้า' }),
+      chips,
+      el('div', { class: 'dgkey' }, el('span', { text: '🗝️ ' + dg.keyName + '  มี ' + kc + ' ดอก' }), el('small', { text: 'ดรอปที่: ' + dg.keyMaps.map(mapName).join(', ') + '  (มอน ' + dg.keyChance + '%, บอสแผนที่ 100%)' })),
+      el('button', { class: 'mini pri', text: low ? 'ต้อง Lv.' + dg.minLv : kc < 1 ? 'ไม่มีกุญแจ' : !okP ? 'ต้องมีปาร์ตี้ ' + cp.min + ' คนขึ้นไป' : 'เข้าดันเจี้ยน (ใช้กุญแจ 1)', disabled: low || kc < 1 || !okP || P.dead, onclick: () => enterDungeon(dg.id) })));
+  }
+}
+
+/* ---------- auras ---------- */
+function topRar(h) { let r = 0; for (const k of Object.keys(SLOT_TH)) { const s = h.eq && h.eq[k]; if (s && s.id) r = Math.max(r, s.r || 0); } return r; }
+function weaponRar(h) { const s = h.eq && h.eq.weapon; return s && s.id ? s.r || 0 : 0; }
+function auraArgs(top, wr, refW, lv) {
+  return { aura: top >= 2 ? RAR[top].col : null, wg: refW >= 15 ? 'rainbow' : wr >= 2 ? RAR[wr].col : null, lv99: lv >= 99 };
+}
+const myAura = () => auraArgs(topRar(S.hero), weaponRar(S.hero), S.hero.refineW, S.hero.level);
+/* =================== MARKETPLACE =================== */
+const MK = { all: [], sub: false, tab: 'buy', filter: 'all', sort: 'new', busy: false, pick: null, collecting: false };
+const MK_TAX = 5, MK_MAX = 8;
+
+function mkSanitize(d, id) {
+  if (!d || typeof d !== 'object') return null;
+  const it = sanitizeItem(d.it, false);
+  if (!it || it.kind !== 'gear' || !GEAR[it.id] || !GEAR[it.id].dg) return null;
+  return { id, s: txt(d.s, 64), sn: str(d.sn, 'นักผจญภัย', 16), it, p: int(d.p, 1, 1, 1e9), t: num(d.t, 0, 0, 1e15),
+    st: ['open', 'sold', 'cancel'].includes(d.st) ? d.st : 'open', b: txt(d.b, 64), bn: str(d.bn, '', 16) };
+}
+function marketInit() {
+  if (!S.db || MK.sub) return;
+  MK.sub = true;
+  S.db.collection('market').onSnapshot((snap) => {
+    MK.all = snap.docs.map((d) => mkSanitize(d.data(), d.id)).filter(Boolean);
+    mkCollect();
+    if (S.sheet === 'market' && !MK.busy && !(document.activeElement && document.activeElement.classList.contains('mkprice'))) renderSheet();
+  }, () => { MK.sub = false; });
+}
+// sellers are paid automatically the next time their game sees the sale
+async function mkCollect() {
+  const h = S.hero; if (!h || !S.uid || MK.collecting) return;
+  MK.collecting = true;
+  h.mkDone = h.mkDone || [];
+  let got = 0;
+  for (const L of MK.all) {
+    if (L.s !== S.uid || L.st !== 'sold' || h.mkDone.includes(L.id)) continue;
+    const g = Math.floor(L.p * (100 - MK_TAX) / 100);
+    h.gold += g; h.mkDone.push(L.id); h.mkDone = h.mkDone.slice(-80); got += g;
+    toast('💰 ' + (L.bn || 'ผู้เล่น') + ' ซื้อ ' + L.it.nm + ' แล้ว  +' + fmt(g) + ' G');
+    S.db.doc('market/' + L.id).delete().catch(() => {});
+  }
+  if (got) { AU.sfx('coin'); S.dirty = true; save(); if (S.screen === 'game') hudText(); }
+  MK.collecting = false;
+}
+const mkMine = () => MK.all.filter((L) => L.s === S.uid && L.st === 'open');
+async function mkList(k, price) {
+  const h = S.hero, it = h.inv.find((x) => x.k === k);
+  if (!S.db || !S.uid) { toast('ตลาดใช้ได้เมื่อเชื่อมต่อออนไลน์'); return; }
+  if (!it || it.kind !== 'gear' || !GEAR[it.id].dg) { toast('ลงขายได้เฉพาะอุปกรณ์จากดันเจี้ยน'); return; }
+  price = Math.floor(Number(price));
+  if (!(price >= 1 && price <= 1e9)) { toast('ใส่ราคา 1 ถึง 1,000,000,000 G'); return; }
+  if (mkMine().length >= MK_MAX) { toast('ลงขายพร้อมกันได้สูงสุด ' + MK_MAX + ' ชิ้น'); return; }
+  if (MK.busy) return;
+  MK.busy = true;
+  const item = sanitizeItem(it, false), id = 'm' + uid36();
+  takeItem(k, 1); save();
+  try {
+    await S.db.doc('market/' + id).set({ s: S.uid, sn: h.name, it: item, p: price, t: Date.now(), st: 'open', b: '', bn: '' });
+    toast('🏪 ลงขาย ' + item.nm + ' ราคา ' + fmt(price) + ' G แล้ว'); AU.sfx('coin');
+    MK.pick = null;
+  } catch (e) { pushInv(h, item, 1); save(); toast('ลงขายไม่สำเร็จ ลองใหม่อีกครั้ง'); }
+  MK.busy = false; renderSheetIfOpen();
+}
+// claim the listing under a short lease so two buyers can never both win it
+async function mkClaim(id, wantSeller) {
+  const ref = S.db.doc('market/' + id);
+  const lk = await ref.acquire({ holder: S.uid, ttlMs: 8000 });
+  if (!lk || !lk.acquired) return { err: 'มีคนกำลังทำรายการชิ้นนี้อยู่ ลองใหม่ในไม่กี่วินาที' };
+  const snap = await ref.get(), cur = snap.exists ? mkSanitize(snap.data(), id) : null;
+  if (!cur || cur.st !== 'open') return { err: 'ชิ้นนี้ขายไปแล้ว' };
+  if (wantSeller !== (cur.s === S.uid)) return { err: wantSeller ? 'ไม่ใช่ของคุณ' : 'ซื้อของตัวเองไม่ได้' };
+  return { ref, cur };
+}
+async function mkBuy(id) {
+  const h = S.hero, L = MK.all.find((x) => x.id === id);
+  if (!L || L.st !== 'open' || MK.busy) return;
+  if (h.gold < L.p) { toast('ทองไม่พอ'); return; }
+  if (h.inv.length >= INV_MAX) { toast('กระเป๋าเต็ม'); return; }
+  MK.busy = true; renderSheetIfOpen();
+  try {
+    const c = await mkClaim(id, false);
+    if (c.err) { toast(c.err); return; }
+    if (h.gold < c.cur.p) { toast('ทองไม่พอ'); return; }
+    await c.ref.update({ st: 'sold', b: S.uid, bn: h.name, bt: Date.now() });
+    h.gold -= c.cur.p; pushInv(h, c.cur.it, 1); S.dirty = true; save();
+    toast('🛒 ซื้อ ' + c.cur.it.nm + ' แล้ว อยู่ในกระเป๋า'); AU.sfx((c.cur.it.r || 0) >= 2 ? 'legend' : 'coin');
+  } catch (e) { toast('ซื้อไม่สำเร็จ ลองใหม่อีกครั้ง'); }
+  finally { MK.busy = false; renderSheetIfOpen(); if (S.screen === 'game') hudText(); }
+}
+async function mkCancel(id) {
+  if (MK.busy) return;
+  if (S.hero.inv.length >= INV_MAX) { toast('กระเป๋าเต็ม'); return; }
+  MK.busy = true; renderSheetIfOpen();
+  try {
+    const c = await mkClaim(id, true);
+    if (c.err) { toast(c.err); return; }
+    await c.ref.update({ st: 'cancel' });
+    pushInv(S.hero, c.cur.it, 1); S.dirty = true; save();
+    toast('ยกเลิกการขาย ' + c.cur.it.nm + ' แล้ว ของกลับเข้ากระเป๋า');
+    c.ref.delete().catch(() => {});
+  } catch (e) { toast('ยกเลิกไม่สำเร็จ ลองใหม่อีกครั้ง'); }
+  finally { MK.busy = false; renderSheetIfOpen(); }
+}
+
+/* ---------- panel ---------- */
+function mkItemInfo(h, it) {
+  const g = GEAR[it.id], r = it.r || 0;
+  return el('div', { class: 'grow' },
+    el('div', { class: 'nm2', style: 'color:' + rarCol(r), text: g.ic + ' ' + it.nm }),
+    el('span', { class: 'rchip', style: '--rc:' + rarCol(r), text: RAR[r].nm }),
+    el('div', { class: 'ds', text: bonusText(itemBase(it)) + ((it.o || []).length ? '  ✦ ' + it.o.map((o) => bonusText({ [o[0]]: o[1] })).join('  ✦ ') : '') }),
+    el('div', { class: 'meta', style: canUse(h, it.id) ? null : 'color:var(--bad)', text: GEAR_TYPE_TH[g.slot] + '  ' + lineText(h, it.id) }));
+}
+function panelMarket(body) {
+  const h = S.hero;
+  if (!S.db || !S.uid) { body.append(el('p', { class: 'note', text: 'ตลาดซื้อ-ขายต้องเชื่อมต่อออนไลน์ก่อน' })); return; }
+  marketInit();
+  const tabs = el('div', { class: 'mktabs', role: 'tablist' });
+  for (const [id, lb] of [['buy', '🛒 ซื้อ'], ['sell', '💰 ขาย'], ['mine', '📋 ของฉัน (' + mkMine().length + ')']])
+    tabs.append(el('button', { class: 'mkt' + (MK.tab === id ? ' on' : ''), role: 'tab', 'aria-selected': MK.tab === id ? 'true' : 'false', text: lb, onclick: () => { MK.tab = id; renderSheet(); } }));
+  body.append(tabs, el('p', { class: 'note', text: 'ซื้อขายอุปกรณ์จากดันเจี้ยนระหว่างผู้เล่น ผู้ขายเสียภาษี ' + MK_TAX + '% และได้เงินอัตโนมัติเมื่อขายได้ ลงขายพร้อมกันได้คนละ ' + MK_MAX + ' ชิ้น' }));
+  if (MK.tab === 'buy') {
+    const fl = el('div', { class: 'mkf' });
+    for (const [id, lb] of [['all', 'ทั้งหมด'], ['mine', 'ตรงอาชีพฉัน'], ['weapon', 'อาวุธ'], ['armor', 'เกราะ'], ['shoes', 'รองเท้า']])
+      fl.append(el('button', { class: 'chip' + (MK.filter === id ? ' on' : ''), text: lb, onclick: () => { MK.filter = id; renderSheet(); } }));
+    const so = el('select', { 'aria-label': 'เรียงตาม', onchange: (e) => { MK.sort = e.target.value; renderSheet(); } });
+    for (const [v, lb] of [['new', 'ล่าสุด'], ['low', 'ราคาต่ำสุด'], ['high', 'ราคาสูงสุด'], ['rar', 'หายากสุด']]) so.append(el('option', { value: v, text: lb, selected: MK.sort === v }));
+    fl.append(so); body.append(fl);
+    let list = MK.all.filter((L) => L.st === 'open');
+    if (MK.filter === 'mine') list = list.filter((L) => GEAR[L.it.id].line ? canUse(h, L.it.id) : true);
+    else if (MK.filter !== 'all') list = list.filter((L) => GEAR[L.it.id].slot === MK.filter);
+    list.sort(MK.sort === 'low' ? (a, b) => a.p - b.p : MK.sort === 'high' ? (a, b) => b.p - a.p : MK.sort === 'rar' ? (a, b) => (b.it.r || 0) - (a.it.r || 0) || a.p - b.p : (a, b) => b.t - a.t);
+    if (!list.length) body.append(el('p', { class: 'note', text: 'ยังไม่มีของในหมวดนี้' }));
+    for (const L of list.slice(0, 60)) {
+      const own = L.s === S.uid;
+      body.append(el('div', { class: 'mkrow', style: '--rc:' + rarCol(L.it.r || 0) }, mkItemInfo(h, L.it),
+        el('div', { class: 'mkbuy' }, el('b', { text: fmt(L.p) + ' G' }), el('small', { text: 'โดย ' + L.sn }),
+          el('button', { class: 'mini pri', text: own ? 'ของคุณ' : 'ซื้อ', disabled: own || MK.busy || h.gold < L.p, onclick: () => mkBuy(L.id) }))));
+    }
+  } else if (MK.tab === 'sell') {
+    const mine = h.inv.filter((x) => x.kind === 'gear' && GEAR[x.id].dg);
+    if (!mine.length) body.append(el('p', { class: 'note', text: 'ยังไม่มีอุปกรณ์จากดันเจี้ยนในกระเป๋า ไปเคลียร์ดันเจี้ยนแล้วกลับมาขายได้เลย' }));
+    for (const it of mine) {
+      const sug = Math.max(100, Math.round(it.pr * 4 / 100) * 100);
+      const inp = el('input', { class: 'mkprice', type: 'number', min: 1, max: 1e9, step: 100, value: sug, 'aria-label': 'ราคาขาย ' + it.nm, inputmode: 'numeric' });
+      body.append(el('div', { class: 'mkrow' + (MK.pick === it.k ? ' pick' : ''), style: '--rc:' + rarCol(it.r || 0) }, mkItemInfo(h, it),
+        el('div', { class: 'mkbuy' }, inp, el('small', { text: 'ขาย NPC ได้ ' + fmt(it.pr) + ' G' }),
+          el('button', { class: 'mini pri', text: 'ลงขาย', disabled: MK.busy, onclick: () => mkList(it.k, inp.value) }))));
+    }
+  } else {
+    const mine = mkMine();
+    if (!mine.length) body.append(el('p', { class: 'note', text: 'ยังไม่มีของที่ลงขายอยู่' }));
+    for (const L of mine) body.append(el('div', { class: 'mkrow', style: '--rc:' + rarCol(L.it.r || 0) }, mkItemInfo(h, L.it),
+      el('div', { class: 'mkbuy' }, el('b', { text: fmt(L.p) + ' G' }), el('small', { text: 'ได้จริง ' + fmt(Math.floor(L.p * (100 - MK_TAX) / 100)) + ' G' }),
+        el('button', { class: 'mini warn', text: 'ยกเลิก', disabled: MK.busy, onclick: () => mkCancel(L.id) }))));
   }
 }
 /* =================== UI =================== */
@@ -4318,6 +5027,10 @@ function panelAuto(body) {
 $('#potHp').addEventListener('click', () => usePot('hp'));
 $('#chatBtn').addEventListener('click', () => openPanel('chat'));
 $('#avatar').addEventListener('click', () => openEquip('eq'));
+$('#dgExit').addEventListener('click', () => leaveDungeon());
+$('#rwExit').addEventListener('click', () => leaveDungeon());
+$('#rwStay').addEventListener('click', () => { $('#raidWin').hidden = true; });
+$('#rwBag').addEventListener('click', () => { $('#raidWin').hidden = true; openEquip('bag'); });
 $('#hName').addEventListener('click', () => openEquip('eq'));
 $('#potSp').addEventListener('click', () => usePot('sp'));
 document.querySelectorAll('.sbtn').forEach((b) => b.addEventListener('click', () => openPanel(b.dataset.panel)));
@@ -4401,7 +5114,7 @@ $('#mmCv').addEventListener('click', (e) => {
 /* ---------- sheet panels ---------- */
 const PANELS = {
   stats: ['สถานะตัวละคร', panelStats], skills: ['สกิล', panelSkills], job: ['เปลี่ยนอาชีพ', panelJob],
-  map: ['แผนที่', panelMap], shop: ['ร้านช่างตีเหล็ก', panelShop], rank: ['ทำเนียบนักผจญภัย', panelRank], gm: ['ห้องควบคุม GM', panelGM],
+  map: ['แผนที่', panelMap], dungeon: ['ดันเจี้ยน', panelDungeon], market: ['ตลาดซื้อ-ขาย', panelMarket], shop: ['ร้านช่างตีเหล็ก', panelShop], rank: ['ทำเนียบนักผจญภัย', panelRank], gm: ['ห้องควบคุม GM', panelGM],
   auto: ['โหมดออโต้', panelAuto], online: ['ผู้เล่นและปาร์ตี้', panelOnline], sound: ['ตั้งค่า', panelSound], chat: ['แชท', panelChat]
 };
 function openPanel(name) {
@@ -4575,6 +5288,7 @@ function refine(kind) {
   h.gold -= cost;
   if (Math.random() * 100 < refineChance(r)) {
     h[key]++; toast('ตีบวกสำเร็จ! ตอนนี้ +' + h[key]); AU.sfx('refineOk');
+    if (h[key] >= 15) { chatSend('🌈 ' + h.name + ' ตี' + (kind === 'w' ? 'อาวุธ' : 'เกราะ') + 'สำเร็จถึง +15 ขั้นสูงสุด!', 'w', true, true); addFx({ kind: 'pillar', x: P.x, y: P.y, color: '#ff6bd5', dur: 1.8, w: 60 }); R3.shake(0.5, 0.08); }
     addFx({ kind: 'pillar', x: P.x, y: P.y, color: '#ffe27a', dur: 0.8, w: 26 });
   } else { toast('ตีบวกล้มเหลว อุปกรณ์ยังอยู่ที่ +' + r); AU.sfx('refineFail'); }
   P.D = derived(); S.dirty = true; renderSheet(); hudText();
@@ -4607,7 +5321,7 @@ function panelShop(body) {
   body.append(el('div', { class: 'sub', text: 'อุปกรณ์สวมใส่' }));
   body.append(el('p', { class: 'note', text: 'ซื้อแล้วไปสวมได้ที่หน้าตัวละคร (แตะรูปตัวละครมุมซ้ายบน)' }));
   for (const id in GEAR) {
-    if (!gearOnSale(id)) continue;
+    if (GEAR[id].dg || !gearOnSale(id)) continue;
     const g = GEAR[id], price = Math.max(0, Math.round(gearPrice(id) * (1 - disc / 100)));
     body.append(el('div', { class: 'list-row' }, el('span', { style: 'font-size:1.5rem', text: g.ic }),
       el('div', { class: 'grow' }, el('div', { class: 'nm2', text: g.nm + '  (' + GEAR_TYPE_TH[g.slot] + ')' }), el('div', { class: 'ds', text: bonusText(g.b) })),
@@ -4696,8 +5410,9 @@ function panelGM(body) {
       fNum('ราคายาแดง', d.potion.hp, (v) => { d.potion.hp = v; }), fNum('ราคายาฟ้า', d.potion.sp, (v) => { d.potion.sp = v; }),
       fNum('ค่าตีบวกอาวุธ ขั้นแรก', d.shop.refineW, (v) => { d.shop.refineW = Math.max(1, Math.round(v)); }), fNum('ค่าตีบวกเกราะ ขั้นแรก', d.shop.refineA, (v) => { d.shop.refineA = Math.max(1, Math.round(v)); })),
     el('p', { class: 'note', style: 'margin-top:6px', text: 'ค่าตีบวกขั้นต่อไปเพิ่มขึ้นทีละ 1.5 เท่า' }));
-  const gd = el('details', { class: 'box', 'data-k': 'shopgear', open: !!gmOpen.shopgear }, el('summary', { text: 'ราคาอุปกรณ์สวมใส่ (' + Object.keys(GEAR).length + ' ชิ้น)' }));
+  const gd = el('details', { class: 'box', 'data-k': 'shopgear', open: !!gmOpen.shopgear }, el('summary', { text: 'ราคาอุปกรณ์สวมใส่ (' + Object.keys(GEAR).filter((x) => !GEAR[x].dg).length + ' ชิ้น)' }));
   for (const id in GEAR) {
+    if (GEAR[id].dg) continue;
     const g = GEAR[id], cur = d.shop.gear[id] || {};
     gd.append(el('div', { class: 'g3', style: 'align-items:end;margin-top:6px' },
       el('div', { class: 'fld', style: 'color:var(--ink);font-size:.82rem' }, g.ic + ' ' + g.nm, el('small', { text: GEAR_TYPE_TH[g.slot] })),
@@ -4706,6 +5421,17 @@ function panelGM(body) {
   }
   gd.append(el('div', { class: 'acts' }, el('button', { class: 'mini', text: 'คืนราคาเริ่มต้นทั้งหมด', onclick: () => { d.shop.gear = {}; markDraft(); rebuildGM(); } })));
   shopSec.append(gd); body.append(shopSec);
+  const dgSec = el('div', { class: 'gm-sec' }, el('h3', { text: 'ดันเจี้ยน' }), el('p', { class: 'note', text: 'น้ำหนักความหายากคือสัดส่วนโอกาสดรอป Epic / Legendary / Mythic / Ultimate เช่น 60 30 8 2 หมายถึง Ultimate 2%' }),
+    el('div', { class: 'g2' }, fNum('ปาร์ตี้ขั้นต่ำเข้าดัน', d.party.min, (v) => { d.party.min = Math.max(1, Math.round(v)); }), fNum('ปาร์ตี้สูงสุด', d.party.max, (v) => { d.party.max = Math.max(2, Math.round(v)); })));
+  for (const dg of d.dungeons) {
+    dgSec.append(el('details', { class: 'box', 'data-k': 'dg_' + dg.id, open: !!gmOpen['dg_' + dg.id] }, el('summary', { text: '🏰 ' + dg.name + (dg.on ? '' : '  (ปิด)') }),
+      el('div', { class: 'g2' }, fText('ชื่อดันเจี้ยน', dg.name, (v) => { dg.name = v; }, { max: 30 }), fText('ชื่อบอส', dg.boss, (v) => { dg.boss = v; }, { max: 30 })),
+      el('div', { class: 'g3' }, fNum('เข้าได้ Lv', dg.minLv, (v) => { dg.minLv = Math.max(1, Math.round(v)); }), fNum('เลเวลบอส', dg.bossLv, (v) => { dg.bossLv = Math.max(1, Math.round(v)); }), fNum('คูณเลือดบอส', dg.hpMul, (v) => { dg.hpMul = Math.max(0.3, v); }, 0.5)),
+      el('div', { class: 'g2' }, fText('ชื่อกุญแจ', dg.keyName, (v) => { dg.keyName = v; }, { max: 30 }), fNum('กุญแจดรอปจากมอน %', dg.keyChance, (v) => { dg.keyChance = Math.max(0, v); }, 0.1)),
+      el('div', { class: 'g2' }, ...['Epic', 'Legendary', 'Mythic', 'Ultimate'].map((nm, i) => fNum(nm, dg.rar[i], (v) => { dg.rar[i] = Math.max(0, v); }))),
+      el('div', { class: 'acts' }, fCk('เปิดให้เข้า', dg.on, (v) => { dg.on = v; }))));
+  }
+  body.append(dgSec);
   const jr = el('div', { class: 'gm-sec' }, el('h3', { text: 'เงื่อนไขอาชีพ' }));
   ['Novice → คลาส 1', 'คลาส 1 → คลาส 2', 'คลาส 2 → คลาส 3'].forEach((lb, i) => jr.append(el('div', { class: 'g3', style: 'align-items:end;margin-top:4px' },
     el('div', { class: 'fld', text: lb }), fNum('Base Lv', d.jobReq[i][0], (v) => { d.jobReq[i][0] = v; }), fNum('Job Lv', d.jobReq[i][1], (v) => { d.jobReq[i][1] = v; }))));
@@ -4787,7 +5513,7 @@ function onConfigChanged() {
   if (S.screen === 'create') { document.querySelectorAll('.pj').forEach((b, i) => { const ids = ['novice', ...FIRST_JOBS, 'lordknight', 'highpriest', 'highwizard', 'sniper', 'assassincross', 'whitesmith']; b.textContent = jobName(ids[i]); }); }
   if (!S.hero || S.screen !== 'game') return;
   const m = currentMap();
-  if (JSON.stringify(m) !== W.mapSig) enterMap(m.id, true);
+  if (!isDg() && JSON.stringify(m) !== W.mapSig) enterMap(m.id, true);
   renderNotice(); hudText(); renderSheetIfOpen();
   if (S.sheet === 'gm' && !S.draftDirty) { S.draft = clone(CONFIG); rebuildGM(); }
   maybeShowPatch();
@@ -4817,7 +5543,7 @@ async function init() {
       if (S.sheet === 'rank') renderSheet();
       if (S.sheet === 'gm') renderGMPlayers();
     }, () => { S.boardReady = true; });
-    chatInit(); bossInit();
+    chatInit(); bossInit(); marketInit();
   }
   let hero = null, fromServer = false;
   if (S.db && S.uid) {
@@ -4850,6 +5576,7 @@ function frame(ts) {
     else if (S.screen === 'select') drawSelect(now);
     drawEquipPreview(now);
     drawMinimap(now);
+    if (S.screen === 'game') renderRaidBar(dt);
   } catch (e) { console.error(e); }
   requestAnimationFrame(frame);
 }
