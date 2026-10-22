@@ -828,8 +828,8 @@ function MON(id, name, arch, color, lv, extra) {
 }
 
 const DEFAULT_CONFIG = {
-  version: '2.9.0',
-  patchNotes: 'อัปเดต 2.9: อ่าวโจรสลัด\n• แผนที่ใหม่ อ่าวโจรสลัด Lv.119-139 ชายหาดริมทะเล เรือเกยตื้น ปืนใหญ่ หีบสมบัติ\n• มอนใหม่: ลูกเรือโจรสลัด โครงกระดูกโจรสลัด มนุษย์ฉลาม นักดาบโจรสลัดสาว\n• บอสแผนที่: หัวหน้าโจรสลัด Lv.139\n• ดันเจี้ยนใหม่ระดับตำนาน: เรือผีโจรสลัด บอสหัวหน้าโจรสลัด Lv.145 ดรอปเซ็ตโจรสลัด แรงที่สุดในเกม\n• เลเวลสูงสุดเพิ่มเป็น 150',
+  version: '2.9.1',
+  patchNotes: 'อัปเดต 2.9.1\n• ปุ่มรีเซ็ตสเตตัสในหน้าสถานะ ได้แต้มคืนทั้งหมด\n• ระบบย้ายอาชีพในหน้าอาชีพ ย้ายไปอาชีพขั้นเดียวกันสายอื่น ค่าบริการ 250,000 G ต้องถอดอุปกรณ์และการ์ดออกก่อน (มีปุ่มถอดทั้งหมด) เลเวลคงเดิม แต้มสกิลคืนให้ลงใหม่\n• (จาก 2.9) อ่าวโจรสลัด Lv.119-139 และดันเจี้ยนเรือผีโจรสลัด',
   announcement: 'ยินดีต้อนรับสู่ช่วงทดสอบ! เจอบั๊กบอก GM ได้เลย',
   rates: { bexp: 1, jexp: 1, gold: 1, drop: 1 },
   deathPenalty: 1,
@@ -841,6 +841,7 @@ const DEFAULT_CONFIG = {
   shop: { gear: {}, refineW: 150, refineA: 120 },
   party: { min: 2, max: 6 },
   ore: { ori: 1.2, elu: 1.5 },
+  jobMove: 250000, statReset: 0,
   jobNames: {},
   dungeons: [
     { id: 'slime', name: 'ถ้ำราชาเมือก', theme: 'forest', diff: 1, minLv: 15, boss: 'ราชาเมือกยักษ์', arch: 'blob', color: '#55d39a', bossLv: 30, hpMul: 4,
@@ -932,6 +933,7 @@ function sanitizeConfig(raw) {
     potion: { hp: int(raw.potion && raw.potion.hp, 30, 0, 1e9), sp: int(raw.potion && raw.potion.sp, 80, 0, 1e9) },
     jobNames: jn,
     ore: { ori: num((raw.ore || {}).ori, 1.2, 0, 100), elu: num((raw.ore || {}).elu, 1.5, 0, 100) },
+    jobMove: int(raw.jobMove, 250000, 0, 1e10), statReset: int(raw.statReset, 0, 0, 1e10),
     mapSeen: [...new Set(mapSeen.concat(maps.map((m) => m && m.id).filter(Boolean)))].slice(0, 200),
     party: (() => { const p = raw.party || {}, mx = int(p.max, 6, 2, 12); return { min: Math.min(mx, int(p.min, 2, 1, 12)), max: mx }; })(),
     dungeons: DEFAULT_CONFIG.dungeons.map((d0) => {
@@ -6003,6 +6005,15 @@ function autoAlloc() {
   }
   P.D = derived(); P.hp = Math.min(P.hp, P.D.maxHp); S.dirty = true; renderSheet(); hudText();
 }
+function resetStats() {
+  const h = S.hero, cost = CONFIG.statReset || 0;
+  if (!STATS.some((k) => h.stats[k] > 1)) { toast('ยังไม่ได้ลงสเตตัส'); return; }
+  if (h.gold < cost) { toast('ทองไม่พอ ต้องใช้ ' + fmt(cost) + ' G'); return; }
+  h.gold -= cost; for (const k of STATS) h.stats[k] = 1; recalcPoints(h);
+  P.D = derived(); P.hp = Math.min(P.hp, P.D.maxHp); P.sp = Math.min(P.sp, P.D.maxSp);
+  addFx({ kind: 'ring', x: P.x, y: P.y, r: 60, color: '#9fd0ff', dur: 0.7 }); addNum(P.x, P.y - 74, 'รีเซ็ตสเตตัส', '#9fd0ff', 14, { font: 'th', pop: true, dur: 1.3 });
+  AU.sfx('levelup'); toast('รีเซ็ตแล้ว ได้แต้มสเตตัสคืน ' + fmt(h.statPts) + ' แต้ม'); S.dirty = true; save(); hudText(); drawAvatar(); renderSheet();
+}
 function panelStats(body) {
   const h = S.hero, D = derived();
   body.append(el('div', { class: 'ph' }, el('span', { class: 't', text: h.name }), el('span', { class: 'muted', text: jobName(h.job) + '  Base ' + h.level + '  Job ' + h.jobLv })));
@@ -6024,7 +6035,10 @@ function panelStats(body) {
   const reset = twoStep(el('button', { class: 'mini warn', text: 'สร้างตัวละครใหม่' }), 'สร้างตัวละครใหม่', 'แตะอีกครั้ง ตัวละครนี้จะหายไป', () => {
     closeSheet(); S.hero = null; W.map = null; lsSet(LS_SAVE + (S.uid || ''), ''); setAuto(false); setupCreate();
   });
-  body.append(el('div', { class: 'acts' }, el('button', { class: 'mini pri', text: 'จัดสเตตัสอัตโนมัติ', disabled: h.statPts < 2, onclick: autoAlloc }), reset));
+  const rc = CONFIG.statReset || 0, used = STATS.some((k) => h.stats[k] > 1);
+  const rs = el('button', { class: 'mini', text: '↺ รีเซ็ตสเตตัส' + (rc ? ' (' + fmt(rc) + ' G)' : ''), disabled: !used });
+  twoStep(rs, rs.textContent, 'แตะอีกครั้ง คืนแต้มทั้งหมด', resetStats);
+  body.append(el('div', { class: 'acts' }, el('button', { class: 'mini pri', text: 'จัดสเตตัสอัตโนมัติ', disabled: h.statPts < 2, onclick: autoAlloc }), rs, reset));
 }
 
 /* skills */
@@ -6070,6 +6084,59 @@ function panelSkills(body) {
 }
 
 /* job */
+function wornList(h) {
+  const out = [];
+  for (const k of GEAR_SLOTS) if (h.eq[k] && GEAR[h.eq[k].id]) out.push(SLOT_TH[k] + ': ' + GEAR[h.eq[k].id].nm);
+  for (const k of ['weapon', 'off', 'armor']) {
+    const s = h.eq[k]; if (!s) continue;
+    if (s.id && GEAR[s.id]) out.push(SLOT_TH[k] + ': ' + GEAR[s.id].nm);
+    const nc = (s.cards || []).filter(Boolean).length; if (nc) out.push('การ์ดในช่อง' + SLOT_TH[k] + ' ' + nc + ' ใบ');
+  }
+  return out;
+}
+function stripAll() {
+  const h = S.hero;
+  for (const k of ['weapon', 'off', 'armor']) { const s = h.eq[k]; if (s && s.cards) for (let i = 0; i < s.cards.length; i++) if (s.cards[i]) removeCard(k, i); }
+  for (const k of GEAR_SLOTS) if (h.eq[k]) unequipGear(k);
+  for (const k of ['weapon', 'armor']) if (h.eq[k] && h.eq[k].id) unequipGear(k);
+  const left = wornList(h).length; toast(left ? 'กระเป๋าเต็ม ถอดได้ไม่หมด เหลือ ' + left + ' รายการ' : 'ถอดอุปกรณ์และการ์ดเข้ากระเป๋าหมดแล้ว');
+  save(); renderSheet();
+}
+const moveTargets = (h) => { const J = JOBS[h.job]; return J.tier < 1 ? [] : Object.keys(JOBS).filter((id) => JOBS[id].tier === J.tier && JOBS[id].line !== J.line && JOBS[id].line !== 'novice'); };
+function moveJob(nid) {
+  const h = S.hero, cost = CONFIG.jobMove;
+  if (!moveTargets(h).includes(nid)) return;
+  if (wornList(h).length) { toast('ต้องถอดอุปกรณ์และการ์ดออกให้หมดก่อน'); return; }
+  if (h.gold < cost) { toast('ทองไม่พอ ต้องใช้ ' + fmt(cost) + ' G'); return; }
+  h.gold -= cost; h.job = nid; h.skills = {}; h.hotbar = ['', '', '', ''];
+  recalcPoints(h); normalizeGear(h);
+  P.D = derived(); P.hp = P.D.maxHp; P.sp = P.D.maxSp; P.cheerT = W.t;
+  addFx({ kind: 'pillar', x: P.x, y: P.y, color: '#9fd0ff', dur: 1.4, w: 46 }); addFx({ kind: 'ring', x: P.x, y: P.y, r: 80, color: '#9fd0ff', dur: 0.9 });
+  addNum(P.x, P.y - 84, 'JOB MOVE!', '#9fd0ff', 17, { dur: 2, pop: true }); AU.sfx('jobchange');
+  S.dirty = true; drawAvatar(); renderHotbar(); hudText(); save(); closeSheet();
+  toast('ย้ายอาชีพเป็น ' + jobName(nid) + ' แล้ว แต้มสกิลคืนให้ลงใหม่ทั้งหมด');
+}
+function jobMoveSection(body) {
+  const h = S.hero, tg = moveTargets(h); if (!tg.length) return;
+  const worn = wornList(h), cost = CONFIG.jobMove, rich = h.gold >= cost, ok = !worn.length && rich;
+  body.append(el('div', { class: 'sub', text: '🔄 ย้ายอาชีพ' }));
+  body.append(el('p', { class: 'note', text: 'ย้ายไปอาชีพขั้นเดียวกันในสายอื่น Base Lv และ Job Lv คงเดิม สเตตัสคงเดิม (รีเซ็ตเองได้ที่หน้าสถานะ) แต้มสกิลคืนให้ลงใหม่ทั้งหมด' }));
+  body.append(el('div', { class: 'req' },
+    el('span', null, 'อุปกรณ์ในตัว ', el('b', { class: worn.length ? 'no' : 'ok', text: worn.length ? 'ยังสวมอยู่ ' + worn.length + ' รายการ' : 'ถอดหมดแล้ว ✓' })),
+    el('span', null, 'ค่าบริการ ', el('b', { class: rich ? 'ok' : 'no', text: fmt(cost) + ' G' }))));
+  if (worn.length) {
+    body.append(el('div', { class: 'ds', style: 'margin:4px 0 6px;color:var(--bad)', text: worn.join('  ·  ') }));
+    body.append(el('div', { class: 'acts' }, el('button', { class: 'mini pri', text: '📦 ถอดทั้งหมดเข้ากระเป๋า', onclick: stripAll })));
+  }
+  for (const nid of tg) {
+    const N = JOBS[nid], cv = el('canvas', { width: 96, height: 112 }), c = cv.getContext('2d');
+    c.scale(2, 2); if (!R3.snap(c, 48, 56, h.look, nid, h.wstyle, 'body')) drawHero(c, 24, 52, 0.85, h.look, nid, { t: 0.3, wstyle: h.wstyle });
+    const label = 'ย้ายเป็น ' + jobName(nid), btn = el('button', { class: 'mini pri', text: label, disabled: !ok });
+    twoStep(btn, label, 'แตะอีกครั้ง จ่าย ' + fmt(cost) + ' G', () => moveJob(nid));
+    body.append(el('div', { class: 'jobc' }, cv, el('div', { class: 'bd' },
+      el('div', { class: 'nm2', text: N.icon + ' ' + jobName(nid) }), el('div', { class: 'meta', text: 'สาย' + LINE_TH[N.line] + '  อาวุธ: ' + WEAPON_TH[N.weapon] }), el('div', { style: 'margin-top:6px' }, btn))));
+  }
+}
 function changeJob(nid) {
   const h = S.hero;
   if (!canJobChange(h) || !JOBS[h.job].next.includes(nid)) return;
@@ -6087,7 +6154,7 @@ function changeJob(nid) {
 function panelJob(body) {
   const h = S.hero, J = JOBS[h.job];
   body.append(el('div', { class: 'ph' }, el('span', { class: 't', text: J.icon + ' ' + jobName(h.job) }), el('span', { class: 'muted', text: 'ขั้นที่ ' + J.tier })));
-  if (!J.next.length) { body.append(el('p', { class: 'empty', text: 'ถึงอาชีพขั้นสูงสุดแล้ว ฝึกต่อได้ถึง Base Lv ' + CONFIG.maxBase + ' และ Job Lv ' + jobCap(J.tier) })); return; }
+  if (!J.next.length) { body.append(el('p', { class: 'empty', text: 'ถึงอาชีพขั้นสูงสุดแล้ว ฝึกต่อได้ถึง Base Lv ' + CONFIG.maxBase + ' และ Job Lv ' + jobCap(J.tier) })); jobMoveSection(body); return; }
   const req = CONFIG.jobReq[J.tier], okB = h.level >= req[0], okJ = h.jobLv >= req[1], ok = okB && okJ;
   body.append(el('div', { class: 'req' },
     el('span', null, 'Base Lv ', el('b', { class: okB ? 'ok' : 'no', text: h.level + ' / ' + req[0] })),
@@ -6103,6 +6170,7 @@ function panelJob(body) {
       el('div', { class: 'nm2', text: N.icon + ' ' + jobName(nid) }), el('div', { class: 'ds', text: N.desc }),
       el('div', { class: 'meta', text: 'อาวุธ: ' + WEAPON_TH[N.weapon] }), el('div', { style: 'margin-top:6px' }, btn))));
   }
+  jobMoveSection(body);
 }
 
 /* map */
@@ -6236,6 +6304,7 @@ function panelGM(body) {
     el('div', { class: 'g2' },
       fNum('ราคายาแดง', d.potion.hp, (v) => { d.potion.hp = v; }), fNum('ราคายาฟ้า', d.potion.sp, (v) => { d.potion.sp = v; }),
       fNum('ค่าตีบวกอาวุธ/แหวน ขั้นแรก', d.shop.refineW, (v) => { d.shop.refineW = Math.max(1, Math.round(v)); }), fNum('ค่าตีบวกเกราะ/อื่นๆ ขั้นแรก', d.shop.refineA, (v) => { d.shop.refineA = Math.max(1, Math.round(v)); }),
+      fNum('ค่าย้ายอาชีพ (G)', d.jobMove, (v) => { d.jobMove = Math.max(0, Math.round(v)); }), fNum('ค่ารีเซ็ตสเตตัส (G)', d.statReset, (v) => { d.statReset = Math.max(0, Math.round(v)); }),
       fNum('Oridecon ดรอปจากมอน %', d.ore.ori, (v) => { d.ore.ori = Math.max(0, v); }, 0.1), fNum('Elunium ดรอปจากมอน %', d.ore.elu, (v) => { d.ore.elu = Math.max(0, v); }, 0.1)),
     el('p', { class: 'note', style: 'margin-top:6px', text: 'ค่าตีบวกขั้นต่อไปเพิ่มขึ้นทีละ 1.5 เท่า' }));
   const gd = el('details', { class: 'box', 'data-k': 'shopgear', open: !!gmOpen.shopgear }, el('summary', { text: 'ราคาอุปกรณ์สวมใส่ (' + Object.keys(GEAR).filter((x) => !GEAR[x].dg).length + ' ชิ้น)' }));
