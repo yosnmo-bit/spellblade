@@ -217,7 +217,7 @@ button:disabled{cursor:default}
 .selwrap .btn-main{width:100%;max-width:340px}
 .selacts{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
 
-.lcol{position:absolute;left:8px;top:calc(8px + 54px);display:flex;flex-direction:column;align-items:flex-start;gap:4px;pointer-events:none;z-index:4}
+.lcol{position:absolute;left:8px;top:calc(var(--pb, 74px) + 5px);display:flex;flex-direction:column;align-items:flex-start;gap:4px;pointer-events:none;z-index:4}
 .lcol .bossrow{pointer-events:auto}
 .rcol{position:absolute;right:8px;top:8px;display:flex;flex-direction:column;align-items:flex-end;gap:4px;pointer-events:none;z-index:4}
 .rcol>*{pointer-events:auto}
@@ -227,7 +227,7 @@ button:disabled{cursor:default}
 .rcol .money{text-align:center;min-width:86px}
 @media (max-height:760px){.side{display:grid;grid-template-columns:repeat(2,46px);direction:rtl}.side>*{direction:ltr}}
 
-.raidbar{position:absolute;left:8px;right:104px;top:calc(8px + 54px);z-index:6;padding:5px 9px 7px;border-radius:10px;background:linear-gradient(180deg,rgba(40,6,8,.92),rgba(18,4,6,.92));border:1px solid #8a1a1a;box-shadow:0 0 14px rgba(200,20,20,.45),inset 0 0 12px rgba(0,0,0,.6);pointer-events:none}
+.raidbar{position:absolute;left:8px;right:104px;top:calc(var(--pb, 74px) + 5px);z-index:6;padding:5px 9px 7px;border-radius:10px;background:linear-gradient(180deg,rgba(40,6,8,.92),rgba(18,4,6,.92));border:1px solid #8a1a1a;box-shadow:0 0 14px rgba(200,20,20,.45),inset 0 0 12px rgba(0,0,0,.6);pointer-events:none}
 .raidbar[hidden]{display:none}
 .rbtop{display:flex;align-items:baseline;gap:6px;color:#ffd9c8;font-size:.78rem;line-height:1.2;white-space:nowrap;overflow:hidden}
 .rbtop b{color:#fff;letter-spacing:.02em;overflow:hidden;text-overflow:ellipsis;text-shadow:0 0 6px #ff3b2f}
@@ -241,7 +241,7 @@ button:disabled{cursor:default}
 .raidbar.enr{animation:rbpulse .6s ease-in-out infinite alternate}
 @keyframes rbpulse{from{box-shadow:0 0 10px rgba(255,40,20,.5)}to{box-shadow:0 0 26px rgba(255,40,20,1)}}
 @media (prefers-reduced-motion: reduce){.raidbar.enr{animation:none;box-shadow:0 0 22px rgba(255,40,20,.9)}}
-.game.raidon .lcol{top:calc(8px + 54px + 50px)}
+.game.raidon .lcol{top:calc(var(--pb, 74px) + var(--rbh, 50px) + 10px)}
 .dgexit{pointer-events:auto;padding:5px 10px;border-radius:10px;border:1px solid #ffb04a;background:rgba(30,12,8,.85);color:#ffe0b0;font-size:.76rem;font-weight:700}
 .dgexit[hidden]{display:none}
 .bossann.k-world{border-image:linear-gradient(90deg,#ff3b5c,#ffd23f,#5dff7a,#4fc3ff,#b366ff) 1;border-width:2px;border-style:solid;box-shadow:0 0 26px rgba(255,210,63,.6);color:#fff}
@@ -828,8 +828,8 @@ function MON(id, name, arch, color, lv, extra) {
 }
 
 const DEFAULT_CONFIG = {
-  version: '2.9.2',
-  patchNotes: 'อัปเดต 2.9.2\n• เอาหลอดเลือดบอสอันใหญ่ออกในแผนที่ปกติ ไม่บัง Lv/Job แล้ว (ยังดูเลือดบอสได้จากป้าย 👑 ด้านบน แตะเพื่อเล็งเป้า)\n• ในดันเจี้ยนยังมีหลอดเลือดบอสเรดเหมือนเดิม\n• (จาก 2.9.1) รีเซ็ตสเตตัส และย้ายอาชีพ 250,000 G',
+  version: '2.9.3',
+  patchNotes: 'อัปเดต 2.9.3\n• ป้ายบอส ป้ายประกาศ และหลอดบอสดันเจี้ยน เลื่อนลงมาอยู่ใต้กรอบตัวละคร ไม่บังแถบ Base/Job แล้วทุกขนาดจอ\n• (จาก 2.9.2) เอาหลอดบอสใหญ่ในแผนที่ปกติออก',
   announcement: 'ยินดีต้อนรับสู่ช่วงทดสอบ! เจอบั๊กบอก GM ได้เลย',
   rates: { bexp: 1, jexp: 1, gold: 1, drop: 1 },
   deathPenalty: 1,
@@ -5865,6 +5865,14 @@ function panelAuto(body) {
 $('#potHp').addEventListener('click', () => usePot('hp'));
 $('#chatBtn').addEventListener('click', () => openPanel('chat'));
 $('#avatar').addEventListener('click', () => openEquip('eq'));
+function hudLayout() {
+  const g = $('#scrGame'), pl = g && g.querySelector('.plate'), rb = $('#raidBar'); if (!g || !pl || !pl.offsetHeight) return;
+  const gt = g.getBoundingClientRect().top, pb = Math.ceil(pl.getBoundingClientRect().bottom - gt);
+  g.style.setProperty('--pb', pb + 'px');
+  if (rb && !rb.hidden && rb.offsetHeight) g.style.setProperty('--rbh', Math.ceil(rb.offsetHeight) + 'px');
+}
+if (window.ResizeObserver) { const ro = new ResizeObserver(hudLayout); ro.observe($('#scrGame').querySelector('.plate')); ro.observe($('#raidBar')); }
+addEventListener('resize', hudLayout);
 R3.onKKTex = () => { if (S.hero && S.screen === 'game') drawAvatar(); };
 $('#dgExit').addEventListener('click', () => leaveDungeon());
 $('#rwExit').addEventListener('click', () => leaveDungeon());
