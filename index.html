@@ -828,8 +828,8 @@ function MON(id, name, arch, color, lv, extra) {
 }
 
 const DEFAULT_CONFIG = {
-  version: '2.9.1',
-  patchNotes: 'อัปเดต 2.9.1\n• ปุ่มรีเซ็ตสเตตัสในหน้าสถานะ ได้แต้มคืนทั้งหมด\n• ระบบย้ายอาชีพในหน้าอาชีพ ย้ายไปอาชีพขั้นเดียวกันสายอื่น ค่าบริการ 250,000 G ต้องถอดอุปกรณ์และการ์ดออกก่อน (มีปุ่มถอดทั้งหมด) เลเวลคงเดิม แต้มสกิลคืนให้ลงใหม่\n• (จาก 2.9) อ่าวโจรสลัด Lv.119-139 และดันเจี้ยนเรือผีโจรสลัด',
+  version: '2.9.2',
+  patchNotes: 'อัปเดต 2.9.2\n• เอาหลอดเลือดบอสอันใหญ่ออกในแผนที่ปกติ ไม่บัง Lv/Job แล้ว (ยังดูเลือดบอสได้จากป้าย 👑 ด้านบน แตะเพื่อเล็งเป้า)\n• ในดันเจี้ยนยังมีหลอดเลือดบอสเรดเหมือนเดิม\n• (จาก 2.9.1) รีเซ็ตสเตตัส และย้ายอาชีพ 250,000 G',
   announcement: 'ยินดีต้อนรับสู่ช่วงทดสอบ! เจอบั๊กบอก GM ได้เลย',
   rates: { bexp: 1, jexp: 1, gold: 1, drop: 1 },
   deathPenalty: 1,
@@ -5275,11 +5275,9 @@ function worldBanner(text) {
 const RB = { m: null, trail: 1, t: 0 };
 function raidBarBoss() {
   if (!W.map) return null;
+  // the big bar is for raid bosses only; field bosses keep the small chip so Lv/Job stay visible
   if (isDg()) return W.mons.find((m) => m.raid && m.state !== 'dead') || null;
-  if (P.target && P.target.boss && P.target.state !== 'dead') return P.target;
-  let best = null, bd = 520;
-  for (const m of W.mons) if (m.boss && m.state !== 'dead') { const d = Math.hypot(m.x - P.x, m.y - P.y); if (d < bd) { bd = d; best = m; } }
-  return best;
+  return null;
 }
 function renderRaidBar(dt) {
   const bar = $('#raidBar'), game = $('#scrGame'), m = S.screen === 'game' ? raidBarBoss() : null;
