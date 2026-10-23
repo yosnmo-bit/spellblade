@@ -771,7 +771,7 @@ defSkill('lk_fury', 'lordknight', 'โทสะจ้าวสงคราม', 
 // Acolyte line
 defSkill('ac_heal', 'acolyte', 'แสงเยียวยา', '💚', 'heal', { party: 1, h: [0.1, 0.03], sp: [8, 1], cd: 3, color: '#8ff0a4' });
 defSkill('ac_bolt', 'acolyte', 'ศรศักดิ์สิทธิ์', '✨', 'atk', { dmg: 'magic', m: [1.2, 0.25], sp: [6, 0.6], cd: 1.5, color: '#fff1a8', fx: 'pillar' });
-defSkill('ac_bless', 'acolyte', 'พรแห่งแสง', '🙏', 'buff', { b: { atk: 2, matk: 2 }, dur: 120, sp: [20, 1], cd: 5, color: '#ffe8a3' });
+defSkill('ac_bless', 'acolyte', 'พรแห่งแสง', '🙏', 'buff', { party: 1, b: { atk: 2, matk: 2 }, dur: 120, sp: [20, 1], cd: 5, color: '#ffe8a3' });
 defSkill('ac_divine', 'acolyte', 'พรแห่งเทพ', '👼', 'buff', { party: 1, b: { str: 1, agi: 1, vit: 1, int: 1, dex: 1, luk: 1 }, dur: 120, sp: [30, 2], cd: 5, color: '#fff3b0' });
 defSkill('pr_smite', 'priest', 'แสงพิพากษา', '☀️', 'aoe', { dmg: 'magic', m: [1.5, 0.25], r: 110, hits: 3, sp: [20, 1.5], cd: 4, color: '#fff6c2', fx: 'pillars' });
 defSkill('pr_grace', 'priest', 'พรวายุ', '🍃', 'buff', { party: 1, b: { aspd: 3, flee: 2, crit: 3 }, dur: 120, sp: [20, 1], cd: 5, color: '#c8f7ff' });
@@ -861,8 +861,8 @@ function MON(id, name, arch, color, lv, extra) {
 }
 
 const DEFAULT_CONFIG = {
-  version: '2.9.21',
-  patchNotes: 'อัปเดต 2.9.21\n• ตลาดกลาง: ลงขายกุญแจดันเจี้ยน Oridecon และ Elunium ได้แล้ว\n• การ์ด กุญแจ และแร่ เลือกจำนวนต่อรายการได้ ราคาที่ตั้งคือราคารวม (หน้าซื้อบอกราคาต่อชิ้น)\n• มีตัวกรอง 🗝️ กุญแจ และ 🔷 แร่ และปุ่ม 🏪 ลงขายตลาดในกระเป๋า',
+  version: '2.9.22',
+  patchNotes: 'อัปเดต 2.9.22\n• พรแห่งแสง: บัฟ ATK/MATK ให้ตัวเองและเพื่อนในปาร์ตี้แล้ว\n• (จาก 2.9.21) ลงขายกุญแจดันเจี้ยนและแร่ในตลาดกลางได้',
   announcement: 'ยินดีต้อนรับสู่ช่วงทดสอบ! เจอบั๊กบอก GM ได้เลย',
   rates: { bexp: 1, jexp: 1, gold: 1, drop: 1 },
   deathPenalty: 1,
