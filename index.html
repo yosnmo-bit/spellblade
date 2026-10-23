@@ -861,8 +861,8 @@ function MON(id, name, arch, color, lv, extra) {
 }
 
 const DEFAULT_CONFIG = {
-  version: '2.9.22',
-  patchNotes: 'อัปเดต 2.9.22\n• พรแห่งแสง: บัฟ ATK/MATK ให้ตัวเองและเพื่อนในปาร์ตี้แล้ว\n• (จาก 2.9.21) ลงขายกุญแจดันเจี้ยนและแร่ในตลาดกลางได้',
+  version: '2.9.23',
+  patchNotes: 'อัปเดต 2.9.23\n• แหวนดันเจี้ยน: เปลี่ยนจากเพิ่มทุกสเตตัส เป็นสุ่มสเตตัสเดียว (STR/AGI/VIT/INT/DEX/LUK) +3 ถึง +11 ตามระดับดัน (ก่อนคูณความหายาก)\n• แหวนที่มีอยู่แล้วได้สเตตัสสุ่มอัตโนมัติ\n• (จาก 2.9.22) พรแห่งแสงบัฟทั้งปาร์ตี้',
   announcement: 'ยินดีต้อนรับสู่ช่วงทดสอบ! เจอบั๊กบอก GM ได้เลย',
   rates: { bexp: 1, jexp: 1, gold: 1, drop: 1 },
   deathPenalty: 1,
@@ -4280,18 +4280,18 @@ for (const sid of Object.keys(DG_SETS)) {
   GEAR['w_' + sid + '_katar'] = { slot: 'weapon', nm: 'คาตาร์' + S0.nm, ic: '⚔️', b: { watk: Math.round(V * 1.65), crit: t }, pr: 1500 * t * t, set: sid, t, dg: true, line: 'thief', style: 'katar' };
   GEAR['a_' + sid] = { slot: 'armor', nm: 'เกราะ' + S0.nm, ic: '🧥', b: { hpPct: [0, 4, 7, 10, 14, 18][t] }, pr: 1500 * t * t, set: sid, t, dg: true };
   GEAR['s_' + sid] = { slot: 'shoes', nm: 'รองเท้า' + S0.nm, ic: '👢', b: {}, pr: 1200 * t * t, set: sid, t, dg: true };
-  GEAR['r_' + sid] = { slot: 'ring', nm: 'แหวน' + S0.nm, ic: '💍', b: { str: t, agi: t, vit: t, int: t, dex: t, luk: t }, pr: 1200 * t * t, dset: sid, t, dg: true };
+  GEAR['r_' + sid] = { slot: 'ring', nm: 'แหวน' + S0.nm, ic: '💍', b: {}, pr: 1200 * t * t, dset: sid, t, dg: true };
 }
 const canUse = (h, id) => !GEAR[id] || !GEAR[id].line || (JOBS[h.job].line === GEAR[id].line && (!GEAR[id].style || h.wstyle === GEAR[id].style));
 const lineText = (h, id) => { const g = GEAR[id]; if (!g || !g.dg) return ''; if (!g.line) return 'ใช้ได้ทุกอาชีพ'; return 'เฉพาะสาย' + LINE_TH[g.line] + (g.style === 'katar' ? ' สไตล์คาตาร์' : '') + (canUse(h, id) ? ' ✓' : JOBS[h.job].line === g.line ? ' (เปลี่ยนสไตล์เป็นคาตาร์ที่ร้านก่อน)' : ' (ไม่ตรงอาชีพคุณ)'); };
 const setBonus = (t, n) => n >= 3 ? { atkPct: 2 * t, matkPct: 2 * t, hpPct: 3 * t, crit: t + 1 } : n >= 2 ? { atkPct: 2 * t, matkPct: 2 * t } : null;
 const ARMOR_VARS = ['str', 'agi', 'vit', 'int', 'dex', 'luk'], SHOE_VARS = ['agi', 'str', 'int', 'dex'];
 const VAR_TH = { str: 'STR', agi: 'AGI', vit: 'VIT', int: 'INT', dex: 'DEX', luk: 'LUK' };
-const varsOf = (id) => { const g = GEAR[id]; return !g || !g.dg ? null : g.slot === 'armor' ? ARMOR_VARS : g.slot === 'shoes' ? SHOE_VARS : null; };
+const varsOf = (id) => { const g = GEAR[id]; return !g || !g.dg ? null : g.slot === 'armor' || g.slot === 'ring' ? ARMOR_VARS : g.slot === 'shoes' ? SHOE_VARS : null; };
 function hashPick(s, arr) { let x = 2166136261; for (let i = 0; i < s.length; i++) { x ^= s.charCodeAt(i); x = Math.imul(x, 16777619); } return arr[(x >>> 0) % arr.length]; }
 // older items without a variant get a stable one from their own data, so every client sees the same thing
 function itemVar(x) { const vs = x && varsOf(x.id); if (!vs) return undefined; return vs.includes(x.v) ? x.v : hashPick(String(x.k || '') + '|' + x.id + '|' + (x.r || 0) + '|' + JSON.stringify(x.o || []), vs); }
-const VAR_B = { armor: (t, v) => ({ [v]: 2 * t + 1 }), shoes: (t, v) => (v === 'agi' ? { agi: t + 1, flee: 3 * t + 1, aspdPct: t } : v === 'int' ? { int: t + 1, wmatk: 6 * t, msp: 25 * t } : { [v]: t + 1, watk: 6 * t, hit: 3 * t + 2 }) };
+const VAR_B = { armor: (t, v) => ({ [v]: 2 * t + 1 }), ring: (t, v) => ({ [v]: 2 * t + 1 }), shoes: (t, v) => (v === 'agi' ? { agi: t + 1, flee: 3 * t + 1, aspdPct: t } : v === 'int' ? { int: t + 1, wmatk: 6 * t, msp: 25 * t } : { [v]: t + 1, watk: 6 * t, hit: 3 * t + 2 }) };
 function itemBase(it) {
   const g = GEAR[it.id], m = (RAR[it.r || 0] || RAR[0]).mult, o = {}; if (!g) return o;
   const b = Object.assign({}, g.b), v = itemVar(it);
