@@ -112,8 +112,10 @@ button:disabled{cursor:default}
 .pot b{position:absolute;right:3px;bottom:2px;font:700 8px "Silkscreen",monospace;color:#fff}
 .pot.blue{filter:hue-rotate(200deg)}
 .pot.blue b{filter:hue-rotate(-200deg)}
-.skills{flex:1;display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
-.sk{position:relative;aspect-ratio:1;max-height:68px;border-radius:14px;border:1px solid rgba(255,255,255,.2);background:rgba(10,14,24,.68);color:#fff;display:grid;place-items:center;overflow:hidden;padding:0}
+.skills{flex:1;display:grid;grid-template-columns:repeat(4,1fr);gap:5px}
+.sk.potk{background:color-mix(in srgb,var(--c) 26%,rgba(10,14,24,.72));border-color:color-mix(in srgb,var(--c) 70%,transparent)}
+.sk.potk.nosp{opacity:.45}
+.sk{position:relative;aspect-ratio:1;max-height:56px;border-radius:14px;border:1px solid rgba(255,255,255,.2);background:rgba(10,14,24,.68);color:#fff;display:grid;place-items:center;overflow:hidden;padding:0}
 .sk .ic{width:68%;height:68%;border-radius:50%;display:grid;place-items:center;font-size:1.15rem;background:radial-gradient(circle at 35% 30%,rgba(255,255,255,.7),transparent 45%),var(--c,#567)}
 .sk .cdv{position:absolute;inset:0;background:conic-gradient(rgba(0,0,0,.66) calc(var(--cd,0)*360deg),transparent 0)}
 .sk .slv{position:absolute;left:4px;bottom:3px;font:700 7px "Silkscreen",monospace}
@@ -337,7 +339,8 @@ button:disabled{cursor:default}
 .card .nm2{font-weight:700}
 .card .ds{font-size:.8rem;color:var(--ink-soft)}
 .card .meta{font-size:.72rem;color:var(--ink-soft);margin-top:2px}
-.slots{display:flex;gap:4px;margin-top:6px;align-items:center;font-size:.72rem;color:var(--ink-soft)}
+.slots{display:flex;flex-wrap:wrap;align-items:center;gap:3px;margin-top:6px;font-size:.74rem}
+.slots .mini{min-width:26px;padding:5px 0;flex:0 0 26px;text-align:center;font-size:.8rem}
 .req{display:flex;gap:8px;margin:6px 0 10px}
 .req span{flex:1;padding:8px 10px;border-radius:10px;background:var(--panel-2);font-size:.85rem}
 .req .ok{color:var(--good);font-weight:700}.req .no{color:var(--bad);font-weight:700}
@@ -843,8 +846,8 @@ function MON(id, name, arch, color, lv, extra) {
 }
 
 const DEFAULT_CONFIG = {
-  version: '2.9.6',
-  patchNotes: 'อัปเดต 2.9.6\n• แผนที่ใหญ่ขึ้น 1.6 เท่าทุกด้าน พื้นที่เดินได้กว้างขึ้นเกือบ 3 เท่า มอนเยอะขึ้นตามพื้นที่\n• ออโต้: ตีมอนทุกเลเวลแล้ว ไม่ไล่ตามตัวที่เดินหนีไกล เปลี่ยนไปตีตัวที่ใกล้กว่า และสู้ตัวที่ตีเราก่อน\n• การ์ดลงขายในตลาดกลางได้ (มีปุ่มกรอง 🃏 การ์ด)\n• Sniper: ศรทะลวงใจ Lv10 ปรับจาก 1100% เป็น 800%',
+  version: '2.9.7',
+  patchNotes: 'อัปเดต 2.9.7\n• ช่องสกิลเพิ่มเป็น 8 ช่อง (2 แถว) ใส่ยาลงช่องลัดได้ที่หน้าสกิล\n• ยาใหม่: ยาแดงขวดใหญ่ / ยาฟ้าขวดใหญ่ ฟื้น 75% ขวดละ 1,000 G และยาพิเศษ ฟื้น HP และ SP เต็ม ขวดละ 10,000 G\n• ออโต้ใช้ยาขวดใหญ่ต่อเมื่อขวดเล็กหมด (ไม่ใช้ยาพิเศษเอง)\n• บอสดันเจี้ยนดรอปคาตาร์ของทุกเซ็ต ใช้ได้กับสายโจรสไตล์คาตาร์',
   announcement: 'ยินดีต้อนรับสู่ช่วงทดสอบ! เจอบั๊กบอก GM ได้เลย',
   rates: { bexp: 1, jexp: 1, gold: 1, drop: 1 },
   deathPenalty: 1,
@@ -852,7 +855,7 @@ const DEFAULT_CONFIG = {
   jobReq: [[10, 10], [40, 40], [80, 70]],
   finalJobCap: 70,
   maxBase: 150,
-  potion: { hp: 30, sp: 80 },
+  potion: { hp: 30, sp: 80, hpL: 1000, spL: 1000, all: 10000 },
   shop: { gear: {}, refineW: 150, refineA: 120 },
   party: { min: 2, max: 6 },
   ore: { ori: 1.2, elu: 1.5 },
@@ -945,7 +948,7 @@ function sanitizeConfig(raw) {
     }),
     finalJobCap: int(raw.finalJobCap, 70, 2, 999),
     maxBase: int(raw.maxBase, 150, 10, 999),
-    potion: { hp: int(raw.potion && raw.potion.hp, 30, 0, 1e9), sp: int(raw.potion && raw.potion.sp, 80, 0, 1e9) },
+    potion: { hp: int(raw.potion && raw.potion.hp, 30, 0, 1e9), sp: int(raw.potion && raw.potion.sp, 80, 0, 1e9), hpL: int(raw.potion && raw.potion.hpL, 1000, 0, 1e9), spL: int(raw.potion && raw.potion.spL, 1000, 0, 1e9), all: int(raw.potion && raw.potion.all, 10000, 0, 1e10) },
     jobNames: jn,
     ore: { ori: num((raw.ore || {}).ori, 1.2, 0, 100), elu: num((raw.ore || {}).elu, 1.5, 0, 100) },
     jobMove: int(raw.jobMove, 250000, 0, 1e10), statReset: int(raw.statReset, 0, 0, 1e10),
@@ -1504,7 +1507,7 @@ function recalcPoints(h) {
   const ts = totalStatPts(h.level), ss = spentStatPts(h.stats);
   if (ss > ts) { for (const k of STATS) h.stats[k] = 1; h.statPts = ts; } else h.statPts = ts - ss;
   const tk = totalSkillPts(h.job, h.jobLv); let sk = 0; for (const k in h.skills) sk += h.skills[k];
-  if (sk > tk) { h.skills = {}; h.hotbar = ['', '', '', '']; h.skillPts = tk; } else h.skillPts = tk - sk;
+  if (sk > tk) { h.skills = {}; h.hotbar = ['', '', '', '', '', '', '', '']; h.skillPts = tk; } else h.skillPts = tk - sk;
 }
 function canJobChange(h) {
   const J = JOBS[h.job]; if (!J.next.length) return false;
@@ -1514,7 +1517,7 @@ function canJobChange(h) {
 
 function newHero(name, look) {
   return { name, look, job: 'novice', level: 1, exp: 0, jobLv: 1, jobExp: 0, stats: { str: 1, agi: 1, vit: 1, int: 1, dex: 1, luk: 1 },
-    statPts: 48, skillPts: 0, skills: {}, hotbar: ['', '', '', ''], gold: 200, refineW: 0, refineA: 0, potHp: 10, potSp: 3,
+    statPts: 48, skillPts: 0, skills: {}, hotbar: ['', '', '', '', '', '', '', ''], gold: 200, refineW: 0, refineA: 0, potHp: 10, potSp: 3, potHpL: 0, potSpL: 0, potAll: 0,
     mapId: 'village', kills: 0, wstyle: 'dual', gmStamp: 0, inv: [], eq: null, ref: {} };
 }
 function sanitizeHero(d) {
@@ -1525,9 +1528,9 @@ function sanitizeHero(d) {
     look: { g: lk.g === 'f' ? 'f' : 'm', hair: int(lk.hair, 0, 0, HAIR_NAMES.length - 1), hc: color(lk.hc, HAIR_COLORS[0]) },
     job: JOBS[d.job] ? d.job : 'novice',
     level: int(d.level, 1, 1, 999), exp: int(d.exp, 0, 0, 1e15), jobLv: int(d.jobLv, 1, 1, 999), jobExp: int(d.jobExp, 0, 0, 1e15),
-    stats: {}, statPts: 0, skillPts: 0, skills: {}, hotbar: ['', '', '', ''],
+    stats: {}, statPts: 0, skillPts: 0, skills: {}, hotbar: ['', '', '', '', '', '', '', ''],
     gold: int(d.gold, 0, 0, 1e13), refineW: int(d.refineW, 0, 0, 15), refineA: int(d.refineA, 0, 0, 15),
-    potHp: int(d.potHp, 0, 0, 99999), potSp: int(d.potSp, 0, 0, 99999),
+    potHp: int(d.potHp, 0, 0, 99999), potSp: int(d.potSp, 0, 0, 99999), potHpL: int(d.potHpL, 0, 0, 99999), potSpL: int(d.potSpL, 0, 0, 99999), potAll: int(d.potAll, 0, 0, 99999),
     mapId: typeof d.mapId === 'string' ? d.mapId.slice(0, 40) : '', kills: int(d.kills, 0, 0, 1e12),
     wstyle: d.wstyle === 'katar' ? 'katar' : 'dual', gmStamp: num(d.gmStamp, 0, 0, 1e15),
     mkDone: (Array.isArray(d.mkDone) ? d.mkDone : []).filter((x) => typeof x === 'string').map((x) => x.slice(0, 40)).slice(-80),
@@ -1540,7 +1543,7 @@ function sanitizeHero(d) {
   const sk = d.skills || {};
   for (const s of skillsFor(h.job)) { const v = int(sk[s.id], 0, 0, s.maxLv); if (v > 0) h.skills[s.id] = v; }
   const hb = Array.isArray(d.hotbar) ? d.hotbar : [];
-  for (let i = 0; i < 4; i++) { const id = hb[i]; h.hotbar[i] = (typeof id === 'string' && h.skills[id] && SKILLS[id].type !== 'passive') ? id : ''; }
+  for (let i = 0; i < 8; i++) { const id = hb[i]; h.hotbar[i] = (typeof id === 'string' && ((id.startsWith('pot:') && POT[id.slice(4)]) || (h.skills[id] && SKILLS[id] && SKILLS[id].type !== 'passive'))) ? id : ''; }
   h.level = Math.min(h.level, CONFIG.maxBase);
   h.jobLv = Math.min(h.jobLv, jobCap(JOBS[h.job].tier));
   recalcPoints(h);
@@ -1937,29 +1940,34 @@ function castSkill(id, fromQueue) {
   }
   return true;
 }
+const POT = {
+  hp: { f: 'potHp', nm: 'ยาแดง', hp: 0.3, ic: '🧪', col: '#e2484f', ds: 'ฟื้น HP 30%' },
+  sp: { f: 'potSp', nm: 'ยาฟ้า', sp: 0.3, ic: '🧪', col: '#3f8de0', ds: 'ฟื้น SP 30%' },
+  hpL: { f: 'potHpL', nm: 'ยาแดงขวดใหญ่', hp: 0.75, ic: '🍷', col: '#c4202d', ds: 'ฟื้น HP 75%' },
+  spL: { f: 'potSpL', nm: 'ยาฟ้าขวดใหญ่', sp: 0.75, ic: '🫙', col: '#2a6fd0', ds: 'ฟื้น SP 75%' },
+  all: { f: 'potAll', nm: 'ยาพิเศษ', hp: 1, sp: 1, ic: '✨', col: '#e0a920', ds: 'ฟื้น HP และ SP เต็ม 100%' }
+};
 function usePot(kind, quiet) {
-  const h = S.hero, D = P.D;
-  if (P.dead || W.t < P.potT) return;
-  if (kind === 'hp') {
-    if (h.potHp <= 0) { if (!quiet) toast('ยาแดงหมด ซื้อได้ที่ร้าน'); return; }
-    if (P.hp >= D.maxHp) { if (!quiet) toast('HP เต็มอยู่แล้ว'); return; }
-    h.potHp--; const a = Math.round(D.maxHp * 0.3); P.hp = Math.min(D.maxHp, P.hp + a); addNum(P.x, P.y - 54, '+' + fmt(a), '#7dff9a', 14);
-  } else {
-    if (h.potSp <= 0) { if (!quiet) toast('ยาฟ้าหมด ซื้อได้ที่ร้าน'); return; }
-    if (P.sp >= D.maxSp) { if (!quiet) toast('SP เต็มอยู่แล้ว'); return; }
-    h.potSp--; const a = Math.round(D.maxSp * 0.3); P.sp = Math.min(D.maxSp, P.sp + a); addNum(P.x, P.y - 54, '+' + fmt(a), '#8fc0ff', 14);
-  }
-  P.potT = W.t + 0.5; S.dirty = true; AU.sfx('potion');
+  const h = S.hero, D = P.D, pt = POT[kind];
+  if (!pt || P.dead || W.t < P.potT) return false;
+  if ((h[pt.f] || 0) <= 0) { if (!quiet) toast(pt.nm + 'หมด ซื้อได้ที่ร้าน'); return false; }
+  const needHp = pt.hp && P.hp < D.maxHp, needSp = pt.sp && P.sp < D.maxSp;
+  if (!needHp && !needSp) { if (!quiet) toast((pt.hp && pt.sp ? 'HP และ SP' : pt.hp ? 'HP' : 'SP') + ' เต็มอยู่แล้ว'); return false; }
+  h[pt.f]--;
+  if (pt.hp) { const a = Math.round(D.maxHp * pt.hp); P.hp = Math.min(D.maxHp, P.hp + a); addNum(P.x, P.y - 54, '+' + fmt(a), '#7dff9a', pt.hp >= 0.75 ? 16 : 14, pt.hp >= 0.75 ? { pop: true } : undefined); }
+  if (pt.sp) { const a = Math.round(D.maxSp * pt.sp); P.sp = Math.min(D.maxSp, P.sp + a); addNum(P.x, P.y - (pt.hp ? 72 : 54), '+' + fmt(a), '#8fc0ff', pt.sp >= 0.75 ? 16 : 14, pt.sp >= 0.75 ? { pop: true } : undefined); }
+  if (kind === 'all') addFx({ kind: 'pillar', x: P.x, y: P.y, color: '#ffe27a', dur: 0.8, w: 30 });
+  P.potT = W.t + 0.5; S.dirty = true; AU.sfx('potion'); return true;
 }
 function autoAct() {
   if (W.t < P.nextAuto) return;
   P.nextAuto = W.t + 0.25;
   const D = P.D, h = S.hero;
-  if (P.hp < D.maxHp * 0.35 && h.potHp > 0) usePot('hp', true);
-  if (P.sp < D.maxSp * 0.12 && h.potSp > 0) usePot('sp', true);
+  if (P.hp < D.maxHp * 0.35) { if (!(h.potHp > 0 && usePot('hp', true)) && h.potHpL > 0) usePot('hpL', true); }
+  if (P.sp < D.maxSp * 0.12) { if (!(h.potSp > 0 && usePot('sp', true)) && h.potSpL > 0) usePot('spL', true); }
   if (P.queued) return;
   for (const id of h.hotbar) {
-    if (!id) continue;
+    if (!id || id.startsWith('pot:')) continue;
     const sk = SKILLS[id], lv = h.skills[id] | 0;
     if (!sk || !lv || (P.cds[id] || 0) > W.t || P.sp < spCost(sk, lv)) continue;
     if (sk.type === 'buff') { if (P.buffs[id] || !P.target) continue; castSkill(id); return; }
@@ -2242,7 +2250,7 @@ window.addEventListener('resize', resize);
 function heroDoc() {
   const h = S.hero;
   return { name: h.name, look: h.look, job: h.job, level: h.level, exp: h.exp, jobLv: h.jobLv, jobExp: h.jobExp, stats: h.stats,
-    skills: h.skills, hotbar: h.hotbar, gold: h.gold, refineW: h.refineW, refineA: h.refineA, potHp: h.potHp, potSp: h.potSp,
+    skills: h.skills, hotbar: h.hotbar, gold: h.gold, refineW: h.refineW, refineA: h.refineA, potHp: h.potHp, potSp: h.potSp, potHpL: h.potHpL || 0, potSpL: h.potSpL || 0, potAll: h.potAll || 0,
     mapId: h.mapId, kills: h.kills, wstyle: h.wstyle, gmStamp: h.gmStamp || 0, inv: h.inv, eq: h.eq, mkDone: h.mkDone || [], ref: h.ref || {}, updatedAt: Date.now() };
 }
 function saveLocal() { if (S.hero) lsSet(LS_SAVE + (S.uid || ''), JSON.stringify(heroDoc())); }
@@ -4194,11 +4202,12 @@ for (const sid of Object.keys(DG_SETS)) {
     magician: ['ไม้เท้า', '🪄', { wmatk: Math.round(V * 1.6) }], archer: ['ธนู', '🏹', { watk: Math.round(V * 1.6) }],
     thief: ['กริช', '🔪', { watk: Math.round(V * 1.5) }], merchant: ['ขวาน', '🪓', { watk: Math.round(V * 1.7) }] };
   for (const ln of DG_LINES) GEAR['w_' + sid + '_' + ln] = { slot: 'weapon', nm: WL[ln][0] + S0.nm, ic: WL[ln][1], b: WL[ln][2], pr: 1500 * t * t, set: sid, t, dg: true, line: ln };
+  GEAR['w_' + sid + '_katar'] = { slot: 'weapon', nm: 'คาตาร์' + S0.nm, ic: '⚔️', b: { watk: Math.round(V * 1.65), crit: t }, pr: 1500 * t * t, set: sid, t, dg: true, line: 'thief', style: 'katar' };
   GEAR['a_' + sid] = { slot: 'armor', nm: 'เกราะ' + S0.nm, ic: '🧥', b: { def: [0, 6, 14, 24, 38, 55][t], hpPct: [0, 4, 7, 10, 14, 18][t] }, pr: 1500 * t * t, set: sid, t, dg: true };
   GEAR['s_' + sid] = { slot: 'shoes', nm: 'รองเท้า' + S0.nm, ic: '👢', b: { agi: t + 1, flee: 3 * t + 1, aspdPct: t }, pr: 1200 * t * t, set: sid, t, dg: true };
 }
-const canUse = (h, id) => !GEAR[id] || !GEAR[id].line || JOBS[h.job].line === GEAR[id].line;
-const lineText = (h, id) => { const g = GEAR[id]; if (!g || !g.dg) return ''; if (!g.line) return 'ใช้ได้ทุกอาชีพ'; return 'เฉพาะสาย' + LINE_TH[g.line] + (canUse(h, id) ? ' ✓' : ' (ไม่ตรงอาชีพคุณ)'); };
+const canUse = (h, id) => !GEAR[id] || !GEAR[id].line || (JOBS[h.job].line === GEAR[id].line && (!GEAR[id].style || h.wstyle === GEAR[id].style));
+const lineText = (h, id) => { const g = GEAR[id]; if (!g || !g.dg) return ''; if (!g.line) return 'ใช้ได้ทุกอาชีพ'; return 'เฉพาะสาย' + LINE_TH[g.line] + (g.style === 'katar' ? ' สไตล์คาตาร์' : '') + (canUse(h, id) ? ' ✓' : JOBS[h.job].line === g.line ? ' (เปลี่ยนสไตล์เป็นคาตาร์ที่ร้านก่อน)' : ' (ไม่ตรงอาชีพคุณ)'); };
 const setBonus = (t, n) => n >= 3 ? { atkPct: 2 * t, matkPct: 2 * t, hpPct: 3 * t, crit: t + 1 } : n >= 2 ? { atkPct: 2 * t, matkPct: 2 * t } : null;
 function itemBase(it) { const g = GEAR[it.id], m = (RAR[it.r || 0] || RAR[0]).mult, o = {}; if (!g) return o; for (const k in g.b) o[k] = Math.round(g.b[k] * m); return o; }
 function sanitizeOpts(o) { return (Array.isArray(o) ? o : []).slice(0, 3).filter((e) => Array.isArray(e) && OPT_KEYS.includes(e[0])).map((e) => [e[0], int(e[1], 1, 1, 999)]); }
@@ -4289,6 +4298,7 @@ function sanitizeEq(d, h) {
   normalizeGear(h);
 }
 function normalizeGear(h) {
+  { const s = h.eq.weapon; if (s && s.id && GEAR[s.id] && !canUse(h, s.id)) { const it = Object.assign(gearItem(s.id), { r: s.r || 0, o: s.o || [] }); if (pushInv(h, it, 1) !== false) { delete s.id; delete s.r; delete s.o; } } }
   for (const k of Object.keys(SLOT_TH)) {
     const s = h.eq[k]; if (!s) continue;
     const n = sockets(h, k), acc = accepts(h, k);
@@ -4343,7 +4353,7 @@ function removeCard(key, idx) {
 }
 function equipGear(k) {
   const h = S.hero, it = h.inv.find((x) => x.k === k && x.kind === 'gear'); if (!it) return;
-  if (!canUse(h, it.id)) { toast('ใช้ได้เฉพาะสาย' + LINE_TH[GEAR[it.id].line] + ' ลงขายที่ตลาดได้'); AU.sfx('miss'); return; }
+  if (!canUse(h, it.id)) { toast(lineText(h, it.id) + ' ลงขายที่ตลาดได้'); AU.sfx('miss'); return; }
   let slot = GEAR[it.id].slot;
   if (slot === 'ring') slot = (EQ.sel === 'ring1' || EQ.sel === 'ring2') && EQ.picking ? EQ.sel : !h.eq.ring1 ? 'ring1' : !h.eq.ring2 ? 'ring2' : (EQ.sel === 'ring2' ? 'ring2' : 'ring1');
   const old = h.eq[slot];
@@ -5121,7 +5131,7 @@ function rollOpt(t, used) {
 }
 function pickW(ws) { const tot = ws.reduce((a, b) => a + b, 0) || 1; let r = Math.random() * tot; for (let i = 0; i < ws.length; i++) { r -= ws[i]; if (r <= 0) return i; } return 0; }
 function rollDgItem(dg, forceR) {
-  const roll = Math.random(), id = roll < 0.4 ? 'w_' + dg.id + '_' + DG_LINES[(Math.random() * DG_LINES.length) | 0] : (roll < 0.7 ? 'a_' : 's_') + dg.id;
+  const WK = DG_LINES.concat('katar'), roll = Math.random(), id = roll < 0.4 ? 'w_' + dg.id + '_' + WK[(Math.random() * WK.length) | 0] : (roll < 0.7 ? 'a_' : 's_') + dg.id;
   if (!GEAR[id]) return null;
   const r = forceR || 1 + pickW(dg.rar), used = new Set(), o = [];
   for (let i = 0; i < RAR[r].opts; i++) o.push(rollOpt(dg.diff, used));
@@ -6065,9 +6075,15 @@ function renderHotbar() {
   S.hero.hotbar.forEach((id, i) => {
     const b = el('button', { class: 'sk' });
     if (!id) {
-      b.classList.add('empty'); b.textContent = '+'; b.setAttribute('aria-label', 'ใส่สกิลช่อง ' + (i + 1));
+      b.classList.add('empty'); b.textContent = '+'; b.setAttribute('aria-label', 'ใส่สกิลหรือยาช่อง ' + (i + 1));
       b.addEventListener('click', () => openPanel('skills'));
       S.hb.push({ id: '', b });
+    } else if (id.startsWith('pot:')) {
+      const kind = id.slice(4), pt = POT[kind], cnt = el('span', { class: 'slv', text: String(S.hero[pt.f] || 0) });
+      b.classList.add('potk'); b.style.setProperty('--c', pt.col); b.setAttribute('aria-label', pt.nm);
+      b.append(el('span', { class: 'ic', text: pt.ic }), cnt);
+      b.addEventListener('click', () => { usePot(kind); hudText(); });
+      S.hb.push({ id: '', b, pot: kind, cnt });
     } else {
       const sk = SKILLS[id], ic = el('span', { class: 'ic', text: sk.icon }), cd = el('span', { class: 'cdv' });
       b.style.setProperty('--c', sk.color); b.setAttribute('aria-label', sk.name);
@@ -6086,6 +6102,7 @@ function hudText() {
   $('#bLv').textContent = 'BASE ' + h.level; $('#jLv').textContent = 'JOB ' + h.jobLv;
   $('#goldT').textContent = fmt(h.gold) + ' G';
   $('#potHpN').textContent = h.potHp; $('#potSpN').textContent = h.potSp;
+  for (const it of S.hb || []) if (it.pot) { const n = h[POT[it.pot].f] || 0; it.cnt.textContent = String(n); it.b.classList.toggle('nosp', n <= 0); }
   const ds = $('#dotStat'), dk = $('#dotSkill');
   ds.hidden = h.statPts < 2; ds.textContent = h.statPts;
   dk.hidden = h.skillPts < 1; dk.textContent = h.skillPts;
@@ -6333,13 +6350,20 @@ function learnSkill(id) {
 function assignSlot(id, i) {
   const h = S.hero;
   if (h.hotbar[i] === id) h.hotbar[i] = '';
-  else { for (let k = 0; k < 4; k++) if (h.hotbar[k] === id) h.hotbar[k] = ''; h.hotbar[i] = id; }
+  else { for (let k = 0; k < 8; k++) if (h.hotbar[k] === id) h.hotbar[k] = ''; h.hotbar[i] = id; }
   S.dirty = true; renderHotbar(); renderSheet();
 }
 function panelSkills(body) {
   const h = S.hero;
   body.append(el('div', { class: 'pts' }, 'แต้มสกิลคงเหลือ ', el('b', { text: String(h.skillPts) }), el('span', { class: 'muted', text: '  ได้ 1 แต้มทุก Job Lv' })));
-  body.append(el('p', { class: 'note', text: 'สกิลในช่อง 1–4 จะอยู่ที่แถบล่าง และโหมดออโต้จะใช้ให้เองตามลำดับช่อง' }));
+  body.append(el('p', { class: 'note', text: 'สกิลในช่อง 1–8 จะอยู่ที่แถบล่าง (แถวบน 1–4 แถวล่าง 5–8) และโหมดออโต้จะใช้ให้เองตามลำดับช่อง ใส่ยาลงช่องได้ด้วย' }));
+  body.append(el('div', { class: 'sub', text: '🧪 ยาในช่องลัด' }));
+  for (const kind of Object.keys(POT)) {
+    const pt = POT[kind], id = 'pot:' + kind, sl = el('div', { class: 'slots' }, 'ช่อง ');
+    for (let i = 0; i < 8; i++) { const on = h.hotbar[i] === id; sl.append(el('button', { class: 'mini' + (on ? ' on' : ''), text: String(i + 1), 'aria-pressed': String(on), onclick: () => assignSlot(id, i) })); }
+    const ic = el('div', { class: 'ic', text: pt.ic }); ic.style.setProperty('--c', pt.col);
+    body.append(el('div', { class: 'card' }, ic, el('div', { class: 'bd' }, el('div', { class: 'nm2', text: pt.nm + '  มี ' + (h[pt.f] || 0) }), el('div', { class: 'ds', text: pt.ds }), sl)));
+  }
   for (const jid of chainOf(h.job)) {
     const list = Object.values(SKILLS).filter((s) => s.job === jid);
     if (!list.length) continue;
@@ -6355,7 +6379,7 @@ function panelSkills(body) {
         el('div', { class: 'meta', text: sk.type === 'passive' ? 'ติดตัวถาวร' : 'SP ' + spCost(sk, Math.max(1, lv)) + '  คูลดาวน์ ' + sk.cd + ' วิ' }));
       if (lv && sk.type !== 'passive') {
         const sl = el('div', { class: 'slots' }, 'ช่อง ');
-        for (let i = 0; i < 4; i++) { const on = h.hotbar[i] === sk.id; sl.append(el('button', { class: 'mini' + (on ? ' on' : ''), text: String(i + 1), 'aria-pressed': String(on), onclick: () => assignSlot(sk.id, i) })); }
+        for (let i = 0; i < 8; i++) { const on = h.hotbar[i] === sk.id; sl.append(el('button', { class: 'mini' + (on ? ' on' : ''), text: String(i + 1), 'aria-pressed': String(on), onclick: () => assignSlot(sk.id, i) })); }
         bd.append(sl);
       }
       body.append(el('div', { class: 'card' }, ic, bd,
@@ -6389,7 +6413,7 @@ function moveJob(nid) {
   if (!moveTargets(h).includes(nid)) return;
   if (wornList(h).length) { toast('ต้องถอดอุปกรณ์และการ์ดออกให้หมดก่อน'); return; }
   if (h.gold < cost) { toast('ทองไม่พอ ต้องใช้ ' + fmt(cost) + ' G'); return; }
-  h.gold -= cost; h.job = nid; h.skills = {}; h.hotbar = ['', '', '', ''];
+  h.gold -= cost; h.job = nid; h.skills = {}; h.hotbar = h.hotbar.map((x) => (x && x.startsWith('pot:') ? x : ''));
   recalcPoints(h); normalizeGear(h);
   P.D = derived(); P.hp = P.D.maxHp; P.sp = P.D.maxSp; P.cheerT = W.t;
   addFx({ kind: 'pillar', x: P.x, y: P.y, color: '#9fd0ff', dur: 1.4, w: 46 }); addFx({ kind: 'ring', x: P.x, y: P.y, r: 80, color: '#9fd0ff', dur: 0.9 });
@@ -6479,7 +6503,7 @@ const refineCost = (kind, r) => Math.round((kind === 'w' ? CONFIG.shop.refineW :
 function buyPot(kind, n) {
   const h = S.hero, D = derived(), unit = Math.max(1, Math.round(CONFIG.potion[kind] * (1 - D.discount / 100))), cost = unit * n;
   if (h.gold < cost) { toast('ทองไม่พอ'); return; }
-  h.gold -= cost; if (kind === 'hp') h.potHp += n; else h.potSp += n; AU.sfx('coin');
+  h.gold -= cost; h[POT[kind].f] = (h[POT[kind].f] || 0) + n; AU.sfx('coin');
   S.dirty = true; renderSheet(); hudText();
 }
 function panelShop(body) {
@@ -6487,9 +6511,10 @@ function panelShop(body) {
   body.append(el('div', { class: 'pts' }, 'ทองของคุณ ', el('b', { text: fmt(h.gold) + ' G' }), disc ? el('span', { class: 'muted', text: '  ส่วนลดพ่อค้า ' + disc + '%' }) : null));
   body.append(el('p', { class: 'note', text: '🔨 ตีบวกอุปกรณ์ได้ที่ ริว ช่างตีบวก กลางหมู่บ้านอรุณรุ่ง ใช้ Oridecon หรือ Elunium กับเงิน' }));
   body.append(el('div', { class: 'sub', text: 'ยา' }));
-  for (const [kind, nm, ds, have] of [['hp', 'ยาแดง', 'ฟื้น HP 30%', h.potHp], ['sp', 'ยาฟ้า', 'ฟื้น SP 30%', h.potSp]]) {
+  for (const kind of Object.keys(POT)) {
+    const pt = POT[kind], nm = pt.nm, ds = pt.ds, have = h[pt.f] || 0;
     const unit = Math.max(1, Math.round(CONFIG.potion[kind] * (1 - disc / 100)));
-    body.append(el('div', { class: 'list-row' }, el('span', { style: 'font-size:1.5rem;' + (kind === 'sp' ? 'filter:hue-rotate(200deg)' : ''), text: '🧪' }),
+    body.append(el('div', { class: 'list-row' }, el('span', { style: 'font-size:1.5rem;' + (kind === 'sp' ? 'filter:hue-rotate(200deg)' : ''), text: pt.ic }),
       el('div', { class: 'grow' }, el('div', { class: 'nm2', text: nm + '  มี ' + have }), el('div', { class: 'ds', text: ds + '  ขวดละ ' + fmt(unit) + ' G' })),
       el('button', { class: 'mini', text: 'x1', disabled: h.gold < unit, onclick: () => buyPot(kind, 1) }),
       el('button', { class: 'mini pri', text: 'x10', disabled: h.gold < unit * 10, onclick: () => buyPot(kind, 10) })));
@@ -6584,6 +6609,7 @@ function panelGM(body) {
     el('p', { class: 'note', text: 'ตั้งราคาขายของในร้าน ราคาที่ผู้เล่นขายคืนร้านจะเป็นครึ่งหนึ่งของราคาขายอัตโนมัติ ส่วนลดของสายพ่อค้ายังคิดจากราคานี้' }),
     el('div', { class: 'g2' },
       fNum('ราคายาแดง', d.potion.hp, (v) => { d.potion.hp = v; }), fNum('ราคายาฟ้า', d.potion.sp, (v) => { d.potion.sp = v; }),
+      fNum('ราคายาแดงขวดใหญ่', d.potion.hpL, (v) => { d.potion.hpL = v; }), fNum('ราคายาฟ้าขวดใหญ่', d.potion.spL, (v) => { d.potion.spL = v; }), fNum('ราคายาพิเศษ', d.potion.all, (v) => { d.potion.all = v; }),
       fNum('ค่าตีบวกอาวุธ/แหวน ขั้นแรก', d.shop.refineW, (v) => { d.shop.refineW = Math.max(1, Math.round(v)); }), fNum('ค่าตีบวกเกราะ/อื่นๆ ขั้นแรก', d.shop.refineA, (v) => { d.shop.refineA = Math.max(1, Math.round(v)); }),
       fNum('ค่าย้ายอาชีพ (G)', d.jobMove, (v) => { d.jobMove = Math.max(0, Math.round(v)); }), fNum('ค่ารีเซ็ตสเตตัส (G)', d.statReset, (v) => { d.statReset = Math.max(0, Math.round(v)); }),
       fNum('Oridecon ดรอปจากมอน %', d.ore.ori, (v) => { d.ore.ori = Math.max(0, v); }, 0.1), fNum('Elunium ดรอปจากมอน %', d.ore.elu, (v) => { d.ore.elu = Math.max(0, v); }, 0.1)),
