@@ -908,8 +908,8 @@ function MON(id, name, arch, color, lv, extra) {
 }
 
 const DEFAULT_CONFIG = {
-  version: '2.9.36',
-  patchNotes: 'อัปเดต 2.9.36\n• บอสดันเจี้ยนดรอปโล่ประจำเซ็ต (16%) สุ่ม STR + HP สูงสุด หรือ VIT + HP สูงสุด ใช้ได้สายนักดาบและนักบวช\n• ตีบวกโล่ได้ที่ริว (Elunium, DEF +2 ต่อขั้น)\n• ตลาดมีตัวกรอง 🛡️ โล่',
+  version: '2.9.37',
+  patchNotes: 'อัปเดต 2.9.37\n• แก้บั๊กค่าตีบวกช่องมือซ้าย (มีดมือซ้าย/โล่) หายหลังโหลดข้อมูลใหม่หรือสลับสไตล์อาวุธ\n• ห้อง GM: ตั้งค่าตีบวกของผู้เล่นได้ทุกช่อง (ใช้คืนค่าที่หายไป)\n• (จาก 2.9.36) โล่ดันเจี้ยน',
   announcement: 'ยินดีต้อนรับสู่ช่วงทดสอบ! เจอบั๊กบอก GM ได้เลย',
   rates: { bexp: 1, jexp: 1, gold: 1, drop: 1 },
   deathPenalty: 1,
@@ -1613,7 +1613,7 @@ function sanitizeHero(d) {
     mapId: typeof d.mapId === 'string' ? d.mapId.slice(0, 40) : '', kills: int(d.kills, 0, 0, 1e12), bossKills: int(d.bossKills, 0, 0, 1e9),
     wstyle: d.wstyle === 'katar' ? 'katar' : 'dual', gmStamp: num(d.gmStamp, 0, 0, 1e15),
     mkDone: (Array.isArray(d.mkDone) ? d.mkDone : []).filter((x) => typeof x === 'string').map((x) => x.slice(0, 40)).slice(-80),
-    ref: (() => { const r = d.ref || {}, o = {}; for (const k of ['ring1', 'ring2', 'head', 'face', 'mouth', 'shoes', 'wings']) o[k] = int(r[k], 0, 0, 15); return o; })()
+    ref: (() => { const r = d.ref || {}, o = {}; for (const k of ['off', 'ring1', 'ring2', 'head', 'face', 'mouth', 'shoes', 'wings']) o[k] = int(r[k], 0, 0, 15); return o; })()
   };
   const st = d.stats || {}; for (const k of STATS) h.stats[k] = int(st[k], 1, 1, 99);
   const seenK = new Set();
@@ -7324,7 +7324,13 @@ function renderGMPlayers() {
         el('button', { class: 'mini', text: '+10 ยาแดง', onclick: () => gmWrite(p.id, (r) => r.update({ potHp: p.potHp + 10, gmStamp: Date.now() })) }),
         reset),
       el('div', { class: 'ct' }, 'Base', bl, el('button', { class: 'mini', text: 'ตั้ง', onclick: () => gmWrite(p.id, (r) => r.update({ level: int(bl.value, p.level, 1, 999), exp: 0, gmStamp: Date.now() })) }),
-        'Job', jl, el('button', { class: 'mini', text: 'ตั้ง', onclick: () => gmWrite(p.id, (r) => r.update({ jobLv: int(jl.value, p.jobLv, 1, 999), jobExp: 0, gmStamp: Date.now() })) }))));
+        'Job', jl, el('button', { class: 'mini', text: 'ตั้ง', onclick: () => gmWrite(p.id, (r) => r.update({ jobLv: int(jl.value, p.jobLv, 1, 999), jobExp: 0, gmStamp: Date.now() })) })),
+      (() => { const SL = { weapon: 'อาวุธ', off: 'มือซ้าย/โล่', armor: 'เกราะ', ring1: 'แหวนขวา', ring2: 'แหวนซ้าย', head: 'หมวก', face: 'ใบหน้า', mouth: 'ปาก', shoes: 'รองเท้า', wings: 'ปีก' };
+        const cur = (k) => (k === 'weapon' ? p.refineW : k === 'armor' ? p.refineA : (p.ref && p.ref[k])) || 0;
+        const sel = el('select', { 'aria-label': 'ช่องที่จะตั้งค่าตีบวก' }); for (const k in SL) sel.append(el('option', { value: k, text: SL[k] + ' +' + cur(k) }));
+        const lv = el('input', { type: 'number', min: 0, max: 15, 'aria-label': 'ค่าตีบวก' }); lv.value = cur('weapon'); sel.addEventListener('change', () => { lv.value = cur(sel.value); });
+        return el('div', { class: 'ct' }, 'ตีบวก', sel, lv, el('button', { class: 'mini', text: 'ตั้ง', onclick: () => { const k = sel.value, v = int(lv.value, 0, 0, 15);
+          gmWrite(p.id, (r) => r.update(k === 'weapon' ? { refineW: v, gmStamp: Date.now() } : k === 'armor' ? { refineA: v, gmStamp: Date.now() } : { ref: Object.assign({}, p.ref || {}, { [k]: v }), gmStamp: Date.now() })); } })); })()));
   }
 }
 
