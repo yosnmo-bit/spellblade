@@ -391,6 +391,12 @@ details.box summary{font-weight:700;cursor:pointer}
 .mcard .mb{padding:14px 16px 16px}
 .mcard p{white-space:pre-wrap;overflow-wrap:anywhere;margin:0 0 14px}
 .mcard .btn-main{width:100%}
+.albrow{display:flex;align-items:center;gap:10px;padding:8px 10px;margin:6px 0;border-radius:12px;background:var(--panel-2)}
+.albrow.miss{opacity:.55}
+.alic{width:36px;height:36px;border-radius:10px;display:grid;place-items:center;font-size:1.2rem;background:color-mix(in srgb,var(--c) 35%,transparent);border:2px solid var(--c);flex:none}
+.albr{display:flex;flex-direction:column;align-items:flex-end;gap:4px;flex:none}
+.albr b{font-size:.74rem;white-space:nowrap}
+.albrow .ds{font-size:.8rem}
 .aprow{display:flex;align-items:center;gap:10px;padding:7px 10px;margin:5px 0;border-radius:12px;background:var(--panel-2)}
 .aprow .apic{font-size:1.3rem;width:26px;text-align:center}
 .aprow input[type=range]{width:100%;margin:4px 0 0;accent-color:#e0a920}
@@ -480,6 +486,7 @@ details.box summary{font-weight:700;cursor:pointer}
       <button class="sbtn" data-panel="dungeon"><span>🏰</span><small>ดันเจี้ยน</small></button>
       <button class="sbtn" data-panel="shop"><span>🔨</span><small>ร้าน</small></button>
       <button class="sbtn" data-panel="market"><span>🏪</span><small>ตลาด</small></button>
+      <button class="sbtn" data-panel="album"><span>📖</span><small>การ์ด</small></button>
       <button class="sbtn" data-panel="rank"><span>🏆</span><small>อันดับ</small></button>
       <button class="sbtn" data-panel="online"><span>👥</span><small>ผู้เล่น</small><span class="dot" id="dotOnline" hidden></span></button>
       <button class="sbtn" data-panel="sound"><span>⚙️</span><small>ตั้งค่า</small></button>
@@ -865,8 +872,8 @@ function MON(id, name, arch, color, lv, extra) {
 }
 
 const DEFAULT_CONFIG = {
-  version: '2.9.26',
-  patchNotes: 'อัปเดต 2.9.26\n• แก้อ่าวโจรสลัดที่ทะเลและเรือหายไป (กลับเป็นชายหาดแล้ว)\n• ห้อง GM: ช่องพื้นผิวมีตัวเลือก ชายหาด (ทะเล เรือ) แล้ว\n• (จาก 2.9.25) ปุ่มคูณค่าพลังมอนทั้งแผนที่ในห้อง GM',
+  version: '2.9.27',
+  patchNotes: 'อัปเดต 2.9.27\n• เมนูใหม่ 📖 อัลบั้มการ์ด: การ์ดทุกใบในเกม บอกว่าได้จากมอนตัวไหน แผนที่ไหน โอกาสดรอป เพิ่มค่าอะไร ใส่ช่องไหน และสะสมไปแล้วกี่ใบ\n• (จาก 2.9.26) แก้อ่าวโจรสลัดกลับเป็นชายหาด',
   announcement: 'ยินดีต้อนรับสู่ช่วงทดสอบ! เจอบั๊กบอก GM ได้เลย',
   rates: { bexp: 1, jexp: 1, gold: 1, drop: 1 },
   deathPenalty: 1,
@@ -6437,7 +6444,7 @@ $('#mmCv').addEventListener('click', (e) => {
 const PANELS = {
   stats: ['สถานะตัวละคร', panelStats], skills: ['สกิล', panelSkills], job: ['เปลี่ยนอาชีพ', panelJob],
   map: ['แผนที่', panelMap], dungeon: ['ดันเจี้ยน', panelDungeon], npc_healer: ['ซิสเตอร์ลูน่า', panelHealer], npc_smith: ['ริว ช่างตีบวก', panelSmith], market: ['ตลาดซื้อ-ขาย', panelMarket], shop: ['ร้านช่างตีเหล็ก', panelShop], rank: ['ทำเนียบนักผจญภัย', panelRank], gm: ['ห้องควบคุม GM', panelGM],
-  auto: ['โหมดออโต้', panelAuto], online: ['ผู้เล่นและปาร์ตี้', panelOnline], sound: ['ตั้งค่า', panelSound], chat: ['แชท', panelChat]
+  album: ['📖 อัลบั้มการ์ด', panelAlbum], auto: ['โหมดออโต้', panelAuto], online: ['ผู้เล่นและปาร์ตี้', panelOnline], sound: ['ตั้งค่า', panelSound], chat: ['แชท', panelChat]
 };
 function openPanel(name) {
   if (name === 'bag' || name === 'equip') { openEquip(name === 'bag' ? 'bag' : 'eq'); return; }
@@ -6672,6 +6679,43 @@ function panelMap(body) {
 /* shop */
 const refineChance = (r) => r < 4 ? 100 : Math.max(20, 100 - (r - 3) * 12);
 const refineCost = (kind, r) => Math.round((kind === 'w' ? CONFIG.shop.refineW : CONFIG.shop.refineA) * Math.pow(1.5, r));
+/* ---------- card album: every card in the game, where it drops, what it gives, where it goes ---------- */
+let albumFilter = 'all';
+function albumOwned(h) {
+  const n = {}, add = (c, k) => { if (c && c.k) n[c.k] = (n[c.k] || 0) + (k || 1); };
+  for (const it of h.inv) { if (it.kind === 'card') add(it, it.n); if (it.kind === 'gear') for (const c of it.cards || []) add(c); }
+  for (const k of Object.keys(h.eq || {})) { const s = h.eq[k]; if (s && s.cards) for (const c of s.cards) add(c); }
+  return n;
+}
+function albumEntries() {
+  const out = [], seen = new Set();
+  const push = (tpl, where, how) => { const c = cardItem(tpl); if (seen.has(c.k)) return; seen.add(c.k); out.push({ c, tpl, where, how }); };
+  for (const m of CONFIG.maps) for (const t of m.monsters) push(t, m.name + '  (Lv ' + m.min + '–' + m.max + ')', t.boss ? 'บอสแผนที่ ดรอป ' + CONFIG.cardChance + '% ต่อการตีปิด' : 'ดรอป ' + CONFIG.cardChance + '% ต่อตัว');
+  for (const dg of CONFIG.dungeons) { if (!dg.on) continue; const dm = dgMap(dg, 'album'); for (const t of dm.monsters) push(t, '🏰 ' + dg.name + '  (Lv ' + dg.minLv + '+)', t.raid ? 'บอสดันเจี้ยน ได้ ' + Math.min(100, Math.round(CONFIG.cardChance * 15 * 10) / 10) + '% ต่อการเคลียร์' : 'ดรอป ' + CONFIG.cardChance + '% ต่อตัว'); }
+  return out;
+}
+function panelAlbum(body) {
+  const h = S.hero, own = albumOwned(h), all = albumEntries();
+  const got = all.filter((e) => own[e.c.k]).length;
+  body.append(el('div', { class: 'pts' }, 'สะสมแล้ว ', el('b', { text: got + ' / ' + all.length }), el('span', { class: 'muted', text: '  ใบ (นับทั้งในกระเป๋าและที่ใส่อยู่)' })));
+  const fl = el('div', { class: 'mkf' });
+  for (const [id, lb] of [['all', 'ทั้งหมด'], ['have', 'มีแล้ว'], ['need', 'ยังไม่มี']].concat(Object.keys(CS_TH).map((k) => [k, CS_TH[k]])))
+    fl.append(el('button', { class: 'chip' + (albumFilter === id ? ' on' : ''), text: lb, onclick: () => { albumFilter = id; renderSheet(); } }));
+  body.append(fl);
+  const list = all.filter((e) => albumFilter === 'all' || (albumFilter === 'have' ? own[e.c.k] : albumFilter === 'need' ? !own[e.c.k] : e.c.cs === albumFilter));
+  if (!list.length) body.append(el('p', { class: 'note', text: 'ไม่มีการ์ดในหมวดนี้' }));
+  let where = '';
+  for (const e of list) {
+    if (e.where !== where) { where = e.where; body.append(el('div', { class: 'sub', text: where })); }
+    const n = own[e.c.k] || 0, ic = el('div', { class: 'alic', text: '🃏' }); ic.style.setProperty('--c', e.c.col);
+    body.append(el('div', { class: 'albrow' + (n ? '' : ' miss') }, ic,
+      el('div', { class: 'grow' },
+        el('div', { class: 'nm2', text: e.c.nm + (e.tpl.boss ? '  👑' : '') }),
+        el('div', { class: 'ds', text: bonusText(e.c.b) }),
+        el('div', { class: 'meta', text: 'จาก ' + e.tpl.name + ' Lv ' + e.tpl.lv + '  ·  ' + e.how })),
+      el('div', { class: 'albr' }, el('span', { class: 'rchip', style: '--rc:#b06ad8', text: 'ใส่' + CS_TH[e.c.cs] }), el('b', { text: n ? 'มี ' + n + ' ใบ' : 'ยังไม่มี' }))));
+  }
+}
 function potAutoSection(body) {
   const h = S.hero; h.potAuto = h.potAuto || { hp: 35, sp: 12, hpL: 0, spL: 0, all: 0 };
   body.append(el('div', { class: 'sub', text: '🧪 ใช้ยาอัตโนมัติ' }));
