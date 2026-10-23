@@ -779,7 +779,7 @@ defSkill('ar_eye', 'archer', 'ตาเหยี่ยว', '👁️', 'passive'
 defSkill('hu_trap', 'hunter', 'กับดักระเบิด', '💣', 'aoe', { m: [2.0, 0.3], r: 110, sp: [20, 1.5], cd: 5, color: '#ff8c42', fx: 'quake' });
 defSkill('hu_falcon', 'hunter', 'เหยี่ยวจู่โจม', '🦅', 'atk', { m: [2.5, 0.4], hits: 2, sp: [15, 1], cd: 2.5, color: '#d4f1ff', fx: 'arrow' });
 defSkill('hu_focus', 'hunter', 'สมาธิพราน', '🎯', 'buff', { b: { atk: 3, crit: 1 }, dur: 90, sp: [25, 2], cd: 120, color: '#fff0a8' });
-defSkill('sn_heart', 'sniper', 'ศรทะลวงใจ', '💘', 'atk', { m: [5.0, 0.6], crit: true, sp: [30, 2], cd: 3, color: '#ffffff', fx: 'arrow' });
+defSkill('sn_heart', 'sniper', 'ศรทะลวงใจ', '💘', 'atk', { m: [5.0, 0.3], crit: true, sp: [30, 2], cd: 3, color: '#ffffff', fx: 'arrow' });
 defSkill('sn_storm', 'sniper', 'พายุศรพันดอก', '🌪️', 'aoe', { m: [3.0, 0.4], r: 150, hits: 4, sp: [40, 3], cd: 6, color: '#ffe7a3', fx: 'pillars' });
 defSkill('sn_wind', 'sniper', 'ย่างก้าวสายลม', '🌬️', 'buff', { b: { aspd: 4, flee: 3 }, dur: 90, sp: [30, 2], cd: 120, color: '#c7ffd8' });
 // Thief line
@@ -843,8 +843,8 @@ function MON(id, name, arch, color, lv, extra) {
 }
 
 const DEFAULT_CONFIG = {
-  version: '2.9.5',
-  patchNotes: 'อัปเดต 2.9.5\n• เคลียร์บอสดันเจี้ยนแล้ว นับถอยหลัง 5 วินาที แล้วออกจากดันเจี้ยนอัตโนมัติ (เอาปุ่มอยู่ต่อออก กดออกเลยได้)\n• (จาก 2.9.4) ระบบปาร์ตี้ใหม่: หัวหน้า 👑 ตามหัวหน้า ขอเข้าตี้ โอนหัวหน้า และยืนยันเข้าดันพร้อมกัน',
+  version: '2.9.6',
+  patchNotes: 'อัปเดต 2.9.6\n• แผนที่ใหญ่ขึ้น 1.6 เท่าทุกด้าน พื้นที่เดินได้กว้างขึ้นเกือบ 3 เท่า มอนเยอะขึ้นตามพื้นที่\n• ออโต้: ตีมอนทุกเลเวลแล้ว ไม่ไล่ตามตัวที่เดินหนีไกล เปลี่ยนไปตีตัวที่ใกล้กว่า และสู้ตัวที่ตีเราก่อน\n• การ์ดลงขายในตลาดกลางได้ (มีปุ่มกรอง 🃏 การ์ด)\n• Sniper: ศรทะลวงใจ Lv10 ปรับจาก 1100% เป็น 800%',
   announcement: 'ยินดีต้อนรับสู่ช่วงทดสอบ! เจอบั๊กบอก GM ได้เลย',
   rates: { bexp: 1, jexp: 1, gold: 1, drop: 1 },
   deathPenalty: 1,
@@ -1441,7 +1441,7 @@ function renderGround(theme, w, h, dpr, seed, o) {
     for (let i = 0; i < 8; i++) { const x = R() * w, y = R() * h, r = 4 + R() * 6; g.fillStyle = theme === 'sand' ? '#9c7a48' : '#6f7368'; g.strokeStyle = 'rgba(20,20,20,.5)'; g.beginPath(); g.ellipse(x, y, r * 1.3, r, 0, 0, TAU); g.fill(); g.stroke(); g.fillStyle = 'rgba(255,255,255,.25)'; g.beginPath(); g.ellipse(x - r * 0.3, y - r * 0.35, r * 0.5, r * 0.3, 0, 0, TAU); g.fill(); }
   }
   if (theme === 'beach') {
-    const sy = h * 0.205, wave = (x) => sy + Math.sin(x * 0.018) * 10 + Math.sin(x * 0.047 + 1.3) * 5;
+    const sy = 246 * (h / WORLD.h), wave = (x) => sy + Math.sin(x * 0.018) * 10 + Math.sin(x * 0.047 + 1.3) * 5;
     g.fillStyle = '#c9b27c'; g.beginPath(); g.moveTo(0, 0); for (let x = 0; x <= w; x += 8) g.lineTo(x, wave(x) + 26); g.lineTo(w, 0); g.closePath(); g.fill();
     const sea = g.createLinearGradient(0, 0, 0, sy); sea.addColorStop(0, '#1d5c8f'); sea.addColorStop(0.65, '#2b8cb4'); sea.addColorStop(1, '#4cc3cf');
     g.fillStyle = sea; g.beginPath(); g.moveTo(0, 0); for (let x = 0; x <= w; x += 8) g.lineTo(x, wave(x)); g.lineTo(w, 0); g.closePath(); g.fill();
@@ -1471,8 +1471,9 @@ const S = {
   players: [], boardReady: false, sheet: null, draft: null, draftDirty: false, hb: []
 };
 const W = { w: 360, h: 640, dpr: 1, map: null, mapSig: '', ground: null, mons: [], fx: [], nums: [], pend: [], t: 0, uid: 1 };
-const WORLD = { w: 720, h: 1200 };
-const monCount = (map) => Math.round(map.count * 2);
+const WORLD = { w: 1152, h: 1920 };
+const WSCALE = (WORLD.w * WORLD.h) / (720 * 1200);   // area vs the original 720x1200 maps
+const monCount = (map) => Math.round(map.count * 4);
 S.zoom = num(lsGet('spellblade_zoom'), 1.15, 0.8, 1.8);
 try { S.autoSel = JSON.parse(lsGet('spellblade_autosel') || '{}') || {}; } catch (e) { S.autoSel = {}; }
 const P = { x: 180, y: 420, tx: null, ty: null, target: null, queued: null, atkT: 0, swingT: -9, castT: -9, castKind: '', cheerT: -9, dir: 1, walking: false,
@@ -1606,7 +1607,7 @@ function enterMap(id, silent, dmap) {
   W.mons = []; W.fx = []; W.nums = []; W.pend = [];
   buildGround();
   const b = bounds();
-  P.x = map.town ? TOWN_SPAWN.x : WORLD.w / 2; P.y = map.town ? TOWN_SPAWN.y : WORLD.h * (map.dg ? 0.86 : 0.62); P.target = null; P.tx = null; P.queued = null; P.npc = null; W.cam2 = null; R3.camSnap = true;
+  P.x = map.town ? TOWN_SPAWN.x : WORLD.w / 2; P.y = map.town ? TOWN_SPAWN.y : WORLD.h * (map.dg ? 0.74 : 0.62); P.target = null; P.tx = null; P.queued = null; P.npc = null; W.cam2 = null; R3.camSnap = true;
   NET.mapT = Date.now(); NET.kd = []; NET.hostRef = null; NET.dmg.clear(); NET.dmgT.clear(); NET.dmgBase.clear();
   const hostThere = activeOthers().some((o) => o.map === map.id && isLive(o));
   NET.isHost = !hostThere;
@@ -1853,7 +1854,7 @@ function playerDie() {
 function respawn() {
   P.dead = false; P.D = derived(); P.hp = P.D.maxHp; P.sp = Math.max(P.sp, P.D.maxSp * 0.5);
   if (W.map && !W.map.dg && !W.map.town) { enterMap('village', true); save(); }
-  P.x = W.map && W.map.dg ? WORLD.w / 2 : TOWN_SPAWN.x; P.y = W.map && W.map.dg ? WORLD.h * 0.86 : TOWN_SPAWN.y; R3.camSnap = true; P.ccUntil = 0;
+  P.x = W.map && W.map.dg ? WORLD.w / 2 : TOWN_SPAWN.x; P.y = W.map && W.map.dg ? WORLD.h * 0.74 : TOWN_SPAWN.y; R3.camSnap = true; P.ccUntil = 0;
   $('#dead').hidden = true;
   for (const m of W.mons) { m.angry = false; if (m.state === 'chase') m.state = 'idle'; }
   addFx({ kind: 'pillar', x: P.x, y: P.y, color: '#9fe3ff', dur: 0.8, w: 30 });
@@ -1865,8 +1866,7 @@ function pickTarget() {
     if (m.state === 'dead' || m.alpha < 0.5 || m.hp <= 0) continue;
     const onMe = m.tgt === me && m.state === 'chase';
     if (sel && !sel.has(m.id) && !onMe) continue;
-    if (!onMe && m.lv > lv + 6 && !(sel && sel.has(m.id))) continue;
-    const sc = Math.hypot(m.x - P.x, m.y - P.y) + Math.max(0, m.lv - lv) * 25 - (onMe ? 140 : 0);
+    const sc = Math.hypot(m.x - P.x, m.y - P.y) + Math.min(120, Math.max(0, m.lv - lv) * 4) - (onMe ? 160 : 0);
     if (sc < bs) { bs = sc; best = m; }
   }
   return best;
@@ -2027,7 +2027,19 @@ function update(dt) {
   P.atkT -= dt;
   if (ccActive()) { P.walking = false; return; }
   if (P.target && (P.target.state === 'dead' || P.target.hp <= 0 || !W.mons.includes(P.target))) { P.target = null; P.queued = null; }
-  if (S.auto) { if (!P.target) P.target = pickTarget(); autoAct(); }
+  if (S.auto) {
+    if (!P.target) P.target = pickTarget();
+    else if (!P.queued && W.t > (P.reT || 0)) {
+      // re-check twice a second: switch away from a far target when something is closer or is hitting us
+      P.reT = W.t + 0.5;
+      const cur = P.target, dc = Math.hypot(cur.x - P.x, cur.y - P.y), me = myKey(), curOnMe = cur.tgt === me && cur.state === 'chase';
+      if (dc > D.range + 12) {
+        const nb = pickTarget();
+        if (nb && nb !== cur) { const dn = Math.hypot(nb.x - P.x, nb.y - P.y), nbOnMe = nb.tgt === me && nb.state === 'chase'; if ((nbOnMe && !curOnMe) || dn + 60 < dc) P.target = nb; }
+      }
+    }
+    autoAct();
+  }
   let moving = false;
   if (P.target) {
     const tg = P.target, d = Math.hypot(tg.x - P.x, tg.y - P.y);
@@ -3489,25 +3501,26 @@ void main(){
     const inside = () => [B.x0 + R() * (B.x1 - B.x0), B.y0 + R() * (B.y1 - B.y0)];
     const edge = () => { const sd = (R() * 4) | 0, k = R(); return sd === 0 ? [B.x0 - 50 + R() * 70, B.y0 + k * (B.y1 - B.y0)] : sd === 1 ? [B.x1 + 50 - R() * 70, B.y0 + k * (B.y1 - B.y0)] : sd === 2 ? [B.x0 + k * (B.x1 - B.x0), B.y0 - 50 + R() * 70] : [B.x0 + k * (B.x1 - B.x0), B.y1 + 50 - R() * 70]; };
     if (th === 'beach') {
-      const put = (type, x, y, s, r) => out.push({ type, x, y, s: s || 1, r: r != null ? r : R() * TAU, seed: R() * 10 });
+      const sx = WORLD.w / 720, put = (type, x, y, s, r) => out.push({ type, x: type === 'palm' || type === 'prock' || type === 'barrel' && x > 700 ? x : x * sx, y, s: s || 1, r: r != null ? r : R() * TAU, seed: R() * 10 });
       put('ship', 175, 236, 1, 0.35); put('dock', 548, 204, 1, 0); put('dockpole', 506, 168, 1, 0); put('dockpole', 590, 168, 1, 0);
       put('cannon', 262, 318, 1, -0.4); put('cannon', 96, 330, 1, 0.3); put('chest', 300, 300, 1, -0.2); put('barrel', 640, 300, 1); put('barrel', 664, 318, 0.9); put('barrel', 620, 330, 1.05);
-      put('bones', 560, 960, 1, 2.2);
-      const clear = (x, y) => Math.hypot(x - 560, y - 960) > 120 && y > 300;
-      for (let i = 0; i < 24; i++) { const [x, y] = edge(); if (y > 300) put('palm', x, y, 0.85 + R() * 0.4); }
-      for (let i = 0; i < 40 && out.length < 58; i++) { const [x, y] = inside(); if (!clear(x, y)) continue; const k = R(); put(k < 0.18 ? 'palm' : k < 0.62 ? 'prock' : 'barrel', x, y, 0.8 + R() * 0.4); }
+      put('bones', 560, WORLD.h * 0.8, 1, 2.2);
+      const clear = (x, y) => Math.hypot(x - 560 * sx, y - WORLD.h * 0.8) > 120 && y > 300;
+      for (let i = 0; i < 24 * WSCALE; i++) { const [x, y] = edge(); if (y > 300) put('palm', x, y, 0.85 + R() * 0.4); }
+      for (let i = 0; i < 40 * WSCALE && out.length < 58 * WSCALE; i++) { const [x, y] = inside(); if (!clear(x, y)) continue; const k = R(); put(k < 0.18 ? 'palm' : k < 0.62 ? 'prock' : 'barrel', x, y, 0.8 + R() * 0.4); }
       return out;
     }
     if (map.town) {
-      const free = (x, y) => Math.hypot(x - 360, y - 600) > 175 && Math.abs(x - 360) > 46 && Math.abs(y - 600) > 40 && !(typeof TOWN_BLOCKS === 'object' && TOWN_BLOCKS.some((b) => x > b[0] - 30 && x < b[2] + 30 && y > b[1] - 30 && y < b[3] + 30));
-      for (let i = 0; i < 26; i++) { const [x, y] = edge(); if (free(x, y)) add('tree', x, y, 0.85 + R() * 0.5); }
-      for (let i = 0; i < 70 && out.length < 60; i++) { const [x, y] = inside(); if (free(x, y)) add(R() < 0.55 ? 'bush' : 'fern', x, y, 0.7 + R() * 0.5); }
+      const cx = WORLD.w / 2, cy = WORLD.h / 2;
+      const free = (x, y) => Math.hypot(x - cx, y - cy) > 175 && Math.abs(x - cx) > 46 && Math.abs(y - cy) > 40 && !(typeof TOWN_BLOCKS === 'object' && TOWN_BLOCKS.some((b) => x > b[0] - 30 && x < b[2] + 30 && y > b[1] - 30 && y < b[3] + 30));
+      for (let i = 0; i < 26 * WSCALE; i++) { const [x, y] = edge(); if (free(x, y)) add('tree', x, y, 0.85 + R() * 0.5); }
+      for (let i = 0; i < 70 * WSCALE && out.length < 60 * WSCALE; i++) { const [x, y] = inside(); if (free(x, y)) add(R() < 0.55 ? 'bush' : 'fern', x, y, 0.7 + R() * 0.5); }
       return out;
     }
     const IN = { tree: 0.12, pillar: 0.3, cactus: 0.5, fern: 0.6, rock: 0.65, bush: 0.5, brazier: 1, pool: 1 };
     const n = { grass: [['fern', 24], ['rock', 18], ['bush', 12]], forest: [['tree', 26], ['fern', 24], ['rock', 8]], sand: [['cactus', 14], ['rock', 22]],
       ruins: [['pillar', 14], ['fern', 20], ['rock', 12], ['brazier', 7]], lava: [['rock', 28], ['brazier', 8], ['pool', 9]] }[th] || [['rock', 16]];
-    for (const [type, cnt] of n) for (let i = 0; i < cnt; i++) {
+    for (const [type, cnt] of n) for (let i = 0; i < Math.round(cnt * WSCALE); i++) {
       const inner = R() < (IN[type] != null ? IN[type] : 0.5), [x, y] = inner ? inside() : edge();
       add(type, x, y, type === 'rock' && inner ? 0.4 + R() * 0.4 : type === 'pool' ? 0.8 + R() * 0.8 : 0.8 + R() * 0.6);
     }
@@ -5170,7 +5183,7 @@ function enterDungeonNow(id, fromCheck) {
   DG.ret = h.mapId;
   enterMap(null, true, dgMap(dg, dgInstance(dg)));
   DG.t0 = W.t;
-  P.x = WORLD.w / 2; P.y = WORLD.h * 0.86; R3.camSnap = true;
+  P.x = WORLD.w / 2; P.y = WORLD.h * 0.74; R3.camSnap = true;
   AU.sfx('warp');
   raidBanner('🏰 ' + dg.name + '  ระวังตัว บอสกำลังมา!', 'warn');
   save();
@@ -5401,10 +5414,12 @@ const myAura = () => auraArgs(topRar(S.hero), weaponRar(S.hero), S.hero.refineW,
 const MK = { all: [], sub: false, tab: 'buy', filter: 'all', sort: 'new', busy: false, pick: null, collecting: false };
 const MK_TAX = 5, MK_MAX = 8;
 
+const mkSellable = (it) => !!it && ((it.kind === 'gear' && GEAR[it.id] && GEAR[it.id].dg) || it.kind === 'card');
+const mkCol = (it) => (it.kind === 'card' ? '#d9a8ff' : rarCol(it.r || 0));
 function mkSanitize(d, id) {
   if (!d || typeof d !== 'object') return null;
   const it = sanitizeItem(d.it, false);
-  if (!it || it.kind !== 'gear' || !GEAR[it.id] || !GEAR[it.id].dg) return null;
+  if (!mkSellable(it)) return null;
   return { id, s: txt(d.s, 64), sn: str(d.sn, 'นักผจญภัย', 16), it, p: int(d.p, 1, 1, 1e9), t: num(d.t, 0, 0, 1e15),
     st: ['open', 'sold', 'cancel'].includes(d.st) ? d.st : 'open', b: txt(d.b, 64), bn: str(d.bn, '', 16) };
 }
@@ -5437,7 +5452,7 @@ const mkMine = () => MK.all.filter((L) => L.s === S.uid && L.st === 'open');
 async function mkList(k, price) {
   const h = S.hero, it = h.inv.find((x) => x.k === k);
   if (!S.db || !S.uid) { toast('ตลาดใช้ได้เมื่อเชื่อมต่อออนไลน์'); return; }
-  if (!it || it.kind !== 'gear' || !GEAR[it.id].dg) { toast('ลงขายได้เฉพาะอุปกรณ์จากดันเจี้ยน'); return; }
+  if (!mkSellable(it)) { toast('ลงขายได้เฉพาะอุปกรณ์จากดันเจี้ยนและการ์ด'); return; }
   price = Math.floor(Number(price));
   if (!(price >= 1 && price <= 1e9)) { toast('ใส่ราคา 1 ถึง 1,000,000,000 G'); return; }
   if (mkMine().length >= MK_MAX) { toast('ลงขายพร้อมกันได้สูงสุด ' + MK_MAX + ' ชิ้น'); return; }
@@ -5495,6 +5510,9 @@ async function mkCancel(id) {
 
 /* ---------- panel ---------- */
 function mkItemInfo(h, it) {
+  if (it.kind === 'card') return el('div', { class: 'grow' },
+    el('div', { class: 'nm2', style: 'color:#b06ad8', text: '🃏 ' + it.nm }), el('span', { class: 'rchip', style: '--rc:#d9a8ff', text: 'การ์ด Lv.' + (it.lv || 1) }),
+    el('div', { class: 'ds', text: bonusText(it.b || {}) }), el('div', { class: 'meta', text: 'ใส่ช่อง: ' + (CS_TH[it.cs] || it.cs || '-') }));
   const g = GEAR[it.id], r = it.r || 0;
   return el('div', { class: 'grow' },
     el('div', { class: 'nm2', style: 'color:' + rarCol(r), text: g.ic + ' ' + it.nm }),
@@ -5509,47 +5527,50 @@ function panelMarket(body) {
   const tabs = el('div', { class: 'mktabs', role: 'tablist' });
   for (const [id, lb] of [['buy', '🛒 ซื้อ'], ['sell', '💰 ขาย'], ['mine', '📋 ของฉัน (' + mkMine().length + ')']])
     tabs.append(el('button', { class: 'mkt' + (MK.tab === id ? ' on' : ''), role: 'tab', 'aria-selected': MK.tab === id ? 'true' : 'false', text: lb, onclick: () => { MK.tab = id; renderSheet(); } }));
-  body.append(tabs, el('p', { class: 'note', text: 'ซื้อขายอุปกรณ์จากดันเจี้ยนระหว่างผู้เล่น ผู้ขายเสียภาษี ' + MK_TAX + '% และได้เงินอัตโนมัติเมื่อขายได้ ลงขายพร้อมกันได้คนละ ' + MK_MAX + ' ชิ้น' }));
+  body.append(tabs, el('p', { class: 'note', text: 'ซื้อขายอุปกรณ์จากดันเจี้ยนและการ์ดระหว่างผู้เล่น ผู้ขายเสียภาษี ' + MK_TAX + '% และได้เงินอัตโนมัติเมื่อขายได้ ลงขายพร้อมกันได้คนละ ' + MK_MAX + ' ชิ้น' }));
   if (MK.tab === 'buy') {
     const fl = el('div', { class: 'mkf' });
-    for (const [id, lb] of [['all', 'ทั้งหมด'], ['mine', 'ตรงอาชีพฉัน'], ['weapon', 'อาวุธ'], ['armor', 'เกราะ'], ['shoes', 'รองเท้า']])
+    for (const [id, lb] of [['all', 'ทั้งหมด'], ['mine', 'ตรงอาชีพฉัน'], ['weapon', 'อาวุธ'], ['armor', 'เกราะ'], ['shoes', 'รองเท้า'], ['card', '🃏 การ์ด']])
       fl.append(el('button', { class: 'chip' + (MK.filter === id ? ' on' : ''), text: lb, onclick: () => { MK.filter = id; renderSheet(); } }));
     const so = el('select', { 'aria-label': 'เรียงตาม', onchange: (e) => { MK.sort = e.target.value; renderSheet(); } });
     for (const [v, lb] of [['new', 'ล่าสุด'], ['low', 'ราคาต่ำสุด'], ['high', 'ราคาสูงสุด'], ['rar', 'หายากสุด']]) so.append(el('option', { value: v, text: lb, selected: MK.sort === v }));
     fl.append(so); body.append(fl);
     let list = MK.all.filter((L) => L.st === 'open');
-    if (MK.filter === 'mine') list = list.filter((L) => GEAR[L.it.id].line ? canUse(h, L.it.id) : true);
-    else if (MK.filter !== 'all') list = list.filter((L) => GEAR[L.it.id].slot === MK.filter);
+    if (MK.filter === 'mine') list = list.filter((L) => L.it.kind === 'card' || (GEAR[L.it.id].line ? canUse(h, L.it.id) : true));
+    else if (MK.filter === 'card') list = list.filter((L) => L.it.kind === 'card');
+    else if (MK.filter !== 'all') list = list.filter((L) => L.it.kind === 'gear' && GEAR[L.it.id].slot === MK.filter);
     list.sort(MK.sort === 'low' ? (a, b) => a.p - b.p : MK.sort === 'high' ? (a, b) => b.p - a.p : MK.sort === 'rar' ? (a, b) => (b.it.r || 0) - (a.it.r || 0) || a.p - b.p : (a, b) => b.t - a.t);
     if (!list.length) body.append(el('p', { class: 'note', text: 'ยังไม่มีของในหมวดนี้' }));
     for (const L of list.slice(0, 60)) {
       const own = L.s === S.uid;
-      body.append(el('div', { class: 'mkrow', style: '--rc:' + rarCol(L.it.r || 0) }, mkItemInfo(h, L.it),
+      body.append(el('div', { class: 'mkrow', style: '--rc:' + mkCol(L.it) }, mkItemInfo(h, L.it),
         el('div', { class: 'mkbuy' }, el('b', { text: fmt(L.p) + ' G' }), el('small', { text: 'โดย ' + L.sn }),
           el('button', { class: 'mini pri', text: own ? 'ของคุณ' : 'ซื้อ', disabled: own || MK.busy || h.gold < L.p, onclick: () => mkBuy(L.id) }))));
     }
   } else if (MK.tab === 'sell') {
-    const mine = h.inv.filter((x) => x.kind === 'gear' && GEAR[x.id].dg);
-    if (!mine.length) body.append(el('p', { class: 'note', text: 'ยังไม่มีอุปกรณ์จากดันเจี้ยนในกระเป๋า ไปเคลียร์ดันเจี้ยนแล้วกลับมาขายได้เลย' }));
+    const mine = h.inv.filter(mkSellable);
+    if (!mine.length) body.append(el('p', { class: 'note', text: 'ยังไม่มีอุปกรณ์จากดันเจี้ยนหรือการ์ดในกระเป๋า ไปล่ามอนหรือเคลียร์ดันเจี้ยนแล้วกลับมาขายได้เลย' }));
+    else if (mine.some((x) => x.kind === 'card')) body.append(el('p', { class: 'note', text: 'การ์ดลงขายได้ทีละ 1 ใบต่อรายการ' }));
     for (const it of mine) {
-      const sug = Math.max(100, Math.round(it.pr * 4 / 100) * 100);
+      const sug = Math.max(100, Math.round(it.pr * (it.kind === 'card' ? 5 : 4) / 100) * 100);
       const inp = el('input', { class: 'mkprice', type: 'number', min: 1, max: 1e9, step: 100, value: sug, 'aria-label': 'ราคาขาย ' + it.nm, inputmode: 'numeric' });
-      body.append(el('div', { class: 'mkrow' + (MK.pick === it.k ? ' pick' : ''), style: '--rc:' + rarCol(it.r || 0) }, mkItemInfo(h, it),
-        el('div', { class: 'mkbuy' }, inp, el('small', { text: 'ขาย NPC ได้ ' + fmt(it.pr) + ' G' }),
+      body.append(el('div', { class: 'mkrow' + (MK.pick === it.k ? ' pick' : ''), style: '--rc:' + mkCol(it) }, mkItemInfo(h, it),
+        el('div', { class: 'mkbuy' }, inp, el('small', { text: (it.kind === 'card' && it.n > 1 ? 'มี ' + it.n + ' ใบ  ' : '') + 'ขาย NPC ได้ ' + fmt(it.pr) + ' G' }),
           el('button', { class: 'mini pri', text: 'ลงขาย', disabled: MK.busy, onclick: () => mkList(it.k, inp.value) }))));
     }
   } else {
     const mine = mkMine();
     if (!mine.length) body.append(el('p', { class: 'note', text: 'ยังไม่มีของที่ลงขายอยู่' }));
-    for (const L of mine) body.append(el('div', { class: 'mkrow', style: '--rc:' + rarCol(L.it.r || 0) }, mkItemInfo(h, L.it),
+    for (const L of mine) body.append(el('div', { class: 'mkrow', style: '--rc:' + mkCol(L.it) }, mkItemInfo(h, L.it),
       el('div', { class: 'mkbuy' }, el('b', { text: fmt(L.p) + ' G' }), el('small', { text: 'ได้จริง ' + fmt(Math.floor(L.p * (100 - MK_TAX) / 100)) + ' G' }),
         el('button', { class: 'mini warn', text: 'ยกเลิก', disabled: MK.busy, onclick: () => mkCancel(L.id) }))));
   }
 }
 /* =================== TOWN, NPCS, ORES & REFINING =================== */
 const TOWN = { id: 'village', name: 'หมู่บ้านอรุณรุ่ง', theme: 'village', min: 1, max: 99, count: 0, monsters: [], town: true };
-const TOWN_SPAWN = { x: 360, y: 712 };
-const TOWN_BLOCKS = (typeof KK === 'object' && KK.vblocks) ? KK.vblocks : [];
+const TOX = WORLD.w / 2 - 360, TOY = WORLD.h / 2 - 600;   // village was laid out around (360, 600)
+const TOWN_SPAWN = { x: 360 + TOX, y: 712 + TOY };
+const TOWN_BLOCKS = ((typeof KK === 'object' && KK.vblocks) ? KK.vblocks : []).map((b) => [b[0] + TOX, b[1] + TOY, b[2] + TOX, b[3] + TOY]);
 const NPCS = [
   { id: 'healer', name: 'ซิสเตอร์ลูน่า', role: 'ฟื้น HP / SP', x: 318, y: 588, job: 'highpriest', look: { g: 'f', hair: 3, hc: '#f2e6c8' },
     spec: { m: 'Mage', line: 'acolyte', hide: ['Mage_Hat'], r: 'fw_wand_A', l: 'spellbook_open', vkey: 'npc_healer', shine: 0.25,
@@ -5558,7 +5579,7 @@ const NPCS = [
     spec: { m: 'Ranger', line: 'acolyte', hide: ['Ranger_Quiver', 'Ranger_Cape'], r: 'fw_hammer_C', vkey: 'npc_smith', shine: 0,
       rec: [{ h: [185, 235], to: 24, s: 1.05 }] } }
 ];
-for (const n of NPCS) { n.actT = -9; n.actKind = ''; n.ent = {}; }
+for (const n of NPCS) { n.actT = -9; n.actKind = ''; n.ent = {}; n.x += TOX; n.y += TOY; }
 const isTown = () => !!(W.map && W.map.town);
 
 /* ---------- collision with houses ---------- */
