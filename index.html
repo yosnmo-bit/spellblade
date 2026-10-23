@@ -908,8 +908,8 @@ function MON(id, name, arch, color, lv, extra) {
 }
 
 const DEFAULT_CONFIG = {
-  version: '2.9.37',
-  patchNotes: 'อัปเดต 2.9.37\n• แก้บั๊กค่าตีบวกช่องมือซ้าย (มีดมือซ้าย/โล่) หายหลังโหลดข้อมูลใหม่หรือสลับสไตล์อาวุธ\n• ห้อง GM: ตั้งค่าตีบวกของผู้เล่นได้ทุกช่อง (ใช้คืนค่าที่หายไป)\n• (จาก 2.9.36) โล่ดันเจี้ยน',
+  version: '2.9.38',
+  patchNotes: 'อัปเดต 2.9.38\n• ห้อง PVP: เห็นห้องที่เปิดอยู่ จำนวนคนในห้อง และกดเข้าร่วมได้ทันที\n• สนาม PVP: ใช้ยาฟื้นเลือดไม่ได้ (ยาแดง ยาแดงขวดใหญ่ ยาพิเศษ) สกิลฮีลได้ 70%\n• (จาก 2.9.37) แก้ค่าตีบวกมือซ้ายหาย',
   announcement: 'ยินดีต้อนรับสู่ช่วงทดสอบ! เจอบั๊กบอก GM ได้เลย',
   rates: { bexp: 1, jexp: 1, gold: 1, drop: 1 },
   deathPenalty: 1,
@@ -2063,7 +2063,7 @@ function castSkill(id, fromQueue) {
       }
     });
   } else if (sk.type === 'heal') {
-    const pct = sk.h[0] + sk.h[1] * lv, flat = D.matk * 0.4;
+    const hm = isPvp() ? PVP_HEAL : 1, pct = (sk.h[0] + sk.h[1] * lv) * hm, flat = D.matk * 0.4 * hm;
     if (sk.zone) healZone(sk, pct, flat);
     else {
       const mate = sk.party ? healTarget() : null;
@@ -2108,6 +2108,7 @@ function autoPotTick() {
 function usePot(kind, quiet) {
   const h = S.hero, D = P.D, pt = POT[kind];
   if (!pt || P.dead) return false;
+  if (pt.hp && isPvp()) { if (!quiet) toast('ใช้ยาฟื้นเลือดไม่ได้ในสนาม PVP'); return false; }
   const cdl = ((P.potCd || (P.potCd = {}))[kind] || 0) - W.t;
   if (cdl > 0) { if (!quiet) toast(pt.nm + ' ใช้ได้อีกใน ' + cdl.toFixed(1) + ' วิ'); return false; }
   if ((h[pt.f] || 0) <= 0) { if (!quiet) toast(pt.nm + 'หมด ซื้อได้ที่ร้าน'); return false; }
@@ -6282,7 +6283,7 @@ function partyPresence() {
 }
 /* =================== PVP rooms: open arena, invites, player-vs-player damage =================== */
 const PVP = { room: '', k: 0, d: 0, inv: {}, offer: null, offSeen: new Set(), hitSeen: new Map(), kSeen: new Set(), kb: null };
-const PVP_SCALE = 0.5, PVP_RESPAWN = 5;
+const PVP_SCALE = 0.5, PVP_RESPAWN = 5, PVP_HEAL = 0.7;
 const isPvp = () => !!(W.map && W.map.pvp);
 const pvpPool = () => (isPvp() ? (W.pvp || []) : W.mons);
 function pvpMap(rid) { return { id: ('pvp:' + rid).slice(0, 40), name: '⚔️ สนาม PVP', theme: 'village', min: 1, max: 999, count: 0, monsters: [], pvp: true }; }
@@ -6354,6 +6355,7 @@ function pvpIntake() {
     if (o.pvh) for (const e of o.pvh) if (e[1] === NET.me && !PVP.hitSeen.has(e[0])) { PVP.hitSeen.set(e[0], now); pvpTakeHit(e[2], e[3], o); }
     if (o.dead && o.kb && o.kb[0] === NET.me) { const id = o.key + ':' + o.kb[1]; if (!PVP.kSeen.has(id)) { PVP.kSeen.add(id); PVP.k++; toast('⚔️ คุณล้ม ' + o.name + '!'); AU.sfx('jobup'); addNum(P.x, P.y - 70, '⚔️ +1 KILL', '#ffd166', 15, { font: 'th', dur: 1.6, pop: true }); renderPvpBar(); } }
   }
+  if (S.sheet === 'pvp') { const sig = isPvp() ? othersHere().map((o) => o.key + (o.pkd || '')).join() : pvpRooms().map(([m, ps]) => m + ps.length).join(); if (sig !== PVP.sig) { PVP.sig = sig; renderSheet(); } }
   if (PVP.hitSeen.size > 400) for (const [k, t] of PVP.hitSeen) if (now - t > 20000) PVP.hitSeen.delete(k);
 }
 function showPvpOffer() {
@@ -6364,10 +6366,18 @@ function renderPvpBar() {
   const b = $('#pvpBar'); if (!b) return; b.hidden = !isPvp();
   if (isPvp()) $('#pvpBarT').textContent = '⚔️ PVP   K ' + PVP.k + ' / D ' + PVP.d;
 }
+function pvpRooms() { const rooms = {}; for (const o of activeOthers()) if (isLive(o) && String(o.map).startsWith('pvp:')) (rooms[o.map] = rooms[o.map] || []).push(o); return Object.entries(rooms).sort((a, b) => b[1].length - a[1].length); }
 function panelPvp(body) {
   if (!isPvp()) {
-    body.append(el('div', { class: 'npcsay' }, el('b', { text: '⚔️ ห้อง PVP' }), el('p', { text: 'สร้างห้องแล้วเชิญผู้เล่นที่ออนไลน์อยู่ ทุกคนจะวาปไปลานกว้างของเมืองหลัก ไม่มีสิ่งกีดขวาง ตายไม่เสีย EXP เพื่อนร่วมปาร์ตี้ตีกันเองไม่ได้ จึงจับทีมสู้ได้' })));
-    body.append(el('button', { class: 'btn-main', text: '⚔️ สร้างห้อง PVP', disabled: isDg(), onclick: pvpCreate }));
+    body.append(el('div', { class: 'npcsay' }, el('b', { text: '⚔️ ห้อง PVP' }), el('p', { text: 'สร้างห้องหรือเข้าร่วมห้องที่เปิดอยู่ ทุกคนจะวาปไปลานกว้างของเมืองหลัก ไม่มีสิ่งกีดขวาง ตายไม่เสีย EXP เพื่อนร่วมปาร์ตี้ตีกันเองไม่ได้ จึงจับทีมสู้ได้' })));
+    const rooms = pvpRooms();
+    body.append(el('div', { class: 'sub', text: '🏟️ ห้องที่เปิดอยู่ (' + rooms.length + ')' }));
+    if (!rooms.length) body.append(el('p', { class: 'note', text: 'ยังไม่มีห้อง PVP ที่เปิดอยู่ สร้างห้องใหม่ได้เลย' }));
+    for (const [mid, ps] of rooms) body.append(el('div', { class: 'list-row' }, el('span', { class: 'rk', text: '⚔️' }),
+      el('div', { class: 'grow' }, el('div', { class: 'nm2', text: 'ห้องของ ' + ps[0].name }), el('div', { class: 'ds', text: ps.slice(0, 4).map((o) => o.name + ' Lv' + o.lv).join(', ') + (ps.length > 4 ? ' และอีก ' + (ps.length - 4) + ' คน' : '') })),
+      el('b', { class: 'px', text: ps.length + ' คน' }),
+      el('button', { class: 'mini pri', text: 'เข้าร่วม', disabled: isDg(), onclick: () => pvpEnter(mid.slice(4)) })));
+    body.append(el('button', { class: 'btn-main', text: '⚔️ สร้างห้อง PVP ใหม่', disabled: isDg(), onclick: pvpCreate }));
     if (isDg()) body.append(el('p', { class: 'note', text: 'ออกจากดันเจี้ยนก่อนจึงสร้างห้องได้' }));
     return;
   }
@@ -6383,7 +6393,7 @@ function panelPvp(body) {
   for (const o of out) { const sent = Date.now() - (PVP.inv[o.key] || 0) < 60000;
     body.append(el('div', { class: 'list-row' }, el('div', { class: 'grow' }, el('div', { class: 'nm2', text: o.name }), el('div', { class: 'ds', text: jobName(o.job) + '  Lv ' + o.lv + '  ·  ' + mapName(o.map) })),
       el('button', { class: 'mini' + (sent ? '' : ' pri'), text: sent ? 'เชิญแล้ว' : 'เชิญ', disabled: sent || String(o.map).startsWith('dg:'), onclick: () => pvpInvite(o) }))); }
-  body.append(el('p', { class: 'note', text: 'ดาเมจระหว่างผู้เล่นคิดหลัง DEF ของผู้ถูกตี และลดเหลือ ' + Math.round(PVP_SCALE * 100) + '%  ตายแล้วเกิดใหม่ในสนามใน ' + PVP_RESPAWN + ' วินาที' }));
+  body.append(el('p', { class: 'note', text: 'ดาเมจระหว่างผู้เล่นคิดหลัง DEF ของผู้ถูกตี และลดเหลือ ' + Math.round(PVP_SCALE * 100) + '%  ใช้ยาฟื้นเลือดไม่ได้  สกิลฮีลได้ ' + Math.round(PVP_HEAL * 100) + '%  ตายแล้วเกิดใหม่ในสนามใน ' + PVP_RESPAWN + ' วินาที' }));
   body.append(el('button', { class: 'btn-main', style: 'background:linear-gradient(#c0505a,#8e2f38)', text: '🚪 ออกจากสนาม', onclick: () => { closeSheet(); pvpLeave(); } }));
 }
 /* =================== UI =================== */
