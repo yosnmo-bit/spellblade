@@ -868,8 +868,8 @@ defSkill('ws_execute', 'whitesmith', 'ประหารเหล็กกล้
 defSkill('ws_quake', 'whitesmith', 'ขวานถล่มปฐพี', '🌋', 'aoe', { m: [3.2, 0.45], r: 150, self: true, hits: 3, sp: [42, 3], cd: 6, color: '#ff8f3d', fx: 'quake' });
 defSkill('ws_titan', 'whitesmith', 'พลังไททัน', '💪', 'buff', { b: { atk: 6, def: 3 }, dur: 90, sp: [35, 2], cd: 120, color: '#fff3c4' });
 
-const BUFF_TH = { pdmg: 'ดาเมจกายภาพ', mdmg: 'ดาเมจเวท', hit: 'HIT', msp: 'SP สูงสุด', cdr: 'ลดคูลดาวน์สกิล', watk: 'ATK', wmatk: 'MATK', str: 'STR', agi: 'AGI', vit: 'VIT', int: 'INT', luk: 'LUK', matkPct: 'MATK', atk: 'ATK', matk: 'MATK', aspd: 'ความเร็วตี', def: 'DEF', crit: 'คริ', flee: 'หลบ', hpPct: 'HP สูงสุด', atkPct: 'ATK', aspdPct: 'ความเร็วตี', discount: 'ส่วนลดร้าน', dex: 'DEX' };
-const PCT_KEYS = { pdmg: 1, mdmg: 1, cdr: 1, matkPct: 1, atk: 1, matk: 1, aspd: 1, hpPct: 1, atkPct: 1, aspdPct: 1, discount: 1, crit: 1 };
+const BUFF_TH = { bowPct: 'พลังธนู', critDmg: 'ความแรงคริ', pdmg: 'ดาเมจกายภาพ', mdmg: 'ดาเมจเวท', hit: 'HIT', msp: 'SP สูงสุด', cdr: 'ลดคูลดาวน์สกิล', watk: 'ATK', wmatk: 'MATK', str: 'STR', agi: 'AGI', vit: 'VIT', int: 'INT', luk: 'LUK', matkPct: 'MATK', atk: 'ATK', matk: 'MATK', aspd: 'ความเร็วตี', def: 'DEF', crit: 'คริ', flee: 'หลบ', hpPct: 'HP สูงสุด', atkPct: 'ATK', aspdPct: 'ความเร็วตี', discount: 'ส่วนลดร้าน', dex: 'DEX' };
+const PCT_KEYS = { bowPct: 1, critDmg: 1, pdmg: 1, mdmg: 1, cdr: 1, matkPct: 1, atk: 1, matk: 1, aspd: 1, hpPct: 1, atkPct: 1, aspdPct: 1, discount: 1, crit: 1 };
 
 /* ---------- monsters & maps ---------- */
 const ARCHES = ['blob', 'shroom', 'beast', 'bat', 'plant', 'bones', 'ghost', 'brute', 'drake'];
@@ -908,8 +908,8 @@ function MON(id, name, arch, color, lv, extra) {
 }
 
 const DEFAULT_CONFIG = {
-  version: '2.9.38',
-  patchNotes: 'อัปเดต 2.9.38\n• ห้อง PVP: เห็นห้องที่เปิดอยู่ จำนวนคนในห้อง และกดเข้าร่วมได้ทันที\n• สนาม PVP: ใช้ยาฟื้นเลือดไม่ได้ (ยาแดง ยาแดงขวดใหญ่ ยาพิเศษ) สกิลฮีลได้ 70%\n• (จาก 2.9.37) แก้ค่าตีบวกมือซ้ายหาย',
+  version: '2.9.39',
+  patchNotes: 'อัปเดต 2.9.39: การ์ดหลายแบบ\n• การ์ดอาวุธมี STR / INT+MATK / DEX+พลังธนู (การ์ดบอสสุ่มตอนดรอป มอนทั่วไปมีแบบประจำตัว)\n• การ์ดโล่ หมวก ใบหน้า ปาก รองเท้า สุ่ม 1 ใน 6 แบบตอนดรอป: แบบเดิม STR+ATK VIT+HP INT+MATK DEX+พลังธนู LUK+ความแรงคริ\n• ค่าพลังใหม่: พลังธนู% และความแรงคริ%\n• อัลบั้มการ์ดบอกแบบที่สุ่มได้',
   announcement: 'ยินดีต้อนรับสู่ช่วงทดสอบ! เจอบั๊กบอก GM ได้เลย',
   rates: { bexp: 1, jexp: 1, gold: 1, drop: 1 },
   deathPenalty: 1,
@@ -1659,7 +1659,7 @@ function derived(h) {
   const base = L.atk === 'ranged'
     ? st.dex * 2 + Math.pow(Math.floor(st.dex / 10), 2) + st.str * 0.4 + st.luk * 0.3
     : st.str * 2 + Math.pow(Math.floor(st.str / 10), 2) + st.dex * 0.4 + st.luk * 0.3;
-  const atk = (base + watk + (pa.watk || 0) + h.level) * L.atkMod * (1 + ((pa.atkPct || 0) + (bu.atk || 0)) / 100);
+  const atk = (base + watk + (pa.watk || 0) + h.level) * L.atkMod * (1 + ((pa.atkPct || 0) + (bu.atk || 0) + (L.atk === 'ranged' ? (pa.bowPct || 0) : 0)) / 100);
   const wm = w === 'staff' ? [14, 34, 64, 98][tier] * 1.2 + h.refineW * 5 : w === 'mace' ? [8, 24, 46, 72][tier] + h.refineW * 4 : 0;
   const matk = (st.int * 2 + Math.pow(Math.floor(st.int / 7), 2) + wm + (pa.wmatk || 0) + h.level) * (1 + ((pa.matkPct || 0) + (bu.matk || 0)) / 100);
   const hpMod = tier === 0 ? 1 : L.hp[ti], spMod = tier === 0 ? 1 : L.sp[ti];
@@ -1672,7 +1672,7 @@ function derived(h) {
     atk: Math.round(atk), matk: Math.round(matk), maxHp, maxSp, def, aspdMs,
     hit: h.level + st.dex + 10 + (pa.hit || 0), flee: h.level + st.agi + L.flee + (pa.flee || 0) + (bu.flee || 0),
     crit: st.luk * 0.3 + L.crit + (w === 'katar' ? 8 : 0) + (pa.crit || 0) + (bu.crit || 0),
-    discount: Math.min(40, pa.discount || 0), pdmg: pa.pdmg || 0, mdmg: pa.mdmg || 0,
+    discount: Math.min(40, pa.discount || 0), pdmg: pa.pdmg || 0, mdmg: pa.mdmg || 0, critDmg: pa.critDmg || 0,
     // skill cooldown reduction: DEX 0.15% per point + buffs/passives, capped at 60%
     cdr: Math.min(60, Math.round((st.dex * 0.15 + (pa.cdr || 0) + (bu.cdr || 0)) * 10) / 10)
   };
@@ -1817,7 +1817,7 @@ function rollPhys(mult, tg, forceCrit) {
   const D = P.D, crit = !!forceCrit || Math.random() * 100 < D.crit;
   if (!crit) { const miss = clamp((tg.lv * 1.1 + 12 - D.hit) / 100, 0, 0.6); if (Math.random() < miss) return { miss: true }; }
   let dmg = D.atk * mult * (0.9 + Math.random() * 0.2);
-  dmg = crit ? dmg * 1.5 : dmg * 100 / (100 + tg.def);
+  dmg = crit ? dmg * (1.5 + (D.critDmg || 0) / 100) : dmg * 100 / (100 + tg.def);
   dmg *= 1 + (D.pdmg || 0) / 100;
   return { dmg: Math.max(1, Math.round(dmg)), crit };
 }
@@ -1892,7 +1892,7 @@ function processKill(m, killer, ti) {
       else { h.potSp += tpl.boss ? 5 : 1; addNum(m.x, m.y + 8, '+ยาฟ้า', '#8fc0ff', 11, { font: 'th', dur: 1.2 }); }
     }
     if (Math.random() < Math.min(1, 0.35 * R.drop)) { const it = lootItem(tpl); if (addItem(it, 1)) addNum(m.x, m.y + 22, '+' + it.nm, '#d8e6ff', 10, { font: 'th', dur: 1.3 }); }
-    if (!tpl.raid && Math.random() * 100 < (tpl.boss ? CONFIG.bossCard : CONFIG.cardChance)) { const c = cardItem(tpl); if (addItem(c, 1)) gotCard(c); }
+    if (!tpl.raid && Math.random() * 100 < (tpl.boss ? CONFIG.bossCard : CONFIG.cardChance)) { const c = dropCard(tpl); if (addItem(c, 1)) gotCard(c); }
     if (tpl.boss && !tpl.raid && !isDg()) { h.bossKills = (h.bossKills || 0) + 1; const rr = Math.random() * 100, sk = rr < CONFIG.fbRing2 ? 2 : rr < CONFIG.fbRing2 + CONFIG.fbRing1 ? 1 : 0;
       if (sk) { const it = fieldBossRing(tpl, sk); if (it && addItem(it, 1)) { const nm = it.nm + (sk === 2 ? ' [2 รู]' : ''); toast('💍 ได้รับ ' + nm + ' (' + RAR[it.r].nm + ')'); addNum(m.x, m.y + 50, '+💍 ' + nm, rarCol(it.r), 12, { font: 'th', dur: 2, pop: true }); AU.sfx(it.r >= 3 ? 'legend' : 'card'); if (sk === 2) chatSend('💍 ' + h.name + ' ได้ ' + nm + ' จากบอส ' + tpl.name + '!', 'w', true, true); } } }
     dropKeys(m, tpl); dropOres(m, tpl);
@@ -4373,7 +4373,23 @@ const LOOT_PRE = { blob: 'เมือก', shroom: 'สปอร์', beast: '�
 const ARCH_ICON = { blob: '💧', shroom: '🍄', beast: '🐾', bat: '🦇', plant: '🌸', bones: '🦴', ghost: '👻', brute: '🦷', drake: '🐉' };
 const CARD_B = { blob: ['vit', 'hpPct'], shroom: ['int', 'matkPct'], beast: ['agi', 'aspdPct'], bat: ['luk', 'flee'], plant: ['int', 'dex'],
   bones: ['str', 'atkPct'], ghost: ['matkPct', 'flee'], brute: ['str', 'hpPct'], drake: ['atkPct', 'matkPct'] };
-const CARD_KEYS = ['str', 'agi', 'vit', 'int', 'dex', 'luk', 'atkPct', 'matkPct', 'hpPct', 'aspdPct', 'flee', 'crit', 'def'];
+const CARD_KEYS = ['str', 'agi', 'vit', 'int', 'dex', 'luk', 'atkPct', 'matkPct', 'hpPct', 'aspdPct', 'flee', 'crit', 'def', 'bowPct', 'critDmg'];
+// card variants: weapon cards come as STR / INT / DEX; shield, head, face, mouth and shoe cards roll one of six on drop
+const CARD_VAR = { str: ['str', 'atkPct'], vit: ['vit', 'hpPct'], int: ['int', 'matkPct'], dex: ['dex', 'bowPct'], luk: ['luk', 'critDmg'] };
+const CARD_VAR_TH = { base: 'แบบเดิม', str: 'STR', vit: 'VIT', int: 'INT', dex: 'DEX', luk: 'LUK' };
+const CARD_RAND_CS = ['shield', 'head', 'face', 'mouth', 'shoes'];
+const cardSlot = (tpl) => (CS_TH[tpl.cs] ? tpl.cs : (ARCH_CS[tpl.arch] || 'armor'));
+function cardVars(tpl) { const cs = cardSlot(tpl); return cs === 'weapon' ? ['str', 'int', 'dex'] : CARD_RAND_CS.includes(cs) ? ['base', 'str', 'vit', 'int', 'dex', 'luk'] : null; }
+// normal monsters keep one weapon-card stat; bosses and the other slots roll on every drop
+function cardRandom(tpl) { const vs = cardVars(tpl); return !!vs && (cardSlot(tpl) !== 'weapon' || !!tpl.boss); }
+// normal weapon-card monsters take STR, INT, DEX in turn (map order), so all three stats exist on the field
+function cardFixedVar(tpl) {
+  if (cardSlot(tpl) !== 'weapon') return 'base';
+  const ids = []; for (const m of CONFIG.maps) for (const t of m.monsters) if (!t.boss && cardSlot(t) === 'weapon' && !ids.includes(t.id)) ids.push(t.id);
+  const i = ids.indexOf(tpl.id);
+  return i >= 0 ? ['str', 'int', 'dex'][i % 3] : hashPick(String(tpl.id), ['str', 'int', 'dex']);
+}
+function dropCard(tpl) { const vs = cardVars(tpl); return cardItem(tpl, cardRandom(tpl) ? vs[(Math.random() * vs.length) | 0] : cardFixedVar(tpl)); }
 const SLOT_TH = { head: 'หมวก', face: 'ใบหน้า', mouth: 'ปาก', weapon: 'อาวุธ', off: 'มือซ้าย', armor: 'เสื้อเกราะ', wings: 'ปีก', shoes: 'รองเท้า', ring1: 'แหวนขวา', ring2: 'แหวนซ้าย' };
 const GEAR_TYPE_TH = { shield: 'โล่', head: 'หมวก', face: 'ใบหน้า', mouth: 'ปาก', shoes: 'รองเท้า', ring: 'แหวน', wings: 'ปีก', weapon: 'อาวุธ', armor: 'เสื้อเกราะ' };
 const baseSlot = (k) => (k === 'ring1' || k === 'ring2') ? 'ring' : k;
@@ -4451,13 +4467,18 @@ const WNAME = { knife: 'มีดสั้น', sword: 'ดาบ', mace: 'ค�
 const WICON = { knife: '🔪', sword: '🗡️', mace: '🔱', staff: '🪄', bow: '🏹', katar: '⚔️', dual: '🗡️', axe: '🪓' };
 const TIER_SFX = ['ฝึกหัด', 'เหล็ก', 'ชั้นสูง', 'ตำนาน'];
 
-function cardBonus(tpl) {
-  const o = {}, keys = CARD_B[tpl.arch] || ['str'];
-  for (const k of keys) o[k] = k.endsWith('Pct') ? 2 + Math.floor(tpl.lv / 15) + (tpl.boss ? 5 : 0) : 1 + Math.floor(tpl.lv / 12) + (tpl.boss ? 3 : 0);
+function cardBonus(tpl, v) {
+  const base = cardSlot(tpl) === 'weapon' && v === 'str' ? null : CARD_VAR[v];
+  const o = {}, keys = base || CARD_B[tpl.arch] || ['str'];
+  for (const k of keys) o[k] = k.endsWith('Pct') || k === 'critDmg' ? 2 + Math.floor(tpl.lv / 15) + (tpl.boss ? 5 : 0) : 1 + Math.floor(tpl.lv / 12) + (tpl.boss ? 3 : 0);
   return o;
 }
 function lootItem(tpl) { return { k: 'L:' + tpl.id, kind: 'loot', nm: (LOOT_PRE[tpl.arch] || 'ชิ้นส่วน') + tpl.name, ar: tpl.arch, pr: Math.max(2, Math.round(tpl.gold * 0.9)), lv: tpl.lv, col: tpl.color }; }
-function cardItem(tpl) { return { k: 'C:' + tpl.id, kind: 'card', nm: 'การ์ด' + tpl.name, ar: tpl.arch, pr: 400 + tpl.lv * 30, lv: tpl.lv, b: cardBonus(tpl), col: tpl.color, cs: CS_TH[tpl.cs] ? tpl.cs : (ARCH_CS[tpl.arch] || 'armor') }; }
+function cardItem(tpl, v) {
+  const cs = cardSlot(tpl), plain = !v || v === 'base' || (cs === 'weapon' && v === 'str');
+  const it = { k: 'C:' + tpl.id + (plain ? '' : ':' + v), kind: 'card', nm: 'การ์ด' + tpl.name + (plain ? '' : ' [' + CARD_VAR_TH[v] + ']'), ar: tpl.arch, pr: 400 + tpl.lv * 30, lv: tpl.lv, b: cardBonus(tpl, v), col: tpl.color, cs };
+  if (!plain) it.v = v; return it;
+}
 function gearPrice(id) { const o = CONFIG.shop && CONFIG.shop.gear[id]; return o && o.pr != null ? o.pr : (GEAR[id] ? GEAR[id].pr : 0); }
 function gearOnSale(id) { if (GEAR[id] && GEAR[id].gacha) return false; const o = CONFIG.shop && CONFIG.shop.gear[id]; return !(o && o.on === false); }
 function gearItem(id) { const g = GEAR[id]; return { k: 'G:' + id + ':' + Math.random().toString(36).slice(2, 8), kind: 'gear', id, nm: g.nm, pr: Math.round(gearPrice(id) / 2), cards: [] }; }
@@ -4486,6 +4507,7 @@ function sanitizeItem(x, withN) {
   if (kind === 'card') {
     it.b = {}; const b = x.b || {}; for (const k of CARD_KEYS) { const v = int(b[k], 0, 0, 99); if (v) it.b[k] = v; }
     it.cs = CS_TH[x.cs] ? x.cs : (ARCH_CS[it.ar] || 'armor');
+    if (CARD_VAR[x.v]) it.v = x.v;
   }
   if (withN) it.n = int(x.n, 1, 1, 999);
   return it;
@@ -5608,7 +5630,7 @@ function raidVictory(tpl) {
   const h = S.hero, got = [];
   const n = 1 + (Math.random() < 0.35 ? 1 : 0);
   for (let i = 0; i < n; i++) { const it = rollDgItem(dg); if (it && addItem(it, 1)) got.push(it); }
-  if (Math.random() * 100 < CONFIG.dgBossCard) { const c = cardItem(tpl); if (addItem(c, 1)) got.push(c); }
+  if (Math.random() * 100 < CONFIG.dgBossCard) { const c = dropCard(tpl); if (addItem(c, 1)) got.push(c); }
   const g = Math.round(1500 * dg.diff * dg.diff * CONFIG.rates.gold); h.gold += g;
   const no = dg.diff + 1 + (Math.random() * 2 | 0); if (addItem(oreItem('ori'), no)) got.push(Object.assign(oreItem('ori'), { n: no })); if (addItem(oreItem('elu'), no)) got.push(Object.assign(oreItem('elu'), { n: no }));
   DG.loot = got; h.bossKills = (h.bossKills || 0) + 1;
@@ -7053,29 +7075,32 @@ function albumOwned(h) {
 }
 function albumEntries() {
   const out = [], seen = new Set();
-  const push = (tpl, where, how) => { const c = cardItem(tpl); if (seen.has(c.k)) return; seen.add(c.k); out.push({ c, tpl, where, how }); };
+  const push = (tpl, where, how) => { const c = cardItem(tpl, cardRandom(tpl) ? null : cardFixedVar(tpl)); const id = 'C:' + tpl.id; if (seen.has(id)) return; seen.add(id); out.push({ c, tpl, where, how, id }); };
   for (const m of CONFIG.maps) for (const t of m.monsters) push(t, m.name + '  (Lv ' + m.min + '–' + m.max + ')', t.boss ? 'บอสแผนที่ ดรอป ' + CONFIG.bossCard + '% ต่อการตีปิด' : 'ดรอป ' + CONFIG.cardChance + '% ต่อตัว');
   for (const dg of CONFIG.dungeons) { if (!dg.on) continue; const dm = dgMap(dg, 'album'); for (const t of dm.monsters) push(t, '🏰 ' + dg.name + '  (Lv ' + dg.minLv + '+)', t.raid ? 'บอสดันเจี้ยน ได้ ' + CONFIG.dgBossCard + '% ต่อการเคลียร์' : 'ดรอป ' + CONFIG.cardChance + '% ต่อตัว'); }
   return out;
 }
 function panelAlbum(body) {
   const h = S.hero, own = albumOwned(h), all = albumEntries();
-  const got = all.filter((e) => own[e.c.k]).length;
+  const cnt = (e) => Object.keys(own).reduce((a, k) => a + (k === e.id || k.startsWith(e.id + ':') ? own[k] : 0), 0);
+  const got = all.filter((e) => cnt(e) > 0).length;
   body.append(el('div', { class: 'pts' }, 'สะสมแล้ว ', el('b', { text: got + ' / ' + all.length }), el('span', { class: 'muted', text: '  ใบ (นับทั้งในกระเป๋าและที่ใส่อยู่)' })));
   const fl = el('div', { class: 'mkf' });
   for (const [id, lb] of [['all', 'ทั้งหมด'], ['have', 'มีแล้ว'], ['need', 'ยังไม่มี']].concat(Object.keys(CS_TH).map((k) => [k, CS_TH[k]])))
     fl.append(el('button', { class: 'chip' + (albumFilter === id ? ' on' : ''), text: lb, onclick: () => { albumFilter = id; renderSheet(); } }));
   body.append(fl);
-  const list = all.filter((e) => albumFilter === 'all' || (albumFilter === 'have' ? own[e.c.k] : albumFilter === 'need' ? !own[e.c.k] : e.c.cs === albumFilter));
+  const list = all.filter((e) => albumFilter === 'all' || (albumFilter === 'have' ? cnt(e) > 0 : albumFilter === 'need' ? !cnt(e) : e.c.cs === albumFilter));
   if (!list.length) body.append(el('p', { class: 'note', text: 'ไม่มีการ์ดในหมวดนี้' }));
   let where = '';
   for (const e of list) {
     if (e.where !== where) { where = e.where; body.append(el('div', { class: 'sub', text: where })); }
-    const n = own[e.c.k] || 0, ic = el('div', { class: 'alic', text: '🃏' }); ic.style.setProperty('--c', e.c.col);
+    const n = cnt(e), ic = el('div', { class: 'alic', text: '🃏' }); ic.style.setProperty('--c', e.c.col);
+    const rnd = cardRandom(e.tpl), vs = cardVars(e.tpl);
+    const bonus = rnd ? 'สุ่ม: ' + vs.map((v) => bonusText(cardBonus(e.tpl, v))).join(' / ') : bonusText(e.c.b);
     body.append(el('div', { class: 'albrow' + (n ? '' : ' miss') }, ic,
       el('div', { class: 'grow' },
         el('div', { class: 'nm2', text: e.c.nm + (e.tpl.boss ? '  👑' : '') }),
-        el('div', { class: 'ds', text: bonusText(e.c.b) }),
+        el('div', { class: 'ds', text: bonus }),
         el('div', { class: 'meta', text: 'จาก ' + e.tpl.name + ' Lv ' + e.tpl.lv + '  ·  ' + e.how })),
       el('div', { class: 'albr' }, el('span', { class: 'rchip', style: '--rc:#b06ad8', text: 'ใส่' + CS_TH[e.c.cs] }), el('b', { text: n ? 'มี ' + n + ' ใบ' : 'ยังไม่มี' }))));
   }
