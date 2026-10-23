@@ -391,6 +391,9 @@ details.box summary{font-weight:700;cursor:pointer}
 .mcard .mb{padding:14px 16px 16px}
 .mcard p{white-space:pre-wrap;overflow-wrap:anywhere;margin:0 0 14px}
 .mcard .btn-main{width:100%}
+#bcModal{z-index:90}
+.bctext{font-size:1.02rem;font-weight:700;line-height:1.5}
+.bccount{color:var(--bad);font-weight:700}
 .albrow{display:flex;align-items:center;gap:10px;padding:8px 10px;margin:6px 0;border-radius:12px;background:var(--panel-2)}
 .albrow.miss{opacity:.55}
 .alic{width:36px;height:36px;border-radius:10px;display:grid;place-items:center;font-size:1.2rem;background:color-mix(in srgb,var(--c) 35%,transparent);border:2px solid var(--c);flex:none}
@@ -526,6 +529,7 @@ details.box summary{font-weight:700;cursor:pointer}
       <div class="acts" style="justify-content:center"><button class="mini" id="rwBag">ดูกระเป๋า</button><button class="mini pri" id="rwExit">ออกเลย</button></div></div>
   </div>
 </div>
+<div class="modal" id="bcModal" hidden role="alertdialog" aria-modal="true" aria-labelledby="bcTitle"><div class="mcard"><div class="sheet-title"><b id="bcTitle">📢 ประกาศจาก GM</b></div><div class="mb"><p id="bcText" class="bctext"></p><p id="bcCount" class="bccount" hidden></p><button class="btn-main" id="bcOk">ตกลง</button></div></div></div>
 <div class="modal" id="rcModal" hidden role="dialog" aria-modal="true" aria-labelledby="rcTitle"><div class="mcard"><div class="sheet-title"><b id="rcTitle"></b></div><div class="mb" id="rcBody"></div></div></div>
 <div class="modal" id="patchModal" hidden role="dialog" aria-modal="true" aria-labelledby="patchTitle">
   <div class="mcard">
@@ -714,6 +718,7 @@ window.__NET_RATE = 250;
 })();
 </script>
 
+<script>window.__WEB = 1;</script>
 <script>
 (() => {
 'use strict';
@@ -872,8 +877,8 @@ function MON(id, name, arch, color, lv, extra) {
 }
 
 const DEFAULT_CONFIG = {
-  version: '2.9.27',
-  patchNotes: 'อัปเดต 2.9.27\n• เมนูใหม่ 📖 อัลบั้มการ์ด: การ์ดทุกใบในเกม บอกว่าได้จากมอนตัวไหน แผนที่ไหน โอกาสดรอป เพิ่มค่าอะไร ใส่ช่องไหน และสะสมไปแล้วกี่ใบ\n• (จาก 2.9.26) แก้อ่าวโจรสลัดกลับเป็นชายหาด',
+  version: '2.9.28',
+  patchNotes: 'อัปเดต 2.9.28\n• ประกาศจาก GM ขึ้นเป็นป้ายกลางจอของผู้เล่นที่ออนไลน์ทันที\n• GM สั่งให้ทุกคนรีเฟรชเกมได้ (บันทึกตัวละครก่อนรีเฟรช) ใช้ตอนอัปโหลดเวอร์ชันใหม่\n• (จาก 2.9.27) อัลบั้มการ์ด',
   announcement: 'ยินดีต้อนรับสู่ช่วงทดสอบ! เจอบั๊กบอก GM ได้เลย',
   rates: { bexp: 1, jexp: 1, gold: 1, drop: 1 },
   deathPenalty: 1,
@@ -965,6 +970,7 @@ function sanitizeConfig(raw) {
     version: str(raw.version, DEFAULT_CONFIG.version, 20),
     patchNotes: txt(raw.patchNotes, 2000),
     announcement: txt(raw.announcement, 300),
+    announceAt: num(raw.announceAt, 0, 0, 1e15), reloadAt: num(raw.reloadAt, 0, 0, 1e15),
     rates: { bexp: num(r.bexp, 1, 0, 100), jexp: num(r.jexp, 1, 0, 100), gold: num(r.gold, 1, 0, 100), drop: num(r.drop, 1, 0, 100) },
     deathPenalty: num(raw.deathPenalty, 1, 0, 100),
     cardChance: num(raw.cardChance, 1, 0, 100),
@@ -6822,7 +6828,11 @@ function rebuildGM() { const open = {}; document.querySelectorAll('#sheetBody de
 function panelGM(body) {
   const d = S.draft;
   body.append(el('p', { class: 'note', text: 'บันทึกแล้วผู้เล่นทุกคนได้รับทันที ไม่ต้องอัปเดตแอป' }));
-  body.append(el('div', { class: 'gm-sec' }, el('h3', { text: 'ประกาศถึงผู้เล่น' }), fText(null, d.announcement, (v) => { d.announcement = v; }, { area: true, max: 300 })));
+  { const rb = el('button', { class: 'mini warn', text: '📢 ส่งประกาศ + รีเฟรชเกมทุกคน' });
+    twoStep(rb, rb.textContent, 'แตะอีกครั้ง ผู้เล่นทุกคนจะรีเฟรชใน 5 วิ', () => { const now = Date.now(); d.announceAt = now; d.reloadAt = now; lsSet('spellblade_reload', String(now)); S.draftDirty = true; gmSave(); });
+    body.append(el('div', { class: 'gm-sec' }, el('h3', { text: 'ประกาศถึงผู้เล่น' }), fText(null, d.announcement, (v) => { d.announcement = v; }, { area: true, max: 300 }),
+      el('p', { class: 'note', text: 'กดบันทึกด้านล่าง = ผู้เล่นที่ออนไลน์เห็นป้ายประกาศกลางจอ  ปุ่มส้ม = ประกาศแล้วบังคับทุกคนรีเฟรชเกม (บันทึกตัวละครให้ก่อน) ใช้ตอนอัปโหลดเวอร์ชันใหม่' }),
+      el('div', { class: 'acts' }, rb))); }
   const ver = fText('เวอร์ชัน', d.version, (v) => { d.version = v; }, { max: 20 });
   body.append(el('div', { class: 'gm-sec' }, el('h3', { text: 'แพตช์โน้ต' }), el('p', { class: 'note', text: 'เปลี่ยนเลขเวอร์ชันเพื่อให้ผู้เล่นเห็นหน้าต่างแพตช์ใหม่' }),
     el('div', { class: 'g2' }, ver, el('div', { class: 'fld' }, ' ', el('button', { class: 'mini', text: 'เวอร์ชันถัดไป', onclick: () => { d.version = bumpVersion(d.version); ver.querySelector('input').value = d.version; markDraft(); } }))),
@@ -6923,6 +6933,7 @@ async function gmSave() {
   if (!S.db || !S.draft) return;
   const b = $('#gmSaveBtn'); if (b) b.disabled = true;
   try {
+    if ((S.draft.announcement || '') !== (CONFIG.announcement || '')) S.draft.announceAt = Date.now();
     await S.db.doc('world/config').set(sanitizeConfig(S.draft));
     S.draftDirty = false;
     const s = $('#gmDirty'); if (s) s.textContent = 'บันทึกแล้ว ผู้เล่นได้รับทันที';
@@ -6954,7 +6965,29 @@ function renderGMPlayers() {
 }
 
 /* ---------- config & patch ---------- */
+const BC = { first: true, ann: '', annAt: 0, rl: 0, t: 0 };
+function showBroadcast(text, reload) {
+  const m = $('#bcModal'); $('#bcText').textContent = text || 'GM สั่งรีเฟรชเกม';
+  const ok = $('#bcOk'); clearInterval(BC.t);
+  if (reload) {
+    let left = 5; const tick = () => { $('#bcCount').textContent = 'เกมจะรีเฟรชใน ' + left + ' วินาที (บันทึกตัวละครแล้ว)'; if (left-- <= 0) { clearInterval(BC.t); doReload(); } };
+    $('#bcCount').hidden = false; ok.textContent = 'รีเฟรชเลย'; ok.onclick = doReload; tick(); BC.t = setInterval(tick, 1000);
+    try { if (S.hero) save(); } catch (e) {}
+  } else { $('#bcCount').hidden = true; ok.textContent = 'ตกลง'; ok.onclick = () => { m.hidden = true; clearInterval(BC.t); }; BC.t = setTimeout(() => { m.hidden = true; }, 15000); }
+  m.hidden = false; AU.sfx('jobup');
+}
+function doReload() {
+  if (window.__WEB) { const u = new URL(location.href); u.searchParams.set('v', String(Date.now())); location.replace(u.toString()); }
+  else location.reload();
+}
+function gmBroadcastCheck() {
+  const ann = CONFIG.announcement || '', at = CONFIG.announceAt || 0, rl = CONFIG.reloadAt || 0;
+  if (BC.first) { BC.first = false; BC.ann = ann; BC.annAt = at; BC.rl = rl; if (rl) lsSet('spellblade_reload', String(rl)); return; }
+  if (rl && rl !== BC.rl) { BC.rl = rl; BC.ann = ann; BC.annAt = at; if (String(rl) !== lsGet('spellblade_reload')) { lsSet('spellblade_reload', String(rl)); showBroadcast(ann, true); } return; }
+  if ((at && at !== BC.annAt) || ann !== BC.ann) { BC.annAt = at; BC.ann = ann; if (ann) showBroadcast(ann, false); }
+}
 function onConfigChanged() {
+  gmBroadcastCheck();
   if (S.screen === 'create') { document.querySelectorAll('.pj').forEach((b, i) => { const ids = ['novice', ...FIRST_JOBS, 'lordknight', 'highpriest', 'highwizard', 'sniper', 'assassincross', 'whitesmith']; b.textContent = jobName(ids[i]); }); }
   if (!S.hero || S.screen !== 'game') return;
   const m = currentMap();
