@@ -812,12 +812,12 @@ defSkill('sm_iron', 'swordman', 'ร่างเหล็กกล้า', '🛡
 defSkill('kn_pierce', 'knight', 'ดาบพุ่งทะลวง', '🗡️', 'atk', { m: [2.0, 0.35], hits: 3, sp: [10, 1], cd: 2, color: '#8fd3ff', fx: 'slash' });
 defSkill('kn_spiral', 'knight', 'พายุคมดาบ', '🌀', 'aoe', { m: [1.8, 0.25], r: 110, sp: [18, 1.5], cd: 5, color: '#b3e5ff', fx: 'quake' });
 defSkill('kn_valor', 'knight', 'ปลุกใจอัศวิน', '🦁', 'buff', { b: { atk: 3, def: 2 }, dur: 60, sp: [20, 2], cd: 90, color: '#ffe066' });
-defSkill('lk_judge', 'lordknight', 'ดาบพิพากษา', '⚡', 'atk', { m: [4.0, 0.6], hits: 5, sp: [20, 2], cd: 3, color: '#fff3a0', fx: 'pillar' });
-defSkill('lk_cata', 'lordknight', 'ปฐพีถล่ม', '🌋', 'aoe', { m: [3.0, 0.4], r: 130, self: true, hits: 2, sp: [30, 2], cd: 6, color: '#ff9f43', fx: 'quake' });
+defSkill('lk_judge', 'lordknight', 'ดาบพิพากษา', '⚡', 'atk', { zap: 1, m: [4.0, 0.6], hits: 5, sp: [20, 2], cd: 3, color: '#fff3a0', fx: 'pillar' });
+defSkill('lk_cata', 'lordknight', 'ปฐพีถล่ม', '🌋', 'aoe', { boom: 1, m: [3.0, 0.4], r: 130, self: true, hits: 2, sp: [30, 2], cd: 6, color: '#ff9f43', fx: 'quake' });
 defSkill('lk_fury', 'lordknight', 'โทสะจ้าวสงคราม', '😤', 'buff', { b: { atk: 5, aspd: 3 }, dur: 60, sp: [40, 3], cd: 90, color: '#ff6b6b' });
 // Acolyte line
 defSkill('ac_heal', 'acolyte', 'แสงเยียวยา', '💚', 'heal', { party: 1, h: [0.1, 0.03], sp: [8, 1], cd: 3, color: '#8ff0a4' });
-defSkill('ac_bolt', 'acolyte', 'ศรศักดิ์สิทธิ์', '✨', 'atk', { dmg: 'magic', m: [1.2, 0.25], sp: [6, 0.6], cd: 1.5, color: '#fff1a8', fx: 'pillar' });
+defSkill('ac_bolt', 'acolyte', 'ศรศักดิ์สิทธิ์', '✨', 'atk', { zap: 1, dmg: 'magic', m: [1.2, 0.25], sp: [6, 0.6], cd: 1.5, color: '#fff1a8', fx: 'pillar' });
 defSkill('ac_bless', 'acolyte', 'พรแห่งแสง', '🙏', 'buff', { vfx: 'bell1', party: 1, b: { atk: 2, matk: 2 }, dur: 120, sp: [20, 1], cd: 5, color: '#ffe8a3' });
 defSkill('ac_divine', 'acolyte', 'พรแห่งเทพ', '👼', 'buff', { vfx: 'bell2', party: 1, b: { str: 1, agi: 1, vit: 1, int: 1, dex: 1, luk: 1 }, dur: 120, sp: [30, 2], cd: 5, color: '#fff3b0' });
 defSkill('pr_smite', 'priest', 'แสงพิพากษา', '☀️', 'aoe', { dmg: 'magic', m: [1.5, 0.25], r: 110, hits: 3, sp: [20, 1.5], cd: 4, color: '#fff6c2', fx: 'pillars' });
@@ -825,27 +825,27 @@ defSkill('pr_grace', 'priest', 'พรวายุ', '🍃', 'buff', { vfx: 'bel
 defSkill('pr_mend', 'priest', 'มหาเยียวยา', '💖', 'heal', { zone: { r: 130, dur: 3 }, h: [0.2, 0.05], sp: [25, 2], cd: 6, color: '#9df5b5' });
 defSkill('hp_nova', 'highpriest', 'ดาราศักดิ์สิทธิ์', '🌟', 'aoe', { dmg: 'magic', m: [3.0, 0.4], r: 140, hits: 4, sp: [35, 2.5], cd: 5, color: '#fffbe0', fx: 'pillars' });
 defSkill('hp_res', 'highpriest', 'ชุบชีวิต', '🕊️', 'res', { maxLv: 1, sp: [60, 0], cd: 3, color: '#fffbe6' });
-defSkill('hp_lance', 'highpriest', 'หอกแสงสวรรค์', '🔱', 'atk', { dmg: 'magic', m: [4.0, 0.6], hits: 3, sp: [25, 2], cd: 3, color: '#ffe9a0', fx: 'pillar' });
+defSkill('hp_lance', 'highpriest', 'หอกแสงสวรรค์', '🔱', 'atk', { zap: 1, dmg: 'magic', m: [4.0, 0.6], hits: 3, sp: [25, 2], cd: 3, color: '#ffe9a0', fx: 'pillar' });
 defSkill('hp_aegis', 'highpriest', 'เกราะแห่งศรัทธา', '🔰', 'buff', { vfx: 'bell3', party: 1, b: { def: 5, matk: 3 }, dur: 90, sp: [30, 2], cd: 5, color: '#a0e7ff' });
 // Magician line
-defSkill('mg_fire', 'magician', 'ศรเพลิง', '🔥', 'atk', { dmg: 'magic', m: [1.4, 0.3], hits: 3, sp: [8, 0.8], cd: 1.2, color: '#ff7a3d', fx: 'bolt' });
-defSkill('mg_frost', 'magician', 'ศรน้ำแข็ง', '❄️', 'atk', { dmg: 'magic', m: [1.6, 0.3], hits: 2, sp: [10, 1], cd: 2, color: '#7fd4ff', fx: 'bolt' });
-defSkill('mg_spark', 'magician', 'ประกายอัสนี', '⚡', 'aoe', { dmg: 'magic', m: [1.1, 0.2], r: 90, hits: 2, sp: [14, 1], cd: 4, color: '#c9b8ff', fx: 'pillars' });
-defSkill('wz_meteor', 'wizard', 'ฝนอุกกาบาต', '☄️', 'aoe', { dmg: 'magic', m: [2.2, 0.65], r: 130, hits: 4, sp: [30, 2], cd: 5, color: '#ff9248', fx: 'meteor' });
-defSkill('wz_blizzard', 'wizard', 'พายุหิมะ', '🌨️', 'aoe', { dmg: 'magic', m: [2.0, 0.6], r: 140, hits: 3, sp: [28, 2], cd: 4, color: '#bfeaff', fx: 'pillars' });
+defSkill('mg_fire', 'magician', 'ศรเพลิง', '🔥', 'atk', { fire: 1, dmg: 'magic', m: [1.4, 0.3], hits: 3, sp: [8, 0.8], cd: 1.2, color: '#ff7a3d', fx: 'bolt' });
+defSkill('mg_frost', 'magician', 'ศรน้ำแข็ง', '❄️', 'atk', { ice: 1, dmg: 'magic', m: [1.6, 0.3], hits: 2, sp: [10, 1], cd: 2, color: '#7fd4ff', fx: 'bolt' });
+defSkill('mg_spark', 'magician', 'ประกายอัสนี', '⚡', 'aoe', { zap: 1, dmg: 'magic', m: [1.1, 0.2], r: 90, hits: 2, sp: [14, 1], cd: 4, color: '#c9b8ff', fx: 'pillars' });
+defSkill('wz_meteor', 'wizard', 'ฝนอุกกาบาต', '☄️', 'aoe', { fire: 1, fzone: 1, dmg: 'magic', m: [2.2, 0.65], r: 130, hits: 4, sp: [30, 2], cd: 5, color: '#ff9248', fx: 'meteor' });
+defSkill('wz_blizzard', 'wizard', 'พายุหิมะ', '🌨️', 'aoe', { ice: 1, dmg: 'magic', m: [2.0, 0.6], r: 140, hits: 3, sp: [28, 2], cd: 4, color: '#bfeaff', fx: 'pillars' });
 defSkill('wz_focus', 'wizard', 'จิตวิเวก', '🧘', 'buff', { b: { matk: 4 }, dur: 90, sp: [25, 2], cd: 120, color: '#d5b3ff' });
-defSkill('hw_void', 'highwizard', 'หอกมิติ', '🌌', 'atk', { dmg: 'magic', m: [5.0, 1.0], hits: 3, sp: [30, 2], cd: 3, color: '#b18cff', fx: 'pillar' });
-defSkill('hw_cata', 'highwizard', 'ทัณฑ์สวรรค์', '🌠', 'aoe', { dmg: 'magic', m: [3.5, 0.75], r: 160, hits: 5, sp: [45, 3], cd: 5, color: '#ffd166', fx: 'meteor' });
+defSkill('hw_void', 'highwizard', 'หอกมิติ', '🌌', 'atk', { zap: 1, dmg: 'magic', m: [5.0, 1.0], hits: 3, sp: [30, 2], cd: 3, color: '#b18cff', fx: 'pillar' });
+defSkill('hw_cata', 'highwizard', 'ทัณฑ์สวรรค์', '🌠', 'aoe', { nuke: 1, dmg: 'magic', m: [3.5, 0.75], r: 160, hits: 5, sp: [45, 3], cd: 5, color: '#ffd166', fx: 'meteor' });
 defSkill('hw_mind', 'highwizard', 'จิตอนันต์', '🔯', 'buff', { b: { matk: 6, cdr: 2 }, dur: 90, sp: [35, 2], cd: 120, color: '#e0c3ff' });
 // Archer line
 defSkill('ar_double', 'archer', 'ศรคู่', '🏹', 'atk', { m: [1.4, 0.2], hits: 2, sp: [6, 0.5], cd: 1.2, color: '#ffe08a', fx: 'arrow' });
-defSkill('ar_rain', 'archer', 'ห่าศร', '🌧️', 'aoe', { m: [1.2, 0.2], r: 100, hits: 3, sp: [15, 1], cd: 4, color: '#f5d76e', fx: 'pillars' });
+defSkill('ar_rain', 'archer', 'ห่าศร', '🌧️', 'aoe', { aboom: 1, m: [1.2, 0.2], r: 100, hits: 3, sp: [15, 1], cd: 4, color: '#f5d76e', fx: 'pillars' });
 defSkill('ar_eye', 'archer', 'ตาเหยี่ยว', '👁️', 'passive', { p: { atkPct: 2, dex: 1 }, color: '#e8d27a' });
-defSkill('hu_trap', 'hunter', 'กับดักระเบิด', '💣', 'aoe', { m: [2.0, 0.3], r: 110, sp: [20, 1.5], cd: 5, color: '#ff8c42', fx: 'quake' });
+defSkill('hu_trap', 'hunter', 'กับดักระเบิด', '💣', 'aoe', { boom: 1, m: [2.0, 0.3], r: 110, sp: [20, 1.5], cd: 5, color: '#ff8c42', fx: 'quake' });
 defSkill('hu_falcon', 'hunter', 'เหยี่ยวจู่โจม', '🦅', 'atk', { m: [2.5, 0.4], hits: 2, sp: [15, 1], cd: 2.5, color: '#d4f1ff', fx: 'arrow' });
 defSkill('hu_focus', 'hunter', 'สมาธิพราน', '🎯', 'buff', { b: { atk: 3, crit: 1 }, dur: 90, sp: [25, 2], cd: 120, color: '#fff0a8' });
 defSkill('sn_heart', 'sniper', 'ศรทะลวงใจ', '💘', 'atk', { m: [5.0, 0.3], crit: true, sp: [30, 2], cd: 3, color: '#ffffff', fx: 'arrow' });
-defSkill('sn_storm', 'sniper', 'พายุศรพันดอก', '🌪️', 'aoe', { m: [3.0, 0.4], r: 150, hits: 4, sp: [40, 3], cd: 6, color: '#ffe7a3', fx: 'pillars' });
+defSkill('sn_storm', 'sniper', 'พายุศรพันดอก', '🌪️', 'aoe', { aboom: 1, m: [3.0, 0.4], r: 150, hits: 4, sp: [40, 3], cd: 6, color: '#ffe7a3', fx: 'pillars' });
 defSkill('sn_wind', 'sniper', 'ย่างก้าวสายลม', '🌬️', 'buff', { b: { aspd: 4, flee: 3 }, dur: 90, sp: [30, 2], cd: 120, color: '#c7ffd8' });
 // Thief line
 defSkill('th_stab', 'thief', 'แทงสองคม', '🗡️', 'atk', { m: [1.2, 0.2], hits: 2, sp: [5, 0.4], cd: 1, color: '#e0e0e0', fx: 'slash' });
@@ -861,11 +861,11 @@ defSkill('ax_edge', 'assassincross', 'คมมรณะ', '🩸', 'buff', { b: 
 defSkill('me_cleave', 'merchant', 'ขวานผ่าศิลา', '🪓', 'atk', { m: [1.5, 0.3], sp: [6, 0.6], cd: 1.6, color: '#ffc078', fx: 'slash' });
 defSkill('me_whirl', 'merchant', 'เหวี่ยงรอบทิศ', '🔄', 'aoe', { m: [1.1, 0.2], r: 90, self: true, sp: [12, 1], cd: 4, color: '#ffd8a8', fx: 'quake' });
 defSkill('me_haggle', 'merchant', 'ต่อรองราคา', '💰', 'passive', { p: { discount: 2 }, color: '#f6d365' });
-defSkill('bs_hammer', 'blacksmith', 'ค้อนสะท้านภพ', '🔨', 'aoe', { m: [2.0, 0.3], r: 120, self: true, sp: [24, 1.5], cd: 5, color: '#ffb04d', fx: 'quake' });
+defSkill('bs_hammer', 'blacksmith', 'ค้อนสะท้านภพ', '🔨', 'aoe', { boom: 1, m: [2.0, 0.3], r: 120, self: true, sp: [24, 1.5], cd: 5, color: '#ffb04d', fx: 'quake' });
 defSkill('bs_crush', 'blacksmith', 'ขวานพิฆาต', '💥', 'atk', { m: [2.5, 0.4], hits: 2, sp: [15, 1], cd: 2.2, color: '#ff9a3c', fx: 'slash' });
 defSkill('bs_forge', 'blacksmith', 'ไฟเตาหลอม', '🔥', 'buff', { b: { atk: 4, aspd: 2 }, dur: 90, sp: [25, 2], cd: 120, color: '#ff6a3d' });
 defSkill('ws_execute', 'whitesmith', 'ประหารเหล็กกล้า', '⚒️', 'atk', { m: [5.0, 0.7], hits: 3, sp: [30, 2], cd: 3, color: '#ffe0b3', fx: 'pillar' });
-defSkill('ws_quake', 'whitesmith', 'ขวานถล่มปฐพี', '🌋', 'aoe', { m: [3.2, 0.45], r: 150, self: true, hits: 3, sp: [42, 3], cd: 6, color: '#ff8f3d', fx: 'quake' });
+defSkill('ws_quake', 'whitesmith', 'ขวานถล่มปฐพี', '🌋', 'aoe', { boom: 1, m: [3.2, 0.45], r: 150, self: true, hits: 3, sp: [42, 3], cd: 6, color: '#ff8f3d', fx: 'quake' });
 defSkill('ws_titan', 'whitesmith', 'พลังไททัน', '💪', 'buff', { b: { atk: 6, def: 3 }, dur: 90, sp: [35, 2], cd: 120, color: '#fff3c4' });
 
 const BUFF_TH = { bowPct: 'พลังธนู', critDmg: 'ความแรงคริ', pdmg: 'ดาเมจกายภาพ', mdmg: 'ดาเมจเวท', hit: 'HIT', msp: 'SP สูงสุด', cdr: 'ลดคูลดาวน์สกิล', watk: 'ATK', wmatk: 'MATK', str: 'STR', agi: 'AGI', vit: 'VIT', int: 'INT', luk: 'LUK', matkPct: 'MATK', atk: 'ATK', matk: 'MATK', aspd: 'ความเร็วตี', def: 'DEF', crit: 'คริ', flee: 'หลบ', hpPct: 'HP สูงสุด', atkPct: 'ATK', aspdPct: 'ความเร็วตี', discount: 'ส่วนลดร้าน', dex: 'DEX' };
@@ -908,8 +908,8 @@ function MON(id, name, arch, color, lv, extra) {
 }
 
 const DEFAULT_CONFIG = {
-  version: '2.9.39',
-  patchNotes: 'อัปเดต 2.9.39: การ์ดหลายแบบ\n• การ์ดอาวุธมี STR / INT+MATK / DEX+พลังธนู (การ์ดบอสสุ่มตอนดรอป มอนทั่วไปมีแบบประจำตัว)\n• การ์ดโล่ หมวก ใบหน้า ปาก รองเท้า สุ่ม 1 ใน 6 แบบตอนดรอป: แบบเดิม STR+ATK VIT+HP INT+MATK DEX+พลังธนู LUK+ความแรงคริ\n• ค่าพลังใหม่: พลังธนู% และความแรงคริ%\n• อัลบั้มการ์ดบอกแบบที่สุ่มได้',
+  version: '2.9.40',
+  patchNotes: 'อัปเดต 2.9.40: เอฟเฟกต์ใหม่\n• เสาแสงตอนได้ของดี สีตามความหายาก (การ์ด แหวนบอส ของดันเจี้ยน กาชา) คนในแผนที่เห็นด้วย\n• สายฟ้าฟาดสำหรับ ศรศักดิ์สิทธิ์ ดาบพิพากษา หอกแสงสวรรค์ หอกมิติ ประกายอัสนี และตอนเลเวลอัพ\n• ระเบิดพื้น/กลางอากาศ/ระเบิดใหญ่ สำหรับอุกกาบาต สกิลทุบพื้น ห่าศร ทัณฑ์สวรรค์ และตอนบอสดันเจี้ยนล้ม\n• วงเวทไฟ ลูกไฟ และพื้นไฟลุก สำหรับศรเพลิงและฝนอุกกาบาต\n• น้ำแข็งแตกกระจายเมื่อฆ่าด้วยศรน้ำแข็ง/พายุหิมะ และตอนหลุดจากแช่แข็ง\nเอฟเฟกต์ดัดแปลงจาก Binbun3D VFX (CC0)',
   announcement: 'ยินดีต้อนรับสู่ช่วงทดสอบ! เจอบั๊กบอก GM ได้เลย',
   rates: { bexp: 1, jexp: 1, gold: 1, drop: 1 },
   deathPenalty: 1,
@@ -1875,6 +1875,7 @@ function killMon(m, killer) {
 function processKill(m, killer, ti) {
   const h = S.hero, R = CONFIG.rates, tpl = W.map && W.map.monsters[ti != null ? ti : m.ti];
   if (!tpl) return;
+  if (m.iceT && W.t - m.iceT < 1.5) addFx({ kind: 'shatter', x: m.x, y: m.y, size: m.size || 1, dur: 0.9, seed: fxSeed() });
   const mine = killer === myKey();
   if (tpl.raid && (mine || (PARTY.key && partyMates(false).some((o) => o.key === killer)) || isDg())) raidVictory(tpl);
   if (P.dead) return;
@@ -1892,9 +1893,9 @@ function processKill(m, killer, ti) {
       else { h.potSp += tpl.boss ? 5 : 1; addNum(m.x, m.y + 8, '+ยาฟ้า', '#8fc0ff', 11, { font: 'th', dur: 1.2 }); }
     }
     if (Math.random() < Math.min(1, 0.35 * R.drop)) { const it = lootItem(tpl); if (addItem(it, 1)) addNum(m.x, m.y + 22, '+' + it.nm, '#d8e6ff', 10, { font: 'th', dur: 1.3 }); }
-    if (!tpl.raid && Math.random() * 100 < (tpl.boss ? CONFIG.bossCard : CONFIG.cardChance)) { const c = dropCard(tpl); if (addItem(c, 1)) gotCard(c); }
+    if (!tpl.raid && Math.random() * 100 < (tpl.boss ? CONFIG.bossCard : CONFIG.cardChance)) { const c = dropCard(tpl); if (addItem(c, 1)) { gotCard(c); lootBeam(m.x, m.y, 'card', true); } }
     if (tpl.boss && !tpl.raid && !isDg()) { h.bossKills = (h.bossKills || 0) + 1; const rr = Math.random() * 100, sk = rr < CONFIG.fbRing2 ? 2 : rr < CONFIG.fbRing2 + CONFIG.fbRing1 ? 1 : 0;
-      if (sk) { const it = fieldBossRing(tpl, sk); if (it && addItem(it, 1)) { const nm = it.nm + (sk === 2 ? ' [2 รู]' : ''); toast('💍 ได้รับ ' + nm + ' (' + RAR[it.r].nm + ')'); addNum(m.x, m.y + 50, '+💍 ' + nm, rarCol(it.r), 12, { font: 'th', dur: 2, pop: true }); AU.sfx(it.r >= 3 ? 'legend' : 'card'); if (sk === 2) chatSend('💍 ' + h.name + ' ได้ ' + nm + ' จากบอส ' + tpl.name + '!', 'w', true, true); } } }
+      if (sk) { const it = fieldBossRing(tpl, sk); if (it && addItem(it, 1)) { lootBeam(m.x + 18, m.y, lootKey(it), true); const nm = it.nm + (sk === 2 ? ' [2 รู]' : ''); toast('💍 ได้รับ ' + nm + ' (' + RAR[it.r].nm + ')'); addNum(m.x, m.y + 50, '+💍 ' + nm, rarCol(it.r), 12, { font: 'th', dur: 2, pop: true }); AU.sfx(it.r >= 3 ? 'legend' : 'card'); if (sk === 2) chatSend('💍 ' + h.name + ' ได้ ' + nm + ' จากบอส ' + tpl.name + '!', 'w', true, true); } } }
     dropKeys(m, tpl); dropOres(m, tpl);
   } else addNum(P.x, P.y - 60, 'ปาร์ตี้ +' + fmt(b) + ' EXP', '#8dff9a', 10, { font: 'th', dur: 1.2 });
   gainExp(b, j);
@@ -1915,12 +1916,12 @@ function gainExp(b, j) {
   }
   if (baseUp) {
     P.D = derived(); P.hp = P.D.maxHp; P.sp = P.D.maxSp; P.cheerT = W.t;
-    addFx({ kind: 'pillar', x: P.x, y: P.y, color: '#ffd84a', dur: 1.1, w: 34 });
+    addFx({ kind: 'pillar', x: P.x, y: P.y, color: '#ffd84a', dur: 1.1, w: 34 }); addFx({ kind: 'zap', x: P.x, y: P.y, color: '#ffd84a', dur: 0.8, seed: fxSeed(), thick: 1.3 });
     addNum(P.x, P.y - 78, 'LEVEL UP!', '#ffe27a', 17, { dur: 1.6, pop: true });
     AU.sfx('levelup');
   }
   if (jobUp) {
-    addFx({ kind: 'pillar', x: P.x, y: P.y, color: '#c9a2ff', dur: 1, w: 26 });
+    addFx({ kind: 'pillar', x: P.x, y: P.y, color: '#c9a2ff', dur: 1, w: 26 }); if (!baseUp) addFx({ kind: 'zap', x: P.x, y: P.y, color: '#c9a2ff', dur: 0.7, seed: fxSeed() });
     addNum(P.x, P.y - (baseUp ? 98 : 78), 'JOB LV UP!', '#d6b4ff', 15, { dur: 1.6, pop: true });
     if (!baseUp) AU.sfx('jobup');
     if (canJobChange(h)) toast('พร้อมเปลี่ยนอาชีพแล้ว! แตะปุ่ม อาชีพ');
@@ -2041,8 +2042,10 @@ function castSkill(id, fromQueue) {
     const res = sk.dmg === 'magic' ? rollMagic(mult, tg) : rollPhys(mult, tg, sk.crit);
     let delay = 0.14;
     if (sk.fx === 'arrow') delay = projectile(P.x + P.dir * 10, P.y - 22, tg, 820, 'arrow', sk.color, 3);
-    else if (sk.fx === 'bolt') delay = projectile(P.x + P.dir * 10, P.y - 30, tg, 600, 'orb', sk.color, 7);
-    else if (sk.fx === 'pillar') addFx({ kind: 'pillar', x: tg.x, y: tg.y, color: sk.color, dur: 0.6, w: 24 });
+    else if (sk.fx === 'bolt') delay = projectile(P.x + P.dir * 10, P.y - 30, tg, 600, sk.fire ? 'fire' : 'orb', sk.color, 7);
+    else if (sk.fx === 'pillar') addFx(sk.zap ? { kind: 'zap', x: tg.x, y: tg.y, color: sk.color, dur: 0.6, seed: fxSeed() } : { kind: 'pillar', x: tg.x, y: tg.y, color: sk.color, dur: 0.6, w: 24 });
+    if (sk.fire) addFx({ kind: 'fcast', x: P.x, y: P.y, color: sk.color, dur: 0.55, r: 0.8, seed: fxSeed() });
+    if (sk.ice) tg.iceT = W.t + delay + 0.3;
     else later(0.06, () => addFx({ kind: 'slash', x: tg.x, y: tg.y - 14 * s, color: sk.color, dur: 0.3, dir: P.dir, big: true }));
     later(delay, () => { addFx({ kind: 'burst', x: tg.x, y: tg.y - 14 * s, color: sk.color, dur: 0.4 }); applyHit(tg, res, sk.hits); });
   } else if (sk.type === 'aoe') {
@@ -2053,12 +2056,19 @@ function castSkill(id, fromQueue) {
       const n = Math.max(3, sk.hits + 1);
       for (let i = 0; i < n; i++) {
         const a = Math.random() * TAU, rd = Math.random() * sk.r * 0.8;
-        later(i * 0.08, () => addFx({ kind: sk.fx === 'meteor' ? 'meteor' : 'pillar', x: cx + Math.cos(a) * rd, y: cy + Math.sin(a) * rd * 0.6, color: sk.color, dur: 0.6, w: 16 }));
+        const px = cx + Math.cos(a) * rd, py = cy + Math.sin(a) * rd * 0.6;
+        later(i * 0.08, () => addFx(sk.zap ? { kind: 'zap', x: px, y: py, color: sk.color, dur: 0.55, seed: fxSeed(), thick: 0.8 } : sk.aboom ? { kind: 'aboom', x: px, y: py, color: sk.color, dur: 0.6, size: 0.8, h: 1.2 + Math.random() * 0.8, seed: fxSeed() } : { kind: sk.fx === 'meteor' ? 'meteor' : 'pillar', x: px, y: py, color: sk.color, dur: 0.6, w: 16 }));
+        if (sk.fx === 'meteor') later(i * 0.08 + 0.33, () => addFx({ kind: 'gboom', x: px, y: py, size: 0.7, dur: 0.9, seed: fxSeed() }));
       }
     }
+    if (sk.fire) addFx({ kind: 'fcast', x: P.x, y: P.y, color: sk.color, dur: 0.7, r: 1.1, seed: fxSeed() });
+    if (sk.fzone) later(0.5, () => addFx({ kind: 'fzone', x: cx, y: cy, r: sk.r * 0.7, dur: 3, seed: fxSeed() }));
+    if (sk.boom) later(0.12, () => { addFx({ kind: 'gboom', x: cx, y: cy, size: 1.3, dur: 1, seed: fxSeed() }); R3.shake(0.25, 0.06); });
+    if (sk.nuke) later(0.55, () => { addFx({ kind: 'nuke', x: cx, y: cy, size: 1.5, dur: 2, seed: fxSeed() }); R3.shake(0.6, 0.12); });
     later(sk.fx === 'meteor' ? 0.35 : 0.18, () => {
       for (const m of pvpPool()) {
         if (m.state === 'dead') continue;
+        if (sk.ice && Math.hypot(m.x - cx, (m.y - cy) * 1.3) <= sk.r) m.iceT = W.t;
         if (Math.hypot(m.x - cx, (m.y - cy) * 1.3) <= sk.r) applyHit(m, sk.dmg === 'magic' ? rollMagic(mult, m) : rollPhys(mult, m), sk.hits);
       }
     });
@@ -2220,7 +2230,7 @@ function update(dt) {
     }
   } else if (P.tx != null) { moving = moveToward(P.tx, P.ty, dt, 2); if (!moving) P.tx = null; }
   P.walking = moving;
-  npcTick(); pvpSync();
+  npcTick(); pvpSync(); fxTick();
   if (W.t - (P.apT || 0) > 0.15) { P.apT = W.t; autoPotTick(); }
   if (W.t - (PARTY.ft || 0) > 0.25) { PARTY.ft = W.t; partyFollowTick(); }
 }
@@ -2235,6 +2245,7 @@ function label(ctx, text, x, y, col, size) {
 }
 const GROUND_FX = { circle: 1, ring: 1, quake: 1, tap: 1 };
 function drawFx(ctx, f, p, t) {
+  if (typeof FX2O === 'object' && FX2O[f.kind]) { ctx.save(); try { FX2O[f.kind](ctx, f, p, t, (x, y, h) => ({ x, y: y - (h || 0) * 42 })); } catch (e) {} ctx.restore(); return; }
   if (f.kind === 'vfx') { const img = VFX[f.sheet], o = f.me ? P : (f.ok && ONLINE.others.get(f.ok)) || f; if (!img || !img.complete) return; const fr = Math.min(VFX_N - 1, Math.floor(p * VFX_N)), sz = 120; ctx.save(); ctx.drawImage(img, (fr % 5) * VFX_FR, Math.floor(fr / 5) * VFX_FR, VFX_FR, VFX_FR, o.x - sz / 2, o.y - sz * 0.78, sz, sz); ctx.restore(); return; }
   ctx.save();
   switch (f.kind) {
@@ -3904,6 +3915,7 @@ void main(){
       else if (f.kind === 'quake') { for (let k = 0; k < 3; k++) { const r = (f.r / R3.U) * (0.35 + 0.65 * easeOut(clamp(p * 1.4 - k * 0.15, 0, 1))); E.push(); E.T(X, 0.03, Z); E.Sc(r); E.flat('ring', [col[0], col[1], col[2], (1 - p) * 0.9], { fade: 3 }); E.pop(); } }
       else if (f.kind === 'tap') { E.push(); E.T(X, 0.03, Z); E.Sc(0.15 + 0.35 * p); E.flat('ring', [col[0], col[1], col[2], 1 - p], { fade: 3 }); E.pop(); }
       else if (f.kind === 'meteor' && p > 0.55) { const q = (p - 0.55) / 0.45; E.push(); E.T(X, 0.03, Z); E.Sc(0.4 + 1.1 * q); E.flat('disc', [col[0], col[1] * 0.7, col[2] * 0.4, 1 - q], { fade: 2 }); E.pop(); }
+      else if (FX2G[f.kind]) { try { E.push(); FX2G[f.kind](E, f, p, t, X, Z); } catch (e) {} finally { E.pop(); } }
     }
     // opaque
     E.blend(null); E.useLit();
@@ -3976,6 +3988,7 @@ void main(){
     ctx.setTransform(W.dpr, 0, 0, W.dpr, 0, 0); ctx.clearRect(0, 0, W.w, W.h);
     for (const f of W.fx) {
       const p = (t - f.t0) / f.dur; if (p < 0 || p > 1) continue;
+      if (FX2O[f.kind]) { ctx.save(); try { FX2O[f.kind](ctx, f, p, t, proj); } catch (e) {} ctx.restore(); continue; }
       if (f.kind === 'vfx') { const img = VFX[f.sheet]; if (img && img.complete && img.naturalWidth) { const o = f.me ? P : (f.ok && ONLINE.others.get(f.ok)) || f, qa = proj(o.x, o.y, 0), qb = proj(o.x, o.y, 1.6), hp = Math.abs(qa.y - qb.y), sz = hp * 2.2, fr = Math.min(VFX_N - 1, Math.floor(p * VFX_N));
           ctx.globalAlpha = p > 0.9 ? (1 - p) / 0.1 : 1; ctx.drawImage(img, (fr % 5) * VFX_FR, Math.floor(fr / 5) * VFX_FR, VFX_FR, VFX_FR, qa.x - sz / 2, qb.y - sz * 0.62, sz, sz); ctx.globalAlpha = 1; } }
       else if (f.kind === 'slash' || f.kind === 'burst' || f.kind === 'heal') { const s = proj(f.x, f.y); drawFx(ctx, Object.assign({}, f, { x: s.x, y: s.y - 20 }), p, t); }
@@ -3984,6 +3997,7 @@ void main(){
       else if (f.kind === 'proj') {
         const s0 = proj(f.x, f.y), tg = f.tg, s1 = proj(tg.x, tg.y, 0.55 * (tg.size || 1));
         const y0 = s0.y - 26, x = s0.x + (s1.x - s0.x) * p, y = y0 + (s1.y - y0) * p, dx = s1.x - s0.x, dy = s1.y - y0, d = Math.hypot(dx, dy) || 1, ux = dx / d, uy = dy / d;
+        if (f.sub === 'fire') { ctx.save(); FX2O.fireball(ctx, x, y, ux, uy, fxAt(proj, tg.x, tg.y).u, t); ctx.restore(); continue; }
         ctx.save(); ctx.shadowColor = f.color; ctx.shadowBlur = 10; ctx.lineCap = 'round';
         if (f.sub === 'arrow') { ctx.strokeStyle = f.color; ctx.lineWidth = f.w; ctx.beginPath(); ctx.moveTo(x - ux * 18, y - uy * 18); ctx.lineTo(x, y); ctx.stroke(); }
         else { ctx.strokeStyle = rgba(f.color, 0.5); ctx.lineWidth = f.w; ctx.beginPath(); ctx.moveTo(x - ux * 22, y - uy * 22); ctx.lineTo(x, y); ctx.stroke(); ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.arc(x, y, f.w * 0.6, 0, TAU); ctx.fill(); }
@@ -4082,6 +4096,180 @@ void main(){
     return true;
   };
 })();
+/* =================== Effect pack: recreated from Binbun3D VFX (CC0) =================== *
+ * loot beams by rarity, sky lightning, ground / air / big explosions, fire cast circle,   *
+ * fireball, burning ground and ice shatter. Each effect has an overlay part (screen space, *
+ * positioned with the 3D projection) and, where it sits on the ground, a 3D ground part.  */
+const LOOT_COL = { epic: ['#e9ccff', '#8a3be0'], legendary: ['#f9ebb7', '#e99500'], mythic: ['#ffb19b', '#d60017'], ultimate: ['#ffffff', '#d60017'], card: ['#fd9abc', '#c0127a'] };
+const lootKey = (it) => (it.kind === 'card' ? 'card' : ({ 1: 'epic', 2: 'legendary', 3: 'mythic', 4: 'ultimate' })[it.r || 0] || null);
+const fxRand = (s) => { s = (s * 2654435761) >>> 0; return () => { s = (s + 0x6D2B79F5) >>> 0; let t = Math.imul(s ^ (s >>> 15), 1 | s); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; };
+const fxSeed = () => (Math.random() * 1e6) | 0;
+const fxC = (h) => hexRgb(h).map((v) => v / 255);
+function lootBeam(x, y, key, share) {
+  if (!LOOT_COL[key]) return;
+  addFx({ kind: 'loot', x, y, lk: key, dur: key === 'ultimate' ? 4 : 3.2, seed: fxSeed() });
+  if (share && typeof NET === 'object') { NET.lb = (NET.lb || []).filter((e) => Date.now() - e[4] < 6000).slice(-3); NET.lb.push([uid36().slice(-8), Math.round(x / WORLD.w * 1000) / 1000, Math.round(y / WORLD.h * 1000) / 1000, key, Date.now()]); }
+}
+// screen anchor + pixels per world unit at a spot
+function fxAt(proj, x, y) { const a = proj(x, y, 0), b = proj(x, y, 1); return { a, u: Math.max(6, Math.abs(a.y - b.y)) }; }
+function fxGlow(ctx, x, y, r, col, al) { if (r <= 0 || al <= 0) return; const g = ctx.createRadialGradient(x, y, 0, x, y, r); g.addColorStop(0, rgba(col, Math.min(1, al))); g.addColorStop(1, rgba(col, 0)); ctx.fillStyle = g; ctx.beginPath(); ctx.arc(x, y, r, 0, TAU); ctx.fill(); }
+function fxSpark(ctx, x, y, r, col, al) { if (al <= 0.01) return; ctx.globalAlpha = Math.min(1, al); ctx.fillStyle = col; ctx.beginPath(); ctx.moveTo(x, y - r); ctx.lineTo(x + r * 0.22, y); ctx.lineTo(x, y + r); ctx.lineTo(x - r * 0.22, y); ctx.closePath(); ctx.moveTo(x - r, y); ctx.lineTo(x, y + r * 0.22); ctx.lineTo(x + r, y); ctx.lineTo(x, y - r * 0.22); ctx.closePath(); ctx.fill(); ctx.globalAlpha = 1; }
+function fxStar(ctx, x, y, n, r0, r1, rot, col) { ctx.fillStyle = col; ctx.beginPath(); for (let i = 0; i < n * 2; i++) { const a = rot + i * Math.PI / n, r = i % 2 ? r0 : r1; i ? ctx.lineTo(x + Math.cos(a) * r, y + Math.sin(a) * r) : ctx.moveTo(x + Math.cos(a) * r, y + Math.sin(a) * r); } ctx.closePath(); ctx.fill(); }
+function fxRing(ctx, proj, x, y, r, h) { ctx.beginPath(); for (let i = 0; i <= 32; i++) { const a = i / 32 * TAU, q = proj(x + Math.cos(a) * r, y + Math.sin(a) * r, h || 0); i ? ctx.lineTo(q.x, q.y) : ctx.moveTo(q.x, q.y); } }
+function fxBolt(ctx, x0, y0, x1, y1, u, R, col, thick) {
+  const N = 12, pts = [[x0, y0]];
+  for (let i = 1; i < N; i++) { const k = i / N; pts.push([x0 + (x1 - x0) * k + (R() - 0.5) * u * 0.9 * (1 - k * 0.6), y0 + (y1 - y0) * k + (R() - 0.5) * u * 0.15]); }
+  pts.push([x1, y1]);
+  const path = (ps) => { ctx.beginPath(); ps.forEach(([a, b], i) => (i ? ctx.lineTo(a, b) : ctx.moveTo(a, b))); };
+  ctx.lineJoin = 'round'; ctx.lineCap = 'round';
+  for (const [w, c, al] of [[u * 0.42 * thick, col, 0.28], [u * 0.17 * thick, col, 0.85], [u * 0.06 * thick, '#ffffff', 1]]) { ctx.globalAlpha = al; ctx.strokeStyle = c; ctx.lineWidth = w; path(pts); ctx.stroke(); }
+  for (let b = 0; b < 3; b++) { const i = 2 + ((R() * (N - 4)) | 0), [bx, by] = pts[i], br = [[bx, by]]; let cx = bx, cy = by; const dir = R() < 0.5 ? -1 : 1;
+    for (let k = 0; k < 4; k++) { cx += dir * u * (0.2 + R() * 0.3); cy += u * (0.15 + R() * 0.3); br.push([cx, cy]); }
+    ctx.globalAlpha = 0.7; ctx.strokeStyle = col; ctx.lineWidth = u * 0.08 * thick; path(br); ctx.stroke(); ctx.globalAlpha = 1; ctx.strokeStyle = '#ffffff'; ctx.lineWidth = u * 0.025 * thick; path(br); ctx.stroke(); }
+  ctx.globalAlpha = 1;
+}
+const FIRE = ['#fff6c8', '#ffd25a', '#ff8a26', '#e8441a', '#9a2412'];
+const fireCol = (k) => FIRE[Math.min(FIRE.length - 1, Math.max(0, Math.floor(k * FIRE.length)))];
+
+/* ---------- overlay parts ---------- */
+const FX2O = {
+  // rarity loot beam: column of light, base orb, rising sparkles (ultimate adds a ray burst)
+  loot(ctx, f, p, t, proj) {
+    const [c1, c2] = LOOT_COL[f.lk], { a, u } = fxAt(proj, f.x, f.y), fade = p < 0.06 ? p / 0.06 : p > 0.72 ? (1 - p) / 0.28 : 1;
+    const top = proj(f.x, f.y, 8), w = u * (f.lk === 'ultimate' ? 0.42 : 0.32) * (1 + 0.12 * Math.sin(t * 9)), h = a.y - top.y;
+    ctx.globalCompositeOperation = 'lighter';
+    fxGlow(ctx, a.x, a.y - u * 0.25, u * 1.15, c2, 0.6 * fade);
+    let g = ctx.createLinearGradient(0, a.y, 0, top.y); g.addColorStop(0, rgba(c2, 0.7 * fade)); g.addColorStop(0.6, rgba(c2, 0.25 * fade)); g.addColorStop(1, rgba(c2, 0));
+    ctx.fillStyle = g; ctx.fillRect(a.x - w, top.y, w * 2, h);
+    g = ctx.createLinearGradient(0, a.y, 0, top.y); g.addColorStop(0, rgba(c1, 0.95 * fade)); g.addColorStop(1, rgba(c1, 0));
+    ctx.fillStyle = g; ctx.fillRect(a.x - w * 0.3, top.y, w * 0.6, h);
+    fxGlow(ctx, a.x, a.y - u * 0.35 + Math.sin(t * 4) * u * 0.06, u * 0.32, '#ffffff', 0.9 * fade);
+    const R = fxRand(f.seed);
+    for (let i = 0; i < 16; i++) { const sp = 0.3 + R() * 0.35, ph = (R() + t * sp) % 1, ox = (R() - 0.5) * u * 1.3, s = proj(f.x, f.y, ph * 5);
+      fxSpark(ctx, s.x + ox * (1 - ph * 0.5), s.y, u * 0.11 * (1.2 - ph), i % 3 ? c1 : '#ffffff', fade * (1 - ph) * (0.55 + 0.45 * Math.sin(t * 13 + i))); }
+    if (f.lk === 'ultimate' && p < 0.3) { const q = p / 0.3; ctx.save(); ctx.translate(a.x, a.y - u * 0.5); for (let i = 0; i < 12; i++) { ctx.rotate(TAU / 12); ctx.globalAlpha = (1 - q) * 0.8; ctx.fillStyle = i % 2 ? '#ffffff' : c2; ctx.beginPath(); ctx.moveTo(-u * 0.06, 0); ctx.lineTo(u * 0.06, 0); ctx.lineTo(0, -u * (1 + 3.5 * q)); ctx.fill(); } ctx.restore(); }
+  },
+  // lightning strike from the sky with impact star, sparks and ground glow
+  zap(ctx, f, p, t, proj) {
+    const { a, u } = fxAt(proj, f.x, f.y), col = f.color || '#9fe3ff', top = proj(f.x, f.y, 9), th = f.thick || 1;
+    ctx.globalCompositeOperation = 'lighter';
+    if (p < 0.12) fxGlow(ctx, a.x, a.y - u * 0.5, u * 3.2 * th, '#ffffff', (0.12 - p) / 0.12 * 0.55);
+    if (p < 0.7) { const R = fxRand(f.seed + ((t * 22) | 0)); ctx.globalAlpha = p < 0.5 ? 1 : (0.7 - p) / 0.2; fxBolt(ctx, top.x + (R() - 0.5) * u * 1.2, top.y, a.x, a.y - u * 0.1, u, R, col, th); }
+    const q = easeOut(Math.min(1, p / 0.35)), fade = 1 - p;
+    fxGlow(ctx, a.x, a.y, u * 1.6 * th, col, 0.55 * fade);
+    ctx.globalAlpha = fade; fxStar(ctx, a.x, a.y - u * 0.1, 9, u * 0.12 * th, u * (0.35 + 0.75 * q) * th, f.seed % 7, col); fxStar(ctx, a.x, a.y - u * 0.1, 9, u * 0.05, u * (0.15 + 0.35 * q) * th, (f.seed % 7) + 0.3, '#ffffff');
+    const R2 = fxRand(f.seed + 3); ctx.strokeStyle = col; ctx.lineCap = 'round';
+    for (let i = 0; i < 10; i++) { const ang = R2() * TAU, d0 = u * 0.2, d1 = u * (0.6 + R2() * 0.9) * q * th; ctx.globalAlpha = fade * 0.9; ctx.lineWidth = u * 0.05; ctx.beginPath(); ctx.moveTo(a.x + Math.cos(ang) * d0, a.y - u * 0.1 + Math.sin(ang) * d0 * 0.6); ctx.lineTo(a.x + Math.cos(ang) * d1, a.y - u * 0.1 + Math.sin(ang) * d1 * 0.6); ctx.stroke(); }
+    ctx.globalAlpha = 1;
+  },
+  // ground explosion: flash, rolling fireball puffs turning to smoke, flying debris
+  gboom(ctx, f, p, t, proj) {
+    const s = f.size || 1, { a, u } = fxAt(proj, f.x, f.y), R = fxRand(f.seed);
+    ctx.globalCompositeOperation = 'lighter';
+    if (p < 0.14) fxGlow(ctx, a.x, a.y - u * 0.4 * s, u * 2.6 * s, '#fff4d0', (0.14 - p) / 0.14);
+    const puffs = [];
+    for (let i = 0; i < 11; i++) { const ang = R() * TAU, dist = R() * 0.9, rise = 0.4 + R() * 1.4, sz = 0.7 + R() * 0.6, q = easeOut(Math.min(1, p * 1.7));
+      const c = proj(f.x + Math.cos(ang) * dist * s * q * 42 * 0.9, f.y + Math.sin(ang) * dist * s * q * 42 * 0.5, rise * q * s); puffs.push([c.x, c.y, u * s * (0.32 + 0.55 * q) * sz]); }
+    for (const [x, y, r] of puffs) { const k = Math.min(1, p * 1.9); fxGlow(ctx, x, y, r * 1.5, fireCol(k), (1 - p) * 0.9); if (p < 0.4) fxGlow(ctx, x, y, r * 0.6, '#fffbe8', (0.4 - p) / 0.4); }
+    ctx.globalCompositeOperation = 'source-over';
+    if (p > 0.3) for (const [x, y, r] of puffs) { const k = (p - 0.3) / 0.7; ctx.globalAlpha = 0.35 * Math.sin(k * Math.PI); ctx.fillStyle = '#3b3430'; ctx.beginPath(); ctx.arc(x, y - u * k * 0.8 * s, r * (1 + k * 0.7), 0, TAU); ctx.fill(); }
+    ctx.globalAlpha = 1; const R2 = fxRand(f.seed + 9);
+    for (let i = 0; i < 12; i++) { const vx = (R2() - 0.5) * 6 * s, vz = 3 + R2() * 4, tt = p * 1.4, hz = vz * tt - 9 * tt * tt; if (hz < 0 && tt > 0.2) continue;
+      const c = proj(f.x + vx * tt * 42 * 0.6, f.y + (R2() - 0.5) * 30 * tt, Math.max(0, hz)); ctx.save(); ctx.translate(c.x, c.y); ctx.rotate(t * 8 + i); ctx.fillStyle = i % 3 ? '#4a3a30' : '#ff8a26'; const r = u * 0.08 * s; ctx.fillRect(-r, -r, r * 2, r * 2); ctx.restore(); }
+  },
+  // air burst: flash, expanding glow and streaking sparks above the ground
+  aboom(ctx, f, p, t, proj) {
+    const s = f.size || 1, h = f.h || 1.6, c = proj(f.x, f.y, h), { u } = fxAt(proj, f.x, f.y), R = fxRand(f.seed), col = f.color || '#ffd25a', q = easeOut(Math.min(1, p * 1.6));
+    ctx.globalCompositeOperation = 'lighter';
+    if (p < 0.16) fxGlow(ctx, c.x, c.y, u * 1.8 * s, '#ffffff', (0.16 - p) / 0.16);
+    fxGlow(ctx, c.x, c.y, u * (0.4 + 1.1 * q) * s, col, (1 - p) * 0.85); fxGlow(ctx, c.x, c.y, u * (0.2 + 0.5 * q) * s, '#fff6c8', (1 - p));
+    ctx.lineCap = 'round';
+    for (let i = 0; i < 12; i++) { const ang = R() * TAU, d1 = u * (0.4 + R() * 1.1) * q * s, d0 = d1 * 0.55; ctx.globalAlpha = 1 - p; ctx.strokeStyle = i % 2 ? '#ffffff' : col; ctx.lineWidth = u * 0.045 * s; ctx.beginPath(); ctx.moveTo(c.x + Math.cos(ang) * d0, c.y + Math.sin(ang) * d0); ctx.lineTo(c.x + Math.cos(ang) * d1, c.y + Math.sin(ang) * d1 + u * 0.4 * p * p); ctx.stroke(); }
+    ctx.globalAlpha = 1;
+  },
+  // the big one: screen flash, rising fire column with a mushroom cap
+  nuke(ctx, f, p, t, proj) {
+    const s = f.size || 1.6, { a, u } = fxAt(proj, f.x, f.y), R = fxRand(f.seed);
+    if (p < 0.18) { ctx.globalCompositeOperation = 'source-over'; ctx.globalAlpha = (0.18 - p) / 0.18 * 0.55; ctx.fillStyle = '#fff6dc'; ctx.fillRect(0, 0, W.w, W.h); ctx.globalAlpha = 1; }
+    ctx.globalCompositeOperation = 'lighter';
+    const rise = easeOut(Math.min(1, p * 1.4)), capH = 1.2 + 3.2 * rise;
+    for (let i = 0; i < 8; i++) { const k = i / 7, c = proj(f.x + (R() - 0.5) * 12, f.y, capH * k); fxGlow(ctx, c.x, c.y, u * s * (0.35 + 0.25 * (1 - k)), fireCol(Math.min(1, p * 1.6 + k * 0.2)), (1 - p) * 0.8); }
+    for (let i = 0; i < 12; i++) { const ang = i / 12 * TAU + R() * 0.4, c = proj(f.x + Math.cos(ang) * 42 * 0.9 * s * rise, f.y + Math.sin(ang) * 42 * 0.35 * s * rise, capH + Math.sin(ang) * 0.3); fxGlow(ctx, c.x, c.y, u * s * (0.45 + 0.35 * rise), fireCol(Math.min(1, p * 1.3)), (1 - p) * 0.85); }
+    fxGlow(ctx, a.x, a.y, u * 3.4 * s * rise, '#ff8a26', (1 - p) * 0.45);
+    if (p < 0.35) fxGlow(ctx, a.x, a.y - u * 1.2 * s, u * 2.2 * s, '#ffffff', (0.35 - p) / 0.35);
+  },
+  // fire casting circle under the caster, with runes and rising embers
+  fcast(ctx, f, p, t, proj) {
+    const r = (f.r || 1) * 34, fade = p < 0.2 ? p / 0.2 : (1 - p) / 0.8, col = f.color || '#ff7a3d', { u } = fxAt(proj, f.x, f.y), rot = t * 1.6;
+    ctx.globalCompositeOperation = 'lighter'; ctx.globalAlpha = fade;
+    ctx.strokeStyle = col; ctx.lineWidth = u * 0.06; fxRing(ctx, proj, f.x, f.y, r); ctx.stroke();
+    ctx.strokeStyle = '#ffd25a'; ctx.lineWidth = u * 0.035; fxRing(ctx, proj, f.x, f.y, r * 0.72); ctx.stroke();
+    for (let i = 0; i < 8; i++) { const ang = rot + i / 8 * TAU, q1 = proj(f.x + Math.cos(ang) * r * 0.72, f.y + Math.sin(ang) * r * 0.72), q2 = proj(f.x + Math.cos(ang + TAU / 8 * 3) * r * 0.72, f.y + Math.sin(ang + TAU / 8 * 3) * r * 0.72);
+      ctx.strokeStyle = rgba(col, 0.7); ctx.lineWidth = u * 0.025; ctx.beginPath(); ctx.moveTo(q1.x, q1.y); ctx.lineTo(q2.x, q2.y); ctx.stroke();
+      const rn = proj(f.x + Math.cos(-rot + i / 8 * TAU) * r * 0.86, f.y + Math.sin(-rot + i / 8 * TAU) * r * 0.86); fxSpark(ctx, rn.x, rn.y, u * 0.09, '#fff1b0', fade); }
+    const R = fxRand(f.seed); for (let i = 0; i < 10; i++) { const ang = R() * TAU, ph = (R() + p * 1.5) % 1, e = proj(f.x + Math.cos(ang) * r * 0.9, f.y + Math.sin(ang) * r * 0.9, ph * 1.4); fxGlow(ctx, e.x, e.y, u * 0.12, fireCol(ph), fade * (1 - ph)); }
+    ctx.globalAlpha = 1;
+  },
+  // burning ground left behind: flickering flame tongues
+  fzone(ctx, f, p, t, proj) {
+    const r = f.r || 80, fade = p < 0.1 ? p / 0.1 : p > 0.75 ? (1 - p) / 0.25 : 1, R = fxRand(f.seed), { u } = fxAt(proj, f.x, f.y);
+    ctx.globalCompositeOperation = 'lighter';
+    for (let i = 0; i < 16; i++) { const ang = R() * TAU, d = Math.sqrt(R()) * r, b = proj(f.x + Math.cos(ang) * d, f.y + Math.sin(ang) * d * 0.7), fl = 0.65 + 0.35 * Math.sin(t * (9 + i) + i * 2), hh = u * (0.45 + R() * 0.35) * fl;
+      fxGlow(ctx, b.x, b.y - hh * 0.3, hh * 0.9, '#ff6a1f', 0.45 * fade);
+      ctx.globalAlpha = 0.85 * fade; ctx.fillStyle = i % 3 ? '#ff9a2e' : '#ffd25a'; ctx.beginPath(); ctx.moveTo(b.x - hh * 0.28, b.y); ctx.quadraticCurveTo(b.x - hh * 0.3, b.y - hh * 0.55, b.x + Math.sin(t * 7 + i) * hh * 0.12, b.y - hh); ctx.quadraticCurveTo(b.x + hh * 0.3, b.y - hh * 0.55, b.x + hh * 0.28, b.y); ctx.closePath(); ctx.fill(); }
+    ctx.globalAlpha = 1;
+  },
+  // ice shatter: shards flying out with gravity, a frost puff and a ring
+  shatter(ctx, f, p, t, proj) {
+    const s = f.size || 1, { a, u } = fxAt(proj, f.x, f.y), R = fxRand(f.seed), c0 = proj(f.x, f.y, 0.7 * s);
+    ctx.globalCompositeOperation = 'lighter';
+    fxGlow(ctx, c0.x, c0.y, u * (0.6 + 1.2 * p) * s, '#d8f3ff', (1 - p) * 0.7);
+    ctx.globalCompositeOperation = 'source-over';
+    for (let i = 0; i < 14; i++) { const ang = R() * TAU, sp = (2 + R() * 3) * s, vz = 2 + R() * 3, tt = p * 1.1, hz = 0.7 * s + vz * tt - 7 * tt * tt;
+      const c = proj(f.x + Math.cos(ang) * sp * tt * 26, f.y + Math.sin(ang) * sp * tt * 16, Math.max(0, hz)), r = u * (0.1 + R() * 0.12) * s;
+      ctx.save(); ctx.translate(c.x, c.y); ctx.rotate(t * (6 + i) + i); ctx.globalAlpha = 1 - p * p;
+      ctx.fillStyle = i % 3 ? '#bfeaff' : '#ffffff'; ctx.strokeStyle = '#6fc4ff'; ctx.lineWidth = Math.max(1, u * 0.02);
+      ctx.beginPath(); ctx.moveTo(0, -r * 1.4); ctx.lineTo(r * 0.7, r * 0.6); ctx.lineTo(-r * 0.6, r * 0.8); ctx.closePath(); ctx.fill(); ctx.stroke(); ctx.restore(); }
+    ctx.globalAlpha = 1;
+  },
+  // fireball projectile (replaces the plain orb for fire bolts)
+  fireball(ctx, x, y, ux, uy, u, t) {
+    ctx.globalCompositeOperation = 'lighter';
+    fxGlow(ctx, x, y, u * 0.9, '#ff7a26', 0.55);
+    for (let i = 7; i >= 0; i--) { const k = i / 7, tx = x - ux * u * 0.55 * i, ty = y - uy * u * 0.55 * i + Math.sin(t * 20 + i) * u * 0.06; fxGlow(ctx, tx, ty, u * (0.55 - 0.04 * i), fireCol(0.2 + k * 0.75), 0.9 - k * 0.6); }
+    fxGlow(ctx, x, y, u * 0.34, '#ffe9a0', 1); fxGlow(ctx, x, y, u * 0.16, '#ffffff', 1);
+  }
+};
+
+/* ---------- ground parts (drawn in the 3D pass) ---------- */
+const FX2G = {
+  loot(E, f, p, t, X, Z) { const [, c2] = LOOT_COL[f.lk], col = fxC(c2), fade = p < 0.06 ? p / 0.06 : p > 0.72 ? (1 - p) / 0.28 : 1, pulse = 1 + 0.12 * Math.sin(t * 5);
+    E.push(); E.T(X, 0.03, Z); E.Sc(0.75 * pulse); E.flat('ring', [col[0], col[1], col[2], 0.9 * fade], { fade: 3 }); E.pop();
+    E.push(); E.T(X, 0.025, Z); E.Sc(1.1); E.flat('disc', [col[0], col[1], col[2], 0.35 * fade], { fade: 2 }); E.pop();
+    const q = (t * 0.8) % 1; E.push(); E.T(X, 0.032, Z); E.Sc(0.4 + 0.9 * q); E.flat('ring', [col[0], col[1], col[2], (1 - q) * 0.6 * fade], { fade: 3 }); E.pop(); },
+  zap(E, f, p, t, X, Z) { const col = fxC(f.color || '#9fe3ff'); E.push(); E.T(X, 0.03, Z); E.Sc(0.3 + 1.3 * easeOut(p)); E.flat('ring', [col[0], col[1], col[2], 1 - p], { fade: 3 }); E.pop(); },
+  gboom(E, f, p, t, X, Z) { const s = f.size || 1, q = easeOut(Math.min(1, p * 1.5)); E.push(); E.T(X, 0.035, Z); E.Sc((0.4 + 2.4 * q) * s); E.flat('ring', [1, 0.62, 0.25, (1 - p) * 0.9], { fade: 3 }); E.pop();
+    E.push(); E.T(X, 0.03, Z); E.Sc(1.3 * s); E.flat('disc', [1, 0.45, 0.12, (1 - p) * 0.55], { fade: 2 }); E.pop(); },
+  nuke(E, f, p, t, X, Z) { const s = f.size || 1.6, q = easeOut(Math.min(1, p * 1.2));
+    for (const [d, al] of [[0, 1], [0.15, 0.6]]) { const qq = Math.max(0, q - d); E.push(); E.T(X, 0.04, Z); E.Sc((0.5 + 5 * qq) * s); E.flat('ring', [1, 0.75, 0.4, (1 - p) * al], { fade: 3 }); E.pop(); }
+    E.push(); E.T(X, 0.03, Z); E.Sc(2.6 * s); E.flat('disc', [1, 0.5, 0.15, (1 - p) * 0.6], { fade: 2 }); E.pop(); },
+  fzone(E, f, p, t, X, Z) { const fade = p < 0.1 ? p / 0.1 : p > 0.75 ? (1 - p) / 0.25 : 1; E.push(); E.T(X, 0.028, Z); E.Sc((f.r || 80) / R3.U * 1.05); E.flat('disc', [1, 0.42, 0.1, 0.45 * fade * (0.85 + 0.15 * Math.sin(t * 6))], { fade: 2 }); E.pop(); },
+  fcast(E, f, p, t, X, Z) { const fade = p < 0.2 ? p / 0.2 : (1 - p) / 0.8; E.push(); E.T(X, 0.026, Z); E.Sc((f.r || 1) * 34 / R3.U * 1.1); E.flat('disc', [1, 0.45, 0.15, 0.35 * fade], { fade: 2 }); E.pop(); },
+  shatter(E, f, p, t, X, Z) { E.push(); E.T(X, 0.03, Z); E.Sc(0.3 + 1.2 * easeOut(p)); E.flat('ring', [0.75, 0.92, 1, 1 - p], { fade: 3 }); E.pop(); }
+};
+
+/* ---------- watching for freeze ending (player shatters out of the ice) ---------- */
+function fxTick() {
+  const frozen = !!(P.ccType === 'freeze' && P.ccUntil > W.t);
+  if (P.wasFrozen && !frozen && !P.dead) addFx({ kind: 'shatter', x: P.x, y: P.y, dur: 0.9, seed: fxSeed() });
+  P.wasFrozen = frozen;
+}
+// other players' loot beams in the same map
+function fxIntake() {
+  if (!W.map) return; const seen = NET.lbSeen || (NET.lbSeen = new Set());
+  for (const o of othersHere()) if (o.lb) for (const e of o.lb) if (!seen.has(e[0])) { seen.add(e[0]); if (Date.now() - e[4] < 8000 || !e[4]) lootBeam(e[1] * WORLD.w, e[2] * WORLD.h, e[3], false); }
+  if (seen.size > 300) NET.lbSeen = new Set([...seen].slice(-150));
+}
 /* critical-hit sound clips (one per weapon type), MP3 base64 */
 const CRIT_SND = {"dagger": "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", "bow": "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", "katar": "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", "sword": "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", "rod": "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", "axe": "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", "mace": "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"};
 /* =================== AUDIO (Web Audio, synthesized) =================== */
@@ -4872,6 +5060,7 @@ function readPresence(p) {
     rc: Array.isArray(pr.rc) ? [String(pr.rc[0] || '').slice(0, 20), String(pr.rc[1] || '').slice(0, 12), pr.rc[2] ? 1 : 0, String(pr.rc[3] || '').slice(0, 80)] : null,
     ra: Array.isArray(pr.ra) ? [String(pr.ra[0] || '').slice(0, 12), int(pr.ra[1], 0, -9, 9)] : null,
     rs: Array.isArray(pr.rs) ? [0, 1, 2].map((i) => num(pr.rs[i], 0, 0, 1e13)) : null,
+    lb: (Array.isArray(pr.lb) ? pr.lb : []).slice(-4).filter((e) => Array.isArray(e) && typeof e[0] === 'string' && LOOT_COL[e[3]]).map((e) => [e[0].slice(0, 12), num(e[1], 0.5, 0, 1), num(e[2], 0.5, 0, 1), e[3], num(e[4], 0, 0, 1e15)]),
     pkd: Array.isArray(pr.pkd) ? [int(pr.pkd[0], 0, 0, 1e6), int(pr.pkd[1], 0, 0, 1e6)] : null,
     kb: Array.isArray(pr.kb) ? [String(pr.kb[0] || '').slice(0, 40), num(pr.kb[1], 0, 0, 1e15)] : null,
     pvh: (Array.isArray(pr.pvh) ? pr.pvh : []).slice(-20).filter((e) => Array.isArray(e) && typeof e[0] === 'string' && typeof e[1] === 'string').map((e) => [e[0].slice(0, 12), e[1].slice(0, 40), int(e[2], 1, 1, 1e8), e[3] ? 1 : 0]),
@@ -4909,7 +5098,7 @@ function syncOthers() {
     for (const o of ONLINE.others.values()) if (o.pk === PARTY.key && o.sup) for (const e of o.sup) if (e[1] === NET.me && !seen.has(e[0])) { seen.set(e[0], now); applySup(e, o); }
     if (seen.size > 200) for (const [k, t] of seen) if (now - t > 30000) seen.delete(k);
   }
-  pvpIntake();
+  pvpIntake(); fxIntake();
   partyIntake();
 }
 const isGone = (o) => (o.aw && performance.now() - (o.awaySince || 0) > 20000) || performance.now() - (o.beat || 0) > 20000;
@@ -5087,6 +5276,7 @@ function onlineTick(dt) {
   Object.assign(pr, partyPresence());
   if (isDg() && DG.rs) pr.rs = [Math.round(DG.rs.dmg), Math.round(DG.rs.heal), Math.round(DG.rs.taken)];
   pvpPresence(pr);
+  { const lb = (NET.lb || []).filter((e) => Date.now() - e[4] < 6000); NET.lb = lb; if (lb.length) pr.lb = lb; }
   { const sp = (NET.sup || []).filter((e) => Date.now() - e[5] < 8000); NET.sup = sp; if (sp.length) pr.sup = sp.map((e) => e.slice(0, 5)); }
   const sig = JSON.stringify(pr);
   if (sig === ONLINE.sig && now - ONLINE.lastSend < 1000) return;
@@ -5313,7 +5503,7 @@ function panelSound(body) {
   body.append(el('div', { class: 'sub', text: 'ภาพ' }));
   const kk = R3.kkUse !== false;
   body.append(el('div', { class: 'acts' }, el('button', { class: 'mini' + (kk ? ' on' : ''), text: kk ? '✅ ตัวละครโมเดลใหม่' : 'ตัวละครแบบเดิม', onclick: () => { R3.kkUse = !kk; lsSet('spellblade_kk', R3.kkUse ? '1' : '0'); drawAvatar(); renderSheet(); } })));
-  body.append(el('p', { class: 'note', text: 'โมเดล 3D: ตัวละคร อาวุธ และโครงกระดูกจาก KayKit โดย Kay Lousberg / มอนสเตอร์ หมู่บ้าน และต้นไม้จาก Quaternius (ทั้งหมด CC0) / เอฟเฟกต์ระฆังสกิลบัฟจาก PIPOYA (pipoya.net) ถ้าเครื่องช้า สลับกลับไปใช้แบบเดิมได้ (มอนและต้นไม้จะกลับเป็นแบบเดิมด้วย)' }));
+  body.append(el('p', { class: 'note', text: 'โมเดล 3D: ตัวละคร อาวุธ และโครงกระดูกจาก KayKit โดย Kay Lousberg / มอนสเตอร์ หมู่บ้าน และต้นไม้จาก Quaternius (ทั้งหมด CC0) / เอฟเฟกต์ระฆังสกิลบัฟจาก PIPOYA (pipoya.net) / เอฟเฟกต์สายฟ้า ระเบิด ไฟ น้ำแข็ง และเสาแสงดรอปของ ดัดแปลงจาก Binbun3D (bun3d.com, CC0) ถ้าเครื่องช้า สลับกลับไปใช้แบบเดิมได้ (มอนและต้นไม้จะกลับเป็นแบบเดิมด้วย)' }));
 }
 /* =================== BOSS RESPAWN TIMERS =================== */
 const BOSS = { all: {}, local: {}, loaded: false, sub: false, seen: {}, warned: {}, annT: 0, curMap: null, first: true };
@@ -5588,7 +5778,8 @@ function teleTick() {
     if (tl.done || W.t < tl.t1) continue;
     tl.done = true;
     for (const c of tl.cs) {
-      if (tl.type === 'slam') addFx({ kind: 'quake', x: c[0], y: c[1], r: c[2], color: '#ff7a3a', dur: 0.7 });
+      if (tl.type === 'slam') { addFx({ kind: 'quake', x: c[0], y: c[1], r: c[2], color: '#ff7a3a', dur: 0.7 }); addFx({ kind: 'gboom', x: c[0], y: c[1], size: 1.4, dur: 1, seed: fxSeed() }); }
+      if (tl.type === 'meteor') addFx({ kind: 'gboom', x: c[0], y: c[1], size: 1, dur: 0.9, seed: fxSeed() });
       else if (tl.type === 'roar') addFx({ kind: 'ring', x: c[0], y: c[1], r: c[2], color: '#ff4a3a', dur: 0.8 });
       else if (tl.type === 'breath') { addFx({ kind: 'ring', x: c[0], y: c[1], r: c[2], color: '#9fe3ff', dur: 0.7 }); addFx({ kind: 'pillar', x: c[0], y: c[1], color: '#bfeaff', dur: 0.6, w: c[2] * 0.6 }); }
     }
@@ -5634,6 +5825,8 @@ function raidVictory(tpl) {
   const g = Math.round(1500 * dg.diff * dg.diff * CONFIG.rates.gold); h.gold += g;
   const no = dg.diff + 1 + (Math.random() * 2 | 0); if (addItem(oreItem('ori'), no)) got.push(Object.assign(oreItem('ori'), { n: no })); if (addItem(oreItem('elu'), no)) got.push(Object.assign(oreItem('elu'), { n: no }));
   DG.loot = got; h.bossKills = (h.bossKills || 0) + 1;
+  { const bm = W.mons.find((m) => m.raid) || P; addFx({ kind: 'nuke', x: bm.x, y: bm.y, size: 1.4, dur: 2, seed: fxSeed() });
+    got.forEach((it, i) => { const k = lootKey(it); if (k) later(0.6 + i * 0.45, () => lootBeam(bm.x + (i - (got.length - 1) / 2) * 34, bm.y + 26, k, true)); }); }
   for (const it of got) if (it.kind === 'gear' && it.r >= 3) chatSend('✨ ' + h.name + ' ได้รับ [' + RAR[it.r].nm + '] ' + it.nm + ' จาก ' + dg.name + '!', 'w', true, true);
   AU.sfx('raidwin'); if (got.some((it) => it.r >= 2)) later(0.9, () => AU.sfx('legend'));
   R3.shake(0.6, 0.1);
@@ -6078,6 +6271,7 @@ function gachaSpin() {
   const free = INV_MAX - h.inv.length - (salt && !h.inv.some((x) => x.k === 'L:salt') ? 1 : 0);
   if (free < wins.length || free < 0) { toast('กระเป๋าใกล้เต็ม เคลียร์ช่องว่างก่อนหมุน'); return; }
   h.gold -= GACHA_PRICE;
+  { const gm = NPCS.find((n) => n.id === 'gacha'); wins.forEach((id, i) => later(0.3 + i * 0.4, () => lootBeam(gm.x + (i - (wins.length - 1) / 2) * 30, gm.y + 30, GEAR[id].uq ? 'mythic' : 'legendary', true))); }
   for (const id of wins) { addItem(gearItem(id), 1); chatSend('🎰 ' + h.name + ' ได้ ' + GEAR[id].ic + ' ' + GEAR[id].nm + ' จากตู้กาชา!', 'w', true, true); }
   if (salt) addItem(saltItem(), salt);
   GA.last = res; GA.t = W.t; npcAct('gacha', 'spin');
