@@ -908,8 +908,8 @@ function MON(id, name, arch, color, lv, extra) {
 }
 
 const DEFAULT_CONFIG = {
-  version: '2.9.35',
-  patchNotes: 'อัปเดต 2.9.35\n• จบดันเจี้ยน: กระดานผลงาน ดาเมจสูงสุด ฮีลสูงสุด รับดาเมจเยอะสุด และ MVP\n• สายนักบวชเดินตามหัวหน้า: ฮีล ชุบชีวิต และบัฟให้เองเมื่อบัฟหมด\n• ทำเนียบนักผจญภัยใหม่: คะแนนรวมจากสวมใส่ ตีบวก การ์ด และการล่าบอส แยกดูรายหมวดได้\n• ห้อง PVP: สร้างห้อง เชิญผู้เล่นออนไลน์ สู้กันในลานกว้างของเมือง',
+  version: '2.9.36',
+  patchNotes: 'อัปเดต 2.9.36\n• บอสดันเจี้ยนดรอปโล่ประจำเซ็ต (16%) สุ่ม STR + HP สูงสุด หรือ VIT + HP สูงสุด ใช้ได้สายนักดาบและนักบวช\n• ตีบวกโล่ได้ที่ริว (Elunium, DEF +2 ต่อขั้น)\n• ตลาดมีตัวกรอง 🛡️ โล่',
   announcement: 'ยินดีต้อนรับสู่ช่วงทดสอบ! เจอบั๊กบอก GM ได้เลย',
   rates: { bexp: 1, jexp: 1, gold: 1, drop: 1 },
   deathPenalty: 1,
@@ -4374,7 +4374,7 @@ const CARD_B = { blob: ['vit', 'hpPct'], shroom: ['int', 'matkPct'], beast: ['ag
   bones: ['str', 'atkPct'], ghost: ['matkPct', 'flee'], brute: ['str', 'hpPct'], drake: ['atkPct', 'matkPct'] };
 const CARD_KEYS = ['str', 'agi', 'vit', 'int', 'dex', 'luk', 'atkPct', 'matkPct', 'hpPct', 'aspdPct', 'flee', 'crit', 'def'];
 const SLOT_TH = { head: 'หมวก', face: 'ใบหน้า', mouth: 'ปาก', weapon: 'อาวุธ', off: 'มือซ้าย', armor: 'เสื้อเกราะ', wings: 'ปีก', shoes: 'รองเท้า', ring1: 'แหวนขวา', ring2: 'แหวนซ้าย' };
-const GEAR_TYPE_TH = { head: 'หมวก', face: 'ใบหน้า', mouth: 'ปาก', shoes: 'รองเท้า', ring: 'แหวน', wings: 'ปีก', weapon: 'อาวุธ', armor: 'เสื้อเกราะ' };
+const GEAR_TYPE_TH = { shield: 'โล่', head: 'หมวก', face: 'ใบหน้า', mouth: 'ปาก', shoes: 'รองเท้า', ring: 'แหวน', wings: 'ปีก', weapon: 'อาวุธ', armor: 'เสื้อเกราะ' };
 const baseSlot = (k) => (k === 'ring1' || k === 'ring2') ? 'ring' : k;
 const GEAR = {
   ribbon:    { slot: 'head', nm: 'ริบบิ้นแดง', ic: '🎀', b: { int: 1, matkPct: 2 }, pr: 800 },
@@ -4410,6 +4410,7 @@ for (const sid of Object.keys(DG_SETS)) {
   GEAR['w_' + sid + '_katar'] = { slot: 'weapon', nm: 'คาตาร์' + S0.nm, ic: '⚔️', b: { watk: Math.round(V * 1.65), crit: t }, pr: 1500 * t * t, set: sid, t, dg: true, line: 'thief', style: 'katar' };
   GEAR['a_' + sid] = { slot: 'armor', nm: 'เกราะ' + S0.nm, ic: '🧥', b: { hpPct: [0, 4, 7, 10, 14, 18][t] }, pr: 1500 * t * t, set: sid, t, dg: true };
   GEAR['s_' + sid] = { slot: 'shoes', nm: 'รองเท้า' + S0.nm, ic: '👢', b: {}, pr: 1200 * t * t, set: sid, t, dg: true };
+  GEAR['sh_' + sid] = { slot: 'shield', nm: 'โล่' + S0.nm, ic: '🛡️', b: {}, pr: 1200 * t * t, dset: sid, t, dg: true };
   GEAR['r_' + sid] = { slot: 'ring', nm: 'แหวน' + S0.nm, ic: '💍', b: {}, pr: 1200 * t * t, dset: sid, t, dg: true };
 }
 // gacha machine prizes: bound to the account (no marketplace)
@@ -4425,16 +4426,18 @@ Object.assign(GEAR, {
 const OFF_RATE = 0.7;
 const isDagger = (id) => !!GEAR[id] && GEAR[id].slot === 'weapon' && GEAR[id].line === 'thief' && !GEAR[id].style;
 const dualNow = (h) => weaponOf(h.job, h.wstyle) === 'dual';
+const shieldUser = (h) => !!(LINES[JOBS[h.job].line] || {}).shield;
+const isShield = (id) => !!GEAR[id] && GEAR[id].slot === 'shield';
 const canUse = (h, id) => !GEAR[id] || !GEAR[id].line || (JOBS[h.job].line === GEAR[id].line && (!GEAR[id].style || h.wstyle === GEAR[id].style));
-const lineText = (h, id) => { const g = GEAR[id]; if (!g || !g.dg) return ''; if (!g.line) return 'ใช้ได้ทุกอาชีพ'; return 'เฉพาะสาย' + LINE_TH[g.line] + (g.style === 'katar' ? ' สไตล์คาตาร์' : '') + (canUse(h, id) ? ' ✓' : JOBS[h.job].line === g.line ? ' (เปลี่ยนสไตล์เป็นคาตาร์ที่ร้านก่อน)' : ' (ไม่ตรงอาชีพคุณ)'); };
+const lineText = (h, id) => { const g = GEAR[id]; if (!g || !g.dg) return ''; if (g.slot === 'shield') return 'เฉพาะสายนักดาบและนักบวช' + (shieldUser(h) ? ' ✓' : ' (อาชีพนี้ใช้ไม่ได้)'); if (!g.line) return 'ใช้ได้ทุกอาชีพ'; return 'เฉพาะสาย' + LINE_TH[g.line] + (g.style === 'katar' ? ' สไตล์คาตาร์' : '') + (canUse(h, id) ? ' ✓' : JOBS[h.job].line === g.line ? ' (เปลี่ยนสไตล์เป็นคาตาร์ที่ร้านก่อน)' : ' (ไม่ตรงอาชีพคุณ)'); };
 const setBonus = (t, n) => n >= 3 ? { atkPct: 2 * t, matkPct: 2 * t, hpPct: 3 * t, crit: t + 1 } : n >= 2 ? { atkPct: 2 * t, matkPct: 2 * t } : null;
-const ARMOR_VARS = ['str', 'agi', 'vit', 'int', 'dex', 'luk'], SHOE_VARS = ['agi', 'str', 'int', 'dex'];
+const ARMOR_VARS = ['str', 'agi', 'vit', 'int', 'dex', 'luk'], SHOE_VARS = ['agi', 'str', 'int', 'dex'], SHIELD_VARS = ['str', 'vit'];
 const VAR_TH = { str: 'STR', agi: 'AGI', vit: 'VIT', int: 'INT', dex: 'DEX', luk: 'LUK' };
-const varsOf = (id) => { const g = GEAR[id]; return !g || !g.dg ? null : g.slot === 'armor' || g.slot === 'ring' ? ARMOR_VARS : g.slot === 'shoes' ? SHOE_VARS : null; };
+const varsOf = (id) => { const g = GEAR[id]; return !g || !g.dg ? null : g.slot === 'armor' || g.slot === 'ring' ? ARMOR_VARS : g.slot === 'shoes' ? SHOE_VARS : g.slot === 'shield' ? SHIELD_VARS : null; };
 function hashPick(s, arr) { let x = 2166136261; for (let i = 0; i < s.length; i++) { x ^= s.charCodeAt(i); x = Math.imul(x, 16777619); } return arr[(x >>> 0) % arr.length]; }
 // older items without a variant get a stable one from their own data, so every client sees the same thing
 function itemVar(x) { const vs = x && varsOf(x.id); if (!vs) return undefined; return vs.includes(x.v) ? x.v : hashPick(String(x.k || '') + '|' + x.id + '|' + (x.r || 0) + '|' + JSON.stringify(x.o || []), vs); }
-const VAR_B = { armor: (t, v) => ({ [v]: 2 * t + 1 }), ring: (t, v) => ({ [v]: 2 * t + 1 }), shoes: (t, v) => (v === 'agi' ? { agi: t + 1, flee: 3 * t + 1, aspdPct: t } : v === 'int' ? { int: t + 1, wmatk: 6 * t, msp: 25 * t } : { [v]: t + 1, watk: 6 * t, hit: 3 * t + 2 }) };
+const VAR_B = { shield: (t, v) => ({ [v]: 2 * t + 1, hpPct: [0, 3, 5, 7, 10, 13][t] || 13 }), armor: (t, v) => ({ [v]: 2 * t + 1 }), ring: (t, v) => ({ [v]: 2 * t + 1 }), shoes: (t, v) => (v === 'agi' ? { agi: t + 1, flee: 3 * t + 1, aspdPct: t } : v === 'int' ? { int: t + 1, wmatk: 6 * t, msp: 25 * t } : { [v]: t + 1, watk: 6 * t, hit: 3 * t + 2 }) };
 function itemBase(it) {
   const g = GEAR[it.id], m = (RAR[it.r || 0] || RAR[0]).mult, o = {}; if (!g) return o;
   const b = Object.assign({}, g.b), v = itemVar(it);
@@ -4523,7 +4526,7 @@ function sanitizeEq(d, h) {
   }
   for (const k of ['weapon', 'off', 'armor']) {
     const x = e[k] || {}, o = { cards: cardsOf(x, 4) };
-    if (GEAR[x.id] && (k === 'off' ? isDagger(x.id) : GEAR[x.id].slot === k)) Object.assign(o, { id: x.id, r: int(x.r, 1, 0, 4), o: sanitizeOpts(x.o), v: itemVar(x) });
+    if (GEAR[x.id] && (k === 'off' ? isDagger(x.id) || isShield(x.id) : GEAR[x.id].slot === k)) Object.assign(o, { id: x.id, r: int(x.r, 1, 0, 4), o: sanitizeOpts(x.o), v: itemVar(x) });
     out[k] = o;
   }
   if (!d.eq) out.shoes = { id: 'leather', r: 0, o: [], cards: [] };
@@ -4532,7 +4535,7 @@ function sanitizeEq(d, h) {
   normalizeGear(h);
 }
 function normalizeGear(h) {
-  { const s = h.eq.off; if (s && s.id && (!isDagger(s.id) || !dualNow(h) || !canUse(h, s.id))) { const it = Object.assign(gearItem(s.id), { r: s.r || 0, o: s.o || [] }); if (pushInv(h, it, 1) !== false) { delete s.id; delete s.r; delete s.o; delete s.v; } } }
+  { const s = h.eq.off; if (s && s.id && (isShield(s.id) ? !shieldUser(h) : (!isDagger(s.id) || !dualNow(h) || !canUse(h, s.id)))) { const it = Object.assign(gearItem(s.id), { r: s.r || 0, o: s.o || [] }); if (pushInv(h, it, 1) !== false) { delete s.id; delete s.r; delete s.o; delete s.v; } } }
   { const s = h.eq.weapon; if (s && s.id && GEAR[s.id] && !canUse(h, s.id)) { const it = Object.assign(gearItem(s.id), { r: s.r || 0, o: s.o || [], v: s.v }); if (pushInv(h, it, 1) !== false) { delete s.id; delete s.r; delete s.o; delete s.v; } } }
   for (const k of Object.keys(SLOT_TH)) {
     const s = h.eq[k]; if (!s) continue;
@@ -4551,7 +4554,7 @@ function gearSum(h) {
   for (const k of Object.keys(SLOT_TH)) {
     const s = h.eq && h.eq[k]; if (!s) continue;
     if (s.id && GEAR[s.id]) {
-      const f = k === 'off' ? OFF_RATE : 1, sc = (b) => { if (f === 1) return b; const o2 = {}; for (const kk in b) o2[kk] = Math.round(b[kk] * f); return o2; };
+      const f = k === 'off' && isDagger(s.id) ? OFF_RATE : 1, sc = (b) => { if (f === 1) return b; const o2 = {}; for (const kk in b) o2[kk] = Math.round(b[kk] * f); return o2; };
       add(sc(itemBase(s))); for (const op of s.o || []) add(sc({ [op[0]]: op[1] }));
       if (GEAR[s.id].set && k !== 'off') sets[GEAR[s.id].set] = (sets[GEAR[s.id].set] || 0) + 1;
     }
@@ -4563,7 +4566,7 @@ function gearSum(h) {
   for (const k of ['head', 'face', 'mouth']) { const r = on(k); if (r) add({ def: r }); }
   { const r = on('shoes'); if (r) add({ def: r, flee: r }); }
   { const r = on('wings'); if (r) add({ def: r, hpPct: r }); }
-  { const r = R.off || 0; if (r && dualNow(h)) add({ watk: 4 * r }); }
+  { const r = R.off || 0; if (r && dualNow(h)) add({ watk: 4 * r }); else if (r && shieldUser(h)) add({ def: 2 * r }); }
   return o;
 }
 function setInfo(h, sid) { let n = 0; for (const k of Object.keys(SLOT_TH)) { const s = h.eq && h.eq[k]; if (s && s.id && GEAR[s.id] && GEAR[s.id].set === sid) n++; } return n; }
@@ -4595,6 +4598,7 @@ function equipGear(k, toOff) {
   const h = S.hero, it = h.inv.find((x) => x.k === k && x.kind === 'gear'); if (!it) return;
   if (!canUse(h, it.id)) { toast(lineText(h, it.id) + ' ลงขายที่ตลาดได้'); AU.sfx('miss'); return; }
   let slot = GEAR[it.id].slot;
+  if (slot === 'shield') { if (!shieldUser(h)) { toast('อาชีพนี้ใช้โล่ไม่ได้ (เฉพาะสายนักดาบและนักบวช)'); return; } slot = 'off'; }
   if (slot === 'weapon' && (toOff || (EQ.picking && EQ.sel === 'off'))) { if (!isDagger(it.id) || !dualNow(h)) { toast('มือซ้ายใส่ได้เฉพาะมีด เมื่อเลือกสไตล์มีดสองข้าง'); return; } slot = 'off'; }
   if (slot === 'ring') slot = (EQ.sel === 'ring1' || EQ.sel === 'ring2') && EQ.picking ? EQ.sel : !h.eq.ring1 ? 'ring1' : !h.eq.ring2 ? 'ring2' : (EQ.sel === 'ring2' ? 'ring2' : 'ring1');
   const old = h.eq[slot];
@@ -4639,13 +4643,14 @@ function gotCard(c) {
 const EQ = { open: false, sel: 'weapon', invSel: null, pick: null, ang: 0.35, cv: null, drag: null };
 function slotInfo(h, key) {
   const w = weaponOf(h.job, h.wstyle), tier = JOBS[h.job].tier;
+  if (key === 'off' && h.eq.off && h.eq.off.id && isShield(h.eq.off.id) && shieldUser(h)) { const s = h.eq.off, g = GEAR[s.id]; return { ic: g.ic, nm: g.nm, ref: (h.ref && h.ref.off) || 0, r: s.r, b: itemBase(s), o: s.o || [], item: true, note: 'โล่ ใส่การ์ดโล่ได้ 1 ใบ (ไม่นับเซ็ต)' }; }
   if (key === 'off' && h.eq.off && h.eq.off.id && dualNow(h)) { const s = h.eq.off, g = GEAR[s.id], b = itemBase(s), b2 = {}; for (const k2 in b) b2[k2] = Math.round(b[k2] * OFF_RATE);
     return { ic: g.ic, nm: g.nm, ref: (h.ref && h.ref.off) || 0, r: s.r, b: b2, o: (s.o || []).map((op) => [op[0], Math.round(op[1] * OFF_RATE)]), item: true, note: 'มือซ้าย ได้ค่าพลัง 70% ใส่การ์ดอาวุธได้ 2 ใบ (ไม่นับเซ็ต)' }; }
   const it0 = (key === 'weapon' || key === 'armor') && h.eq[key] && h.eq[key].id ? h.eq[key] : null;
   if (it0) { const g = GEAR[it0.id]; return { ic: g.ic, nm: g.nm, ref: key === 'weapon' ? h.refineW : h.refineA, r: it0.r, b: itemBase(it0), o: it0.o, set: g.set, item: true, note: (key === 'weapon' ? 'ใส่การ์ดอาวุธได้ ' + sockets(h, 'weapon') + ' ใบ' : 'ใส่การ์ดเสื้อเกราะได้ 1 ใบ') + '  การ์ดอยู่กับช่อง ไม่หายเวลาเปลี่ยนอุปกรณ์' }; }
   if (key === 'weapon') return { ic: WICON[w], nm: (w === 'dual' ? WNAME.dual : WNAME[w]) + TIER_SFX[tier], ref: h.refineW, note: w === 'bow' || w === 'staff' || w === 'katar' || w === 'axe' ? 'อาวุธสองมือ ใส่การ์ดอาวุธได้ 2 ใบ' : w === 'dual' ? 'มีดมือขวา ใส่การ์ดอาวุธได้ 2 ใบ' : 'ใส่การ์ดอาวุธได้ 1 ใบ' };
   if (key === 'off') { const n = sockets(h, 'off'); if (!n) return { ic: '🚫', nm: 'ไม่ได้ใช้', empty: true, note: 'อาวุธสองมือ มือซ้ายจึงว่าง' };
-    return w === 'dual' ? { ic: '🗡️', nm: 'มีดมือซ้าย' + TIER_SFX[tier], ref: (h.ref && h.ref.off) || 0, note: 'มีดมือซ้าย ใส่การ์ดอาวุธได้ 2 ใบ ใส่มีดจากกระเป๋าได้ (ค่าพลัง 70%)' } : { ic: '🛡️', nm: 'โล่' + TIER_SFX[tier], note: 'ใส่การ์ดโล่ได้ 1 ใบ' }; }
+    return w === 'dual' ? { ic: '🗡️', nm: 'มีดมือซ้าย' + TIER_SFX[tier], ref: (h.ref && h.ref.off) || 0, note: 'มีดมือซ้าย ใส่การ์ดอาวุธได้ 2 ใบ ใส่มีดจากกระเป๋าได้ (ค่าพลัง 70%)' } : { ic: '🛡️', nm: 'โล่' + TIER_SFX[tier], ref: (h.ref && h.ref.off) || 0, note: 'ใส่การ์ดโล่ได้ 1 ใบ ใส่โล่จากดันเจี้ยนได้' }; }
   if (key === 'armor') return { ic: '👕', nm: 'ชุด' + jobName(h.job), ref: h.refineA, note: 'ใส่การ์ดเสื้อเกราะได้ 1 ใบ' };
   const s = h.eq[key];
   if (!s) return { ic: '', nm: 'ว่าง', empty: true, note: 'ซื้อได้ที่ร้าน แล้วกดสวมใส่จากกระเป๋า' };
@@ -4721,10 +4726,10 @@ function renderEquip() {
       }
     }
   }
-  const itemSlot = key === 'weapon' || key === 'armor' || (key === 'off' && dualNow(h));
+  const itemSlot = key === 'weapon' || key === 'armor' || (key === 'off' && (dualNow(h) || shieldUser(h)));
   if ((GEAR_SLOTS.includes(key) && h.eq[key]) || (itemSlot && h.eq[key] && h.eq[key].id)) det.append(el('div', { class: 'acts' }, el('button', { class: 'mini warn', text: itemSlot ? 'ถอด (กลับไปใช้ของอาชีพ)' : 'ถอดอุปกรณ์', onclick: () => unequipGear(key) })));
   if (GEAR_SLOTS.includes(key) && !h.eq[key] || itemSlot) {
-    const owned = h.inv.filter((x) => x.kind === 'gear' && (key === 'off' ? isDagger(x.id) : GEAR[x.id].slot === baseSlot(key)) && canUse(h, x.id));
+    const owned = h.inv.filter((x) => x.kind === 'gear' && (key === 'off' ? (dualNow(h) ? isDagger(x.id) : isShield(x.id) && shieldUser(h)) : GEAR[x.id].slot === baseSlot(key)) && canUse(h, x.id));
     if (owned.length) { const l = el('div', { class: 'picklist' }); for (const it of owned) l.append(el('button', { class: 'pickc', style: (it.r || 0) >= 1 ? 'border-color:' + rarCol(it.r) : null, onclick: () => { EQ.picking = true; equipGear(it.k); EQ.picking = false; } }, el('b', { style: (it.r || 0) >= 1 ? 'color:' + rarCol(it.r) : null, text: GEAR[it.id].ic + ' สวม' + it.nm + ((it.r || 0) >= 1 ? '  [' + RAR[it.r].nm + ']' : '') }), el('small', { text: bonusText(itemBase(it)) + (it.o && it.o.length ? '  ✦ ' + it.o.map((op) => bonusText({ [op[0]]: op[1] })).join('  ✦ ') : '') }))); det.append(l); }
   }
   body.append(det);
@@ -4768,7 +4773,7 @@ function renderEquip() {
     idet.append(el('div', { class: 'meta', text: 'ขายได้ ' + fmt(it.pr) + ' G' + (it.kind === 'gear' ? '' : ' ต่อชิ้น') }));
     idet.append(el('div', { class: 'acts' },
       it.kind === 'card' ? el('button', { class: 'mini pri', text: 'ใส่การ์ด', onclick: () => autoInsert(it.k) }) : null,
-      it.kind === 'gear' ? el('button', { class: 'mini pri', text: isDagger(it.id) && dualNow(h) ? 'ใส่มือขวา' : 'สวมใส่', disabled: !canUse(h, it.id), onclick: () => equipGear(it.k) }) : null,
+      it.kind === 'gear' ? el('button', { class: 'mini pri', text: isDagger(it.id) && dualNow(h) ? 'ใส่มือขวา' : 'สวมใส่', disabled: !canUse(h, it.id) || (isShield(it.id) && !shieldUser(h)), onclick: () => equipGear(it.k) }) : null,
       it.kind === 'gear' && isDagger(it.id) && dualNow(h) && canUse(h, it.id) ? el('button', { class: 'mini pri', text: 'ใส่มือซ้าย', onclick: () => equipGear(it.k, true) }) : null,
       mkSellable(it) ? el('button', { class: 'mini', text: '🏪 ลงขายตลาด', onclick: () => { closeEquip(); MK.tab = 'sell'; MK.pick = it.k; openPanel('market'); } }) : null,
       it.kind === 'key' ? el('button', { class: 'mini pri', text: 'ไปหน้าดันเจี้ยน', onclick: () => { closeEquip(); openPanel('dungeon'); } }) : null,
@@ -5412,7 +5417,7 @@ function rollOpt(t, used) {
 }
 function pickW(ws) { const tot = ws.reduce((a, b) => a + b, 0) || 1; let r = Math.random() * tot; for (let i = 0; i < ws.length; i++) { r -= ws[i]; if (r <= 0) return i; } return 0; }
 function rollDgItem(dg, forceR, forceId, forceSk) {
-  const WK = DG_LINES.concat('katar'), roll = Math.random(), id = forceId || (roll < 0.35 ? 'w_' + dg.id + '_' + WK[(Math.random() * WK.length) | 0] : (roll < 0.6 ? 'a_' : roll < 0.8 ? 's_' : 'r_') + dg.id);
+  const WK = DG_LINES.concat('katar'), roll = Math.random(), id = forceId || (roll < 0.30 ? 'w_' + dg.id + '_' + WK[(Math.random() * WK.length) | 0] : (roll < 0.50 ? 'a_' : roll < 0.67 ? 's_' : roll < 0.84 ? 'r_' : 'sh_') + dg.id);
   if (!GEAR[id]) return null;
   const r = forceR || 1 + pickW(dg.rar), used = new Set(), o = [];
   for (let i = 0; i < RAR[r].opts; i++) o.push(rollOpt(dg.diff, used));
@@ -5726,7 +5731,7 @@ function panelDungeon(body) {
       el('div', { class: 'dgtop' }, el('b', { text: '🏰 ' + dg.name }), el('span', { class: 'dgdiff', text: DIFF_TH[dg.diff] })),
       el('div', { class: 'ds', text: 'บอส: ' + dg.boss + '  Lv.' + dg.bossLv + '   เข้าได้ Lv.' + dg.minLv + '+' }),
       el('div', { class: 'meta', text: 'สกิลบอส: ' + dg.skills.map((s) => DG_SKILL_TH[s]).join(' · ') }),
-      el('div', { class: 'meta', text: 'ดรอปชุด' + (DG_SETS[dg.id] ? DG_SETS[dg.id].nm : '') + ': อาวุธ 6 สายอาชีพ + คาตาร์ 35%  เกราะ 25%  รองเท้า 20%  แหวน 20%' }),
+      el('div', { class: 'meta', text: 'ดรอปชุด' + (DG_SETS[dg.id] ? DG_SETS[dg.id].nm : '') + ': อาวุธ 6 สายอาชีพ + คาตาร์ 30%  เกราะ 20%  รองเท้า 17%  แหวน 17%  โล่ 16%' }),
       chips,
       el('div', { class: 'dgkey' }, el('span', { text: '🗝️ กุญแจดันเจี้ยน  มี ' + kc + ' ดอก' }), el('small', { text: 'ใช้ได้ทุกดันเจี้ยน ดรอปจากมอนทุกแผนที่ ' + CONFIG.keyChance + '% บอสแผนที่ 1–2 ดอก' })),
       el('button', { class: 'mini pri', text: low ? 'ต้อง Lv.' + dg.minLv : kc < 1 ? 'ไม่มีกุญแจ' : !okP ? 'ต้องมีปาร์ตี้ ' + cp.min + ' คนขึ้นไป' : hasMates() && !isLeader() ? 'รอหัวหน้าปาร์ตี้กดเข้า' : hasMates() ? '👑 เรียกปาร์ตี้เข้าดัน (ใช้กุญแจคนละ 1)' : 'เข้าดันเจี้ยน (ใช้กุญแจ 1)', disabled: low || kc < 1 || !okP || P.dead || (hasMates() && !isLeader()), onclick: () => enterDungeon(dg.id) })));
@@ -5872,7 +5877,7 @@ function panelMarket(body) {
   body.append(tabs, el('p', { class: 'note', text: 'ซื้อขายอุปกรณ์จากดันเจี้ยน การ์ด กุญแจ และแร่ระหว่างผู้เล่น ผู้ขายเสียภาษี ' + MK_TAX + '% และได้เงินอัตโนมัติเมื่อขายได้ ลงขายพร้อมกันได้คนละ ' + MK_MAX + ' ชิ้น' }));
   if (MK.tab === 'buy') {
     const fl = el('div', { class: 'mkf' });
-    for (const [id, lb] of [['all', 'ทั้งหมด'], ['mine', 'ตรงอาชีพฉัน'], ['weapon', 'อาวุธ'], ['armor', 'เกราะ'], ['shoes', 'รองเท้า'], ['ring', '💍 แหวน'], ['card', '🃏 การ์ด'], ['key', '🗝️ กุญแจ'], ['ore', '🔷 แร่']])
+    for (const [id, lb] of [['all', 'ทั้งหมด'], ['mine', 'ตรงอาชีพฉัน'], ['weapon', 'อาวุธ'], ['armor', 'เกราะ'], ['shoes', 'รองเท้า'], ['ring', '💍 แหวน'], ['shield', '🛡️ โล่'], ['card', '🃏 การ์ด'], ['key', '🗝️ กุญแจ'], ['ore', '🔷 แร่']])
       fl.append(el('button', { class: 'chip' + (MK.filter === id ? ' on' : ''), text: lb, onclick: () => { MK.filter = id; renderSheet(); } }));
     const so = el('select', { 'aria-label': 'เรียงตาม', onchange: (e) => { MK.sort = e.target.value; renderSheet(); } });
     for (const [v, lb] of [['new', 'ล่าสุด'], ['low', 'ราคาต่ำสุด'], ['high', 'ราคาสูงสุด'], ['rar', 'หายากสุด']]) so.append(el('option', { value: v, text: lb, selected: MK.sort === v }));
@@ -5987,12 +5992,12 @@ function dropOres(m, tpl) {
 
 /* ---------- refining at the young smith ---------- */
 const REF_SLOTS = ['weapon', 'off', 'ring1', 'ring2', 'armor', 'head', 'face', 'mouth', 'shoes', 'wings'];
-const oreOf = (slot) => (slot === 'weapon' || slot === 'off' || slot === 'ring1' || slot === 'ring2' ? 'ori' : 'elu');
+const oreOf = (slot) => (slot === 'off' ? (dualNow(S.hero) ? 'ori' : 'elu') : slot === 'weapon' || slot === 'ring1' || slot === 'ring2' ? 'ori' : 'elu');
 const oreNeed = (target) => (target <= 3 ? 1 : target - 1);
 const REF_EFF = { off: 'ATK +4 ต่อขั้น (มือซ้าย)', weapon: 'ATK +5 ต่อขั้น', ring1: 'ATK/MATK +3 ต่อขั้น', ring2: 'ATK/MATK +3 ต่อขั้น', armor: 'DEF +3 และ HP +2% ต่อขั้น', head: 'DEF +1 ต่อขั้น', face: 'DEF +1 ต่อขั้น', mouth: 'DEF +1 ต่อขั้น', shoes: 'DEF +1 หลบ +1 ต่อขั้น', wings: 'DEF +1 HP +1% ต่อขั้น' };
 function getRef(h, slot) { return slot === 'weapon' ? h.refineW : slot === 'armor' ? h.refineA : (h.ref && h.ref[slot]) || 0; }
 function setRef(h, slot, v) { if (slot === 'weapon') h.refineW = v; else if (slot === 'armor') h.refineA = v; else { h.ref = h.ref || {}; h.ref[slot] = v; } }
-const canRefine = (h, slot) => slot === 'weapon' || slot === 'armor' || (slot === 'off' ? dualNow(h) : !!(h.eq && h.eq[slot]));
+const canRefine = (h, slot) => slot === 'weapon' || slot === 'armor' || (slot === 'off' ? dualNow(h) || shieldUser(h) : !!(h.eq && h.eq[slot]));
 const refCost = (slot, r) => Math.max(1, Math.round(refineCost(oreOf(slot) === 'ori' ? 'w' : 'a', r) * (1 - ((P.D || derived()).discount || 0) / 100)));
 const REF = { busy: false };
 function refineSlot(slot) {
@@ -6021,7 +6026,7 @@ function panelSmith(body) {
   body.append(el('div', { class: 'npcsay' }, el('b', { text: 'ริว ช่างตีบวก' }), el('p', { text: 'อยากให้ตีบวกชิ้นไหนครับ อาวุธกับแหวนใช้ Oridecon ส่วนชุดเกราะ รองเท้า หมวก ปาก ใบหน้า และปีกใช้ Elunium ขั้น +1 ถึง +3 ใช้ก้อนเดียว ขั้นสูงขึ้นใช้มากขึ้น ถ้าพลาดของไม่หายนะครับ' })));
   body.append(el('div', { class: 'orebar' }, el('span', { text: '🔷 Oridecon x' + oreCount('ori') }), el('span', { text: '💎 Elunium x' + oreCount('elu') }), el('span', { text: '💰 ' + fmt(h.gold) + ' G' })));
   for (const slot of REF_SLOTS) {
-    if (slot === 'off' && !dualNow(h)) continue;
+    if (slot === 'off' && !dualNow(h) && !shieldUser(h)) continue;
     const ok = canRefine(h, slot), r = getRef(h, slot), ore = oreOf(slot), need = oreNeed(r + 1), have = oreCount(ore), cost = refCost(slot, r);
     const inf = ok ? slotInfo(h, slot) : null, max = r >= 15;
     const enough = have >= need && h.gold >= cost;
@@ -6030,7 +6035,7 @@ function panelSmith(body) {
       el('div', { class: 'grow' },
         el('div', { class: 'nm2', style: inf && inf.r >= 1 ? 'color:' + rarCol(inf.r) : null, text: SLOT_TH[slot] + (ok ? '  ' + inf.nm : '  ยังไม่ได้สวม') + (r ? '  +' + r : '') }),
         ok && !max ? el('div', { class: 'ds', text: '→ +' + (r + 1) + '  ' + ORE[ore].ic + ' ' + need + ' ก้อน (มี ' + have + ')  💰 ' + fmt(cost) + ' G  โอกาส ' + refineChance(r) + '%' }) : null,
-        el('div', { class: 'meta', text: max ? 'ตีบวกสูงสุดแล้ว' : REF_EFF[slot] })),
+        el('div', { class: 'meta', text: max ? 'ตีบวกสูงสุดแล้ว' : slot === 'off' && !dualNow(h) ? 'DEF +2 ต่อขั้น (โล่)' : REF_EFF[slot] })),
       el('button', { class: 'mini pri', text: REF.busy ? '…' : max ? 'MAX' : '+' + (r + 1), disabled: !ok || max || !enough || REF.busy, onclick: () => refineSlot(slot) })));
   }
   body.append(el('p', { class: 'note', text: 'Oridecon และ Elunium ดรอปจากมอนสเตอร์ทุกแผนที่ บอสแผนที่และบอสดันเจี้ยนดรอปหลายก้อน ค่าตีบวกเพิ่มขึ้นทุกขั้น ส่วนลดสายพ่อค้าใช้ได้' }));
