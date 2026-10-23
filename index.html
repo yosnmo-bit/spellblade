@@ -908,8 +908,8 @@ function MON(id, name, arch, color, lv, extra) {
 }
 
 const DEFAULT_CONFIG = {
-  version: '2.9.40',
-  patchNotes: 'อัปเดต 2.9.40: เอฟเฟกต์ใหม่\n• เสาแสงตอนได้ของดี สีตามความหายาก (การ์ด แหวนบอส ของดันเจี้ยน กาชา) คนในแผนที่เห็นด้วย\n• สายฟ้าฟาดสำหรับ ศรศักดิ์สิทธิ์ ดาบพิพากษา หอกแสงสวรรค์ หอกมิติ ประกายอัสนี และตอนเลเวลอัพ\n• ระเบิดพื้น/กลางอากาศ/ระเบิดใหญ่ สำหรับอุกกาบาต สกิลทุบพื้น ห่าศร ทัณฑ์สวรรค์ และตอนบอสดันเจี้ยนล้ม\n• วงเวทไฟ ลูกไฟ และพื้นไฟลุก สำหรับศรเพลิงและฝนอุกกาบาต\n• น้ำแข็งแตกกระจายเมื่อฆ่าด้วยศรน้ำแข็ง/พายุหิมะ และตอนหลุดจากแช่แข็ง\nเอฟเฟกต์ดัดแปลงจาก Binbun3D VFX (CC0)',
+  version: '2.9.41',
+  patchNotes: 'อัปเดต 2.9.41\n• ทำเนียบ ล่าบอส: นับเฉพาะบอสแผนที่ ไม่นับบอสดันเจี้ยน (เริ่มนับใหม่จากเวอร์ชันนี้)\n• (จาก 2.9.40) เอฟเฟกต์ใหม่ เสาแสงดรอปของ สายฟ้า ระเบิด ไฟ น้ำแข็ง',
   announcement: 'ยินดีต้อนรับสู่ช่วงทดสอบ! เจอบั๊กบอก GM ได้เลย',
   rates: { bexp: 1, jexp: 1, gold: 1, drop: 1 },
   deathPenalty: 1,
@@ -1595,7 +1595,7 @@ function canJobChange(h) {
 function newHero(name, look) {
   return { name, look, job: 'novice', level: 1, exp: 0, jobLv: 1, jobExp: 0, stats: { str: 1, agi: 1, vit: 1, int: 1, dex: 1, luk: 1 },
     statPts: 48, skillPts: 0, skills: {}, hotbar: ['', '', '', '', '', '', '', ''], gold: 200, refineW: 0, refineA: 0, potHp: 10, potSp: 3, potHpL: 0, potSpL: 0, potAll: 0, potBtn: ['hp', 'sp'], potAuto: { hp: 35, sp: 12, hpL: 0, spL: 0, all: 0 },
-    mapId: 'village', kills: 0, bossKills: 0, wstyle: 'dual', gmStamp: 0, inv: [], eq: null, ref: {} };
+    mapId: 'village', kills: 0, bossKills: 0, fbKills: 0, dgClears: 0, wstyle: 'dual', gmStamp: 0, inv: [], eq: null, ref: {} };
 }
 function sanitizeHero(d) {
   d = d || {};
@@ -1610,7 +1610,7 @@ function sanitizeHero(d) {
     potHp: int(d.potHp, 0, 0, 99999), potSp: int(d.potSp, 0, 0, 99999), potHpL: int(d.potHpL, 0, 0, 99999), potSpL: int(d.potSpL, 0, 0, 99999), potAll: int(d.potAll, 0, 0, 99999),
     potAuto: (() => { const a = d.potAuto || {}, o = {}; for (const k of ['hp', 'sp', 'hpL', 'spL', 'all']) o[k] = int(a[k], { hp: 35, sp: 12, hpL: 0, spL: 0, all: 0 }[k], 0, 95); return o; })(),
     potBtn: [0, 1].map((i) => { const v = Array.isArray(d.potBtn) ? d.potBtn[i] : null; return typeof v === 'string' && ['hp', 'sp', 'hpL', 'spL', 'all'].includes(v) ? v : ['hp', 'sp'][i]; }),
-    mapId: typeof d.mapId === 'string' ? d.mapId.slice(0, 40) : '', kills: int(d.kills, 0, 0, 1e12), bossKills: int(d.bossKills, 0, 0, 1e9),
+    mapId: typeof d.mapId === 'string' ? d.mapId.slice(0, 40) : '', kills: int(d.kills, 0, 0, 1e12), bossKills: int(d.bossKills, 0, 0, 1e9), fbKills: int(d.fbKills, 0, 0, 1e9), dgClears: int(d.dgClears, 0, 0, 1e9),
     wstyle: d.wstyle === 'katar' ? 'katar' : 'dual', gmStamp: num(d.gmStamp, 0, 0, 1e15),
     mkDone: (Array.isArray(d.mkDone) ? d.mkDone : []).filter((x) => typeof x === 'string').map((x) => x.slice(0, 40)).slice(-80),
     ref: (() => { const r = d.ref || {}, o = {}; for (const k of ['off', 'ring1', 'ring2', 'head', 'face', 'mouth', 'shoes', 'wings']) o[k] = int(r[k], 0, 0, 15); return o; })()
@@ -1894,7 +1894,7 @@ function processKill(m, killer, ti) {
     }
     if (Math.random() < Math.min(1, 0.35 * R.drop)) { const it = lootItem(tpl); if (addItem(it, 1)) addNum(m.x, m.y + 22, '+' + it.nm, '#d8e6ff', 10, { font: 'th', dur: 1.3 }); }
     if (!tpl.raid && Math.random() * 100 < (tpl.boss ? CONFIG.bossCard : CONFIG.cardChance)) { const c = dropCard(tpl); if (addItem(c, 1)) { gotCard(c); lootBeam(m.x, m.y, 'card', true); } }
-    if (tpl.boss && !tpl.raid && !isDg()) { h.bossKills = (h.bossKills || 0) + 1; const rr = Math.random() * 100, sk = rr < CONFIG.fbRing2 ? 2 : rr < CONFIG.fbRing2 + CONFIG.fbRing1 ? 1 : 0;
+    if (tpl.boss && !tpl.raid && !isDg()) { h.fbKills = (h.fbKills || 0) + 1; const rr = Math.random() * 100, sk = rr < CONFIG.fbRing2 ? 2 : rr < CONFIG.fbRing2 + CONFIG.fbRing1 ? 1 : 0;
       if (sk) { const it = fieldBossRing(tpl, sk); if (it && addItem(it, 1)) { lootBeam(m.x + 18, m.y, lootKey(it), true); const nm = it.nm + (sk === 2 ? ' [2 รู]' : ''); toast('💍 ได้รับ ' + nm + ' (' + RAR[it.r].nm + ')'); addNum(m.x, m.y + 50, '+💍 ' + nm, rarCol(it.r), 12, { font: 'th', dur: 2, pop: true }); AU.sfx(it.r >= 3 ? 'legend' : 'card'); if (sk === 2) chatSend('💍 ' + h.name + ' ได้ ' + nm + ' จากบอส ' + tpl.name + '!', 'w', true, true); } } }
     dropKeys(m, tpl); dropOres(m, tpl);
   } else addNum(P.x, P.y - 60, 'ปาร์ตี้ +' + fmt(b) + ' EXP', '#8dff9a', 10, { font: 'th', dur: 1.2 });
@@ -2424,7 +2424,7 @@ function heroDoc() {
   const h = S.hero;
   return { name: h.name, look: h.look, job: h.job, level: h.level, exp: h.exp, jobLv: h.jobLv, jobExp: h.jobExp, stats: h.stats,
     skills: h.skills, hotbar: h.hotbar, gold: h.gold, refineW: h.refineW, refineA: h.refineA, potHp: h.potHp, potSp: h.potSp, potHpL: h.potHpL || 0, potSpL: h.potSpL || 0, potAll: h.potAll || 0, potBtn: h.potBtn || ['hp', 'sp'], potAuto: h.potAuto || { hp: 35, sp: 12, hpL: 0, spL: 0, all: 0 },
-    mapId: h.mapId, kills: h.kills, bossKills: h.bossKills || 0, wstyle: h.wstyle, gmStamp: h.gmStamp || 0, inv: h.inv, eq: h.eq, mkDone: h.mkDone || [], ref: h.ref || {}, updatedAt: Date.now() };
+    mapId: h.mapId, kills: h.kills, bossKills: h.bossKills || 0, fbKills: h.fbKills || 0, dgClears: h.dgClears || 0, wstyle: h.wstyle, gmStamp: h.gmStamp || 0, inv: h.inv, eq: h.eq, mkDone: h.mkDone || [], ref: h.ref || {}, updatedAt: Date.now() };
 }
 function saveLocal() { if (S.hero) lsSet(LS_SAVE + (S.uid || ''), JSON.stringify(heroDoc())); }
 async function save() {
@@ -5824,7 +5824,7 @@ function raidVictory(tpl) {
   if (Math.random() * 100 < CONFIG.dgBossCard) { const c = dropCard(tpl); if (addItem(c, 1)) got.push(c); }
   const g = Math.round(1500 * dg.diff * dg.diff * CONFIG.rates.gold); h.gold += g;
   const no = dg.diff + 1 + (Math.random() * 2 | 0); if (addItem(oreItem('ori'), no)) got.push(Object.assign(oreItem('ori'), { n: no })); if (addItem(oreItem('elu'), no)) got.push(Object.assign(oreItem('elu'), { n: no }));
-  DG.loot = got; h.bossKills = (h.bossKills || 0) + 1;
+  DG.loot = got; h.dgClears = (h.dgClears || 0) + 1;
   { const bm = W.mons.find((m) => m.raid) || P; addFx({ kind: 'nuke', x: bm.x, y: bm.y, size: 1.4, dur: 2, seed: fxSeed() });
     got.forEach((it, i) => { const k = lootKey(it); if (k) later(0.6 + i * 0.45, () => lootBeam(bm.x + (i - (got.length - 1) / 2) * 34, bm.y + 26, k, true)); }); }
   for (const it of got) if (it.kind === 'gear' && it.r >= 3) chatSend('✨ ' + h.name + ' ได้รับ [' + RAR[it.r].nm + '] ' + it.nm + ' จาก ' + dg.name + '!', 'w', true, true);
@@ -7354,7 +7354,7 @@ function heroScores(p) {
     for (const c of s.cards || []) if (c) cards++; }
   for (const it of p.inv || []) if (it.kind === 'card') cards += it.n || 1;
   for (const k in (p.ref || {})) ref += p.ref[k] | 0;
-  return { gear, ref, cards, boss: p.bossKills | 0, lv: p.level * 1000 + p.jobLv };
+  return { gear, ref, cards, boss: p.fbKills | 0, lv: p.level * 1000 + p.jobLv };
 }
 function panelRank(body) {
   if (!S.db) { body.append(el('p', { class: 'empty', text: 'อันดับออนไลน์ใช้ได้เมื่อเปิดเกมผ่านลิงก์' })); return; }
@@ -7377,7 +7377,7 @@ function panelRank(body) {
       el('div', { class: 'grow' }, el('div', { class: 'nm2', text: p.name + (p.id === S.uid ? ' (คุณ)' : '') }), el('div', { class: 'ds', text: sub })),
       el('b', { class: 'px', style: 'font-size:.75rem;text-align:right', text: val })));
   });
-  body.append(el('p', { class: 'note', text: 'คะแนนรวม = เทียบกับคนที่ทำได้สูงสุดในแต่ละหมวด (สวมใส่ ตีบวก การ์ด ล่าบอส) หมวดละ 100 รวมเต็ม 400  สวมใส่คิดจากระดับเซ็ต ความหายาก ออปชัน และของกาชา  การ์ดนับทั้งที่ใส่อยู่และในกระเป๋า  ล่าบอสนับบอสแผนที่และการเคลียร์ดัน' }));
+  body.append(el('p', { class: 'note', text: 'คะแนนรวม = เทียบกับคนที่ทำได้สูงสุดในแต่ละหมวด (สวมใส่ ตีบวก การ์ด ล่าบอส) หมวดละ 100 รวมเต็ม 400  สวมใส่คิดจากระดับเซ็ต ความหายาก ออปชัน และของกาชา  การ์ดนับทั้งที่ใส่อยู่และในกระเป๋า  ล่าบอสนับเฉพาะบอสแผนที่ที่ตีปิดเอง (ไม่นับบอสดันเจี้ยน)' }));
   if (S.mode !== 'online') body.append(el('p', { class: 'note', text: 'ความคืบหน้าของคุณบันทึกในเครื่องนี้ จึงยังไม่ขึ้นทำเนียบ' }));
 }
 
