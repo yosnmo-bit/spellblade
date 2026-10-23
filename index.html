@@ -379,6 +379,8 @@ details.box summary{font-weight:700;cursor:pointer}
 .mcard .mb{padding:14px 16px 16px}
 .mcard p{white-space:pre-wrap;overflow-wrap:anywhere;margin:0 0 14px}
 .mcard .btn-main{width:100%}
+.rwcd{text-align:center;font-weight:800;font-size:1rem;margin:10px 0 4px !important;color:var(--accent,#c98a00)}
+.rwcd b{font-size:1.5rem;font-variant-numeric:tabular-nums}
 </style>
 </head>
 <body>
@@ -493,7 +495,8 @@ details.box summary{font-weight:700;cursor:pointer}
   <div class="mcard rwcard">
     <div class="sheet-title rwtitle"><span id="rwTitle">🏆 เคลียร์ดันเจี้ยน!</span></div>
     <div class="mb"><p class="rwsub" id="rwSub"></p><div class="rwlist" id="rwList"></div>
-      <div class="acts" style="justify-content:center"><button class="mini" id="rwBag">ดูกระเป๋า</button><button class="mini pri" id="rwExit">ออกจากดันเจี้ยน</button><button class="mini" id="rwStay">อยู่ต่อ</button></div></div>
+      <p class="rwcd" id="rwCd"></p>
+      <div class="acts" style="justify-content:center"><button class="mini" id="rwBag">ดูกระเป๋า</button><button class="mini pri" id="rwExit">ออกเลย</button></div></div>
   </div>
 </div>
 <div class="modal" id="rcModal" hidden role="dialog" aria-modal="true" aria-labelledby="rcTitle"><div class="mcard"><div class="sheet-title"><b id="rcTitle"></b></div><div class="mb" id="rcBody"></div></div></div>
@@ -840,8 +843,8 @@ function MON(id, name, arch, color, lv, extra) {
 }
 
 const DEFAULT_CONFIG = {
-  version: '2.9.4',
-  patchNotes: 'อัปเดต 2.9.4: ระบบปาร์ตี้ใหม่\n• คนแรกที่ชวนเป็นหัวหน้าปาร์ตี้ มีมงกุฎ 👑 ที่ชื่อ หัวหน้าแตะชื่อเพื่อนในหน้าผู้เล่นเพื่อโอนหัวหน้าได้\n• ปุ่ม 👣 ตามหัวหน้า / ✋ หยุดตาม ที่ป้ายปาร์ตี้มุมซ้าย\n• กดขอเข้าปาร์ตี้ของคนอื่นได้ หัวหน้ากดรับ สูงสุด 6/6 คน\n• หัวหน้ากดเข้าดันเจี้ยน สมาชิกทุกคนต้องกดยืนยัน ถ้ามีคนไม่มีกุญแจจะเข้าไม่ได้ ครบแล้วเข้าห้องบอสพร้อมกัน\n• แก้ปุ่มบนป้ายปาร์ตี้และป้ายบอสที่บางครั้งกดไม่ติด',
+  version: '2.9.5',
+  patchNotes: 'อัปเดต 2.9.5\n• เคลียร์บอสดันเจี้ยนแล้ว นับถอยหลัง 5 วินาที แล้วออกจากดันเจี้ยนอัตโนมัติ (เอาปุ่มอยู่ต่อออก กดออกเลยได้)\n• (จาก 2.9.4) ระบบปาร์ตี้ใหม่: หัวหน้า 👑 ตามหัวหน้า ขอเข้าตี้ โอนหัวหน้า และยืนยันเข้าดันพร้อมกัน',
   announcement: 'ยินดีต้อนรับสู่ช่วงทดสอบ! เจอบั๊กบอก GM ได้เลย',
   rates: { bexp: 1, jexp: 1, gold: 1, drop: 1 },
   deathPenalty: 1,
@@ -5137,7 +5140,7 @@ function dgMap(dg, inst) {
   return { id: inst, name: dg.name, theme: dg.theme, min: dg.minLv, max: dg.bossLv, count: 0, dg: dg.id, monsters: [minion, boss] };
 }
 const dgInstance = (dg) => ('dg:' + dg.id + ':' + (PARTY.key || S.uid || NET.me || 'solo')).slice(0, 40);
-function dgReset() { DG.state = 0; DG.bkSeen.clear(); NET.bk = []; W.tele = []; P.ccUntil = 0; $('#raidWin').hidden = true; clearTimeout(DG.winT); }
+function dgReset() { DG.state = 0; DG.bkSeen.clear(); NET.bk = []; W.tele = []; P.ccUntil = 0; $('#raidWin').hidden = true; clearTimeout(DG.winT); $('#dgExit').textContent = '🚪 ออกจากดันเจี้ยน'; }
 function enterDungeon(id) {
   const dg = dgDef(id), h = S.hero;
   if (!dg || !dg.on) return;
@@ -5313,9 +5316,14 @@ function showRaidWin(dg, got, gold) {
         ...(it.o || []).map((o) => el('small', { class: 'gopt', text: '✦ ' + bonusText({ [o[0]]: o[1] }) })))));
   }
   box.hidden = false;
-  let left = 90; $('#rwExit').textContent = 'ออกจากดันเจี้ยน (' + left + ')';
-  clearTimeout(DG.winT);
-  const tick = () => { left--; if (!isDg()) return; if (left <= 0) { leaveDungeon(); return; } $('#rwExit').textContent = 'ออกจากดันเจี้ยน (' + left + ')'; DG.winT = setTimeout(tick, 1000); };
+  // leave automatically after a short countdown (no staying behind once the boss is down)
+  let left = 5;
+  const show = () => {
+    const cd = $('#rwCd'); cd.textContent = ''; cd.append('ออกจากดันเจี้ยนอัตโนมัติใน ', el('b', { text: String(left) }), ' วินาที');
+    $('#rwExit').textContent = 'ออกเลย (' + left + ')'; $('#dgExit').textContent = '🚪 ออกจากดันเจี้ยนใน ' + left;
+  };
+  show(); clearTimeout(DG.winT);
+  const tick = () => { if (!isDg()) return; left--; if (left <= 0) { leaveDungeon(); return; } show(); DG.winT = setTimeout(tick, 1000); };
   DG.winT = setTimeout(tick, 1000);
 }
 
@@ -6123,7 +6131,6 @@ addEventListener('resize', hudLayout);
 R3.onKKTex = () => { if (S.hero && S.screen === 'game') drawAvatar(); };
 $('#dgExit').addEventListener('click', () => leaveDungeon());
 $('#rwExit').addEventListener('click', () => leaveDungeon());
-$('#rwStay').addEventListener('click', () => { $('#raidWin').hidden = true; });
 $('#rwBag').addEventListener('click', () => { $('#raidWin').hidden = true; openEquip('bag'); });
 $('#hName').addEventListener('click', () => openEquip('eq'));
 $('#potSp').addEventListener('click', () => usePot('sp'));
