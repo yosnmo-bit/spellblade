@@ -318,6 +318,17 @@ button:disabled{cursor:default}
 /* sheet */
 .sheet-wrap{position:fixed;inset:0;z-index:30;display:flex;flex-direction:column;justify-content:flex-end;background:rgba(5,8,15,.28)}
 .sheet-wrap[hidden]{display:none}
+.sheet-wrap.side{background:transparent}
+body.npctalk .zoom,body.npctalk .chatfeed{visibility:hidden}
+.sheet-wrap.side .sheet{position:absolute;right:0;top:calc(env(safe-area-inset-top,0px) + 6px);bottom:6px;width:min(60vw,420px);max-width:none;max-height:none;margin:0;border-radius:16px 0 0 16px;border-bottom:1px solid var(--line);box-shadow:-8px 0 24px rgba(0,0,0,.35)}
+.sheet-wrap.side .sheet-title{border-radius:15px 0 0 0}
+.sheet-wrap.side .sheet-body{flex:1}
+.gres{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin:8px 0}
+.gball{aspect-ratio:1;border-radius:50%;display:grid;place-items:center;font-size:1.35rem;background:radial-gradient(circle at 35% 30%,#fff,#dfe6f2 60%,#b8c3d6);border:2px solid #c9d2e2;animation:gpop .45s both}
+.gball.win{background:radial-gradient(circle at 35% 30%,#fff7c2,#ffd166 60%,#e2a400);border-color:#ffb300;box-shadow:0 0 12px #ffd166}
+.gball.uq{background:radial-gradient(circle at 35% 30%,#ffd6f5,#ff6bd5 60%,#b0179a);border-color:#ff3ec8;box-shadow:0 0 16px #ff6bd5}
+@keyframes gpop{0%{transform:scale(.2);opacity:0}70%{transform:scale(1.15);opacity:1}100%{transform:scale(1)}}
+.grate{display:flex;justify-content:space-between;font-size:.8rem;padding:3px 2px;border-bottom:1px dashed var(--line)}
 .sheet{width:100%;max-width:480px;margin:0 auto;max-height:78%;display:flex;flex-direction:column;background:var(--panel);color:var(--ink);border-radius:16px 16px 0 0;border:1px solid var(--line);border-bottom:0;padding-bottom:env(safe-area-inset-bottom,0px);box-shadow:0 -8px 30px rgba(0,0,0,.35)}
 .sheet-title{display:flex;align-items:center;justify-content:space-between;padding:7px 8px 7px 14px;border-radius:15px 15px 0 0;background:linear-gradient(var(--title-a),var(--title-b));color:#fff;font-weight:700}
 .sheet-title button{width:32px;height:32px;border-radius:50%;border:1px solid rgba(255,255,255,.4);background:rgba(255,255,255,.14);color:#fff;padding:0}
@@ -837,8 +848,8 @@ defSkill('ws_execute', 'whitesmith', 'ประหารเหล็กกล้
 defSkill('ws_quake', 'whitesmith', 'ขวานถล่มปฐพี', '🌋', 'aoe', { m: [3.2, 0.45], r: 150, self: true, hits: 3, sp: [42, 3], cd: 6, color: '#ff8f3d', fx: 'quake' });
 defSkill('ws_titan', 'whitesmith', 'พลังไททัน', '💪', 'buff', { b: { atk: 6, def: 3 }, dur: 90, sp: [35, 2], cd: 120, color: '#fff3c4' });
 
-const BUFF_TH = { hit: 'HIT', msp: 'SP สูงสุด', cdr: 'ลดคูลดาวน์สกิล', watk: 'ATK', wmatk: 'MATK', str: 'STR', agi: 'AGI', vit: 'VIT', int: 'INT', luk: 'LUK', matkPct: 'MATK', atk: 'ATK', matk: 'MATK', aspd: 'ความเร็วตี', def: 'DEF', crit: 'คริ', flee: 'หลบ', hpPct: 'HP สูงสุด', atkPct: 'ATK', aspdPct: 'ความเร็วตี', discount: 'ส่วนลดร้าน', dex: 'DEX' };
-const PCT_KEYS = { cdr: 1, matkPct: 1, atk: 1, matk: 1, aspd: 1, hpPct: 1, atkPct: 1, aspdPct: 1, discount: 1, crit: 1 };
+const BUFF_TH = { pdmg: 'ดาเมจกายภาพ', mdmg: 'ดาเมจเวท', hit: 'HIT', msp: 'SP สูงสุด', cdr: 'ลดคูลดาวน์สกิล', watk: 'ATK', wmatk: 'MATK', str: 'STR', agi: 'AGI', vit: 'VIT', int: 'INT', luk: 'LUK', matkPct: 'MATK', atk: 'ATK', matk: 'MATK', aspd: 'ความเร็วตี', def: 'DEF', crit: 'คริ', flee: 'หลบ', hpPct: 'HP สูงสุด', atkPct: 'ATK', aspdPct: 'ความเร็วตี', discount: 'ส่วนลดร้าน', dex: 'DEX' };
+const PCT_KEYS = { pdmg: 1, mdmg: 1, cdr: 1, matkPct: 1, atk: 1, matk: 1, aspd: 1, hpPct: 1, atkPct: 1, aspdPct: 1, discount: 1, crit: 1 };
 
 /* ---------- monsters & maps ---------- */
 const ARCHES = ['blob', 'shroom', 'beast', 'bat', 'plant', 'bones', 'ghost', 'brute', 'drake'];
@@ -877,8 +888,8 @@ function MON(id, name, arch, color, lv, extra) {
 }
 
 const DEFAULT_CONFIG = {
-  version: '2.9.28',
-  patchNotes: 'อัปเดต 2.9.28\n• ประกาศจาก GM ขึ้นเป็นป้ายกลางจอของผู้เล่นที่ออนไลน์ทันที\n• GM สั่งให้ทุกคนรีเฟรชเกมได้ (บันทึกตัวละครก่อนรีเฟรช) ใช้ตอนอัปโหลดเวอร์ชันใหม่\n• (จาก 2.9.27) อัลบั้มการ์ด',
+  version: '2.9.29',
+  patchNotes: 'อัปเดต 2.9.29\n• คุยกับ NPC: กล้องซูมเข้า NPC อยู่ซ้าย หน้าต่างอยู่ขวา เห็นฉากตีบวกชัด\n• ตู้กาชากลางเมือง 10 ลูก 200,000 G ลุ้นหมวก/ปาก (ทุกสเตตัส +5) หน้ากาก/ปีก (ดาเมจกายภาพและเวท) มีระดับ Unique ไม่ถูกได้ผงเกลือ\n• ของกาชาขายลงตลาดกลางไม่ได้\n• ตัวเลขดาเมจไหลเรียงเป็นแถว ไม่ซ้อนกันแล้ว',
   announcement: 'ยินดีต้อนรับสู่ช่วงทดสอบ! เจอบั๊กบอก GM ได้เลย',
   rates: { bexp: 1, jexp: 1, gold: 1, drop: 1 },
   deathPenalty: 1,
@@ -1626,7 +1637,7 @@ function derived(h) {
     atk: Math.round(atk), matk: Math.round(matk), maxHp, maxSp, def, aspdMs,
     hit: h.level + st.dex + 10 + (pa.hit || 0), flee: h.level + st.agi + L.flee + (pa.flee || 0) + (bu.flee || 0),
     crit: st.luk * 0.3 + L.crit + (w === 'katar' ? 8 : 0) + (pa.crit || 0) + (bu.crit || 0),
-    discount: Math.min(40, pa.discount || 0),
+    discount: Math.min(40, pa.discount || 0), pdmg: pa.pdmg || 0, mdmg: pa.mdmg || 0,
     // skill cooldown reduction: DEX 0.15% per point + buffs/passives, capped at 60%
     cdr: Math.min(60, Math.round((st.dex * 0.15 + (pa.cdr || 0) + (bu.cdr || 0)) * 10) / 10)
   };
@@ -1686,7 +1697,7 @@ function critPop(x, y, text, o) {
 const CRIT_SFX = { knife: 'dagger', dual: 'dagger', sword: 'sword', mace: 'mace', staff: 'rod', bow: 'bow', katar: 'katar', axe: 'axe' };
 function myCrit(tg, per, i) {
   const s = tg.size || 1, h = S.hero;
-  critPop(tg.x + (Math.random() * 10 - 5), tg.y - 34 * s - i * 14, fmt(per), { burst: i === 0, size: i === 0 ? 31 : 22 });
+  critPop(tg.x, tg.y - 34 * s, fmt(per), { burst: i === 0, size: i === 0 ? 31 : 22, tk: tg.uid, tg, oy: -34 * s });
   AU.sfx('crit', { w: CRIT_SFX[weaponOf(h.job, h.wstyle)] || 'dagger', sub: i });
   if (i === 0) {
     addFx({ kind: 'ring', x: tg.x, y: tg.y, r: 38 * s, color: '#ffcf3a', dur: 0.32 });
@@ -1771,10 +1782,11 @@ function rollPhys(mult, tg, forceCrit) {
   if (!crit) { const miss = clamp((tg.lv * 1.1 + 12 - D.hit) / 100, 0, 0.6); if (Math.random() < miss) return { miss: true }; }
   let dmg = D.atk * mult * (0.9 + Math.random() * 0.2);
   dmg = crit ? dmg * 1.5 : dmg * 100 / (100 + tg.def);
+  dmg *= 1 + (D.pdmg || 0) / 100;
   return { dmg: Math.max(1, Math.round(dmg)), crit };
 }
 function rollMagic(mult, tg) {
-  const dmg = P.D.matk * mult * (0.92 + Math.random() * 0.16) * 100 / (100 + tg.def * 0.6);
+  const dmg = P.D.matk * mult * (0.92 + Math.random() * 0.16) * 100 / (100 + tg.def * 0.6) * (1 + (P.D.mdmg || 0) / 100);
   return { dmg: Math.max(1, Math.round(dmg)), crit: false };
 }
 function applyHit(tg, res, hits) {
@@ -1789,7 +1801,7 @@ function applyHit(tg, res, hits) {
       tg.hp -= per; tg.hitT = 0.12; tg.angry = true; tg.state = 'chase'; tg.tgt = myKey(); tg.predT = W.t;
       if (!NET.isHost) netPushHit(tg.uid, per, res.crit);
       if (res.crit) myCrit(tg, per, i);
-      else { AU.sfx('hit'); addNum(tg.x + (Math.random() * 18 - 9), tg.y - 32 * s - i * 11, fmt(per), '#ffffff', 15, { pop: true }); }
+      else { AU.sfx('hit'); addNum(tg.x, tg.y - 32 * s, fmt(per), '#ffffff', 15, { pop: true, tk: tg.uid, dur: 1.15, tg, oy: -32 * s }); }
       if (tg.hp <= 0) { if (NET.isHost) killMon(tg, myKey()); else tg.hp = 0; }
     });
   }
@@ -3664,6 +3676,19 @@ void main(){
     E.push(); E.T(p.X, 0, p.Z); E.RY(p.r); E.RZ(sway); E.Sc(p.s);
     kkDraw(E, 's', key, IDB, kkTex(E, d.tex, '', null), { ow: 0.014, noOut: p._fade != null, fade: p._fade || 0 }); E.pop(); return true;
   }
+  // capsule-toy machine in the village square
+  const GBALL = ['#ff5a5a', '#ffd166', '#5ad1ff', '#7be08a', '#c77dff', '#ff8fd0', '#ffffff'];
+  function drawGachaMachine(E, t, n) {
+    const spin = t - (n.actT || -9) < 1.4, rot = spin ? t * 9 : t * 0.4;
+    E.push(); E.T(0, 0.28, 0); E.Sc(0.62, 0.56, 0.5); E.part('box', c3('#d8323c')); E.pop();
+    E.push(); E.T(0, 0.6, 0); E.Sc(0.66, 0.06, 0.54); E.part('box', c3('#ffd166')); E.pop();
+    E.push(); E.T(0, 0.32, 0.26); E.Sc(0.2, 0.2, 0.04); E.part('box', c3('#2b2b38')); E.pop();
+    E.push(); E.T(0.17, 0.42, 0.27); E.RZ(rot); E.Sc(0.07, 0.07, 0.05); E.part('cyl', c3('#f2f2f2')); E.pop();
+    E.push(); E.T(0, 1.02, 0); E.Sc(0.42); E.part('sph', c3('#cfeeff')); E.pop();
+    for (let i = 0; i < 14; i++) { const a = i * 2.4 + rot, yy = 0.85 + (i % 4) * 0.1, rr = 0.3 + (i % 3) * 0.04; E.push(); E.T(Math.cos(a) * rr, yy, Math.sin(a) * rr); E.Sc(0.075); E.part('sph', c3(GBALL[i % GBALL.length])); E.pop(); }
+    E.push(); E.T(0, 1.46, 0); E.Sc(0.18, 0.08, 0.18); E.part('cyl', c3('#d8323c')); E.pop();
+    E.push(); E.T(0, 1.56, 0); E.Sc(0.07); E.part('sphL', c3('#ffd166'), 0, { emit: true, outline: false }); E.pop();
+  }
   function drawProp(E, p, T3, t) {
     if (PK_PROP[p.type]) {
       if (R3.fadeQ && p.type === 'palm' && KKON && KK.pirate && R3.kkOn() && occludes({ type: 'tree', X: p.X, Z: p.Z })) { R3.fadeQ.push([p, '#pk']); return; }
@@ -3733,12 +3758,16 @@ void main(){
     const E = R3.eng, fovy = 38 * Math.PI / 180, elev = 54 * Math.PI / 180, ty = Math.tan(fovy / 2), aspect = R3.aspect || 0.5;
     const z = S.zoom || 1, visW = 7.4 * z, visH = Math.max(6, (W.h - 250) / R3.U) * z;
     const D = Math.max((visW / 2) / (ty * aspect), (visH / 2) / ty * Math.sin(elev));
-    const [px, pz] = L2W(P.x, P.y), tz = pz - 0.5;
+    const F = R3.focus, zf = F ? 0.6 : 1, Dz = F ? D * zf : D;
+    let [px, pz] = L2W(P.x, P.y), tz = pz - 0.5;
+    if (F) { const [nx, nz] = L2W(F.x, F.y), halfW = Dz * ty * aspect, panel = Math.min(0.6, 420 / Math.max(1, W.w)); px = nx + halfW * 2 * (0.5 - (1 - panel) / 2); tz = nz - 0.15; }
     if (R3.camSnap || R3.cx == null) { R3.cx = px; R3.cz = tz; R3.camSnap = false; }
+    R3.cd = R3.cd == null ? Dz : R3.cd + (Dz - R3.cd) * Math.min(1, dt * 4);
     const k = Math.min(1, dt * 6); R3.cx += (px - R3.cx) * k; R3.cz += (tz - R3.cz) * k;
     const sh = R3.shakeUntil > performance.now() ? R3.shakeAmp : 0;
     const tgt = [R3.cx + (Math.random() - 0.5) * sh, 0, R3.cz + (Math.random() - 0.5) * sh];
-    E.setCam([tgt[0], D * Math.sin(elev), tgt[2] + D * Math.cos(elev)], tgt, fovy, aspect, 0.5, D * 4);
+    const Dc = R3.cd || D;
+    E.setCam([tgt[0], Dc * Math.sin(elev), tgt[2] + Dc * Math.cos(elev)], tgt, fovy, aspect, 0.5, D * 4);
     E.fogR = [D * 1.08, D * 2.0];
   };
   function ccVis(E, X, Z, type, t) {
@@ -3837,7 +3866,8 @@ void main(){
     if (W.map && W.map.town && KKON && KK.village) { E.push(); kkStatics(E, KK.village); E.pop(); }
     if (W.map && W.map.town && typeof NPCS === 'object') for (const n of NPCS) {
       const [X, Z] = L2W(n.x, n.y); E.push(); E.T(X, 0, Z);
-      drawChar(E, n.look, n.job, 'dual', { t, ent: n.ent, spec: n.spec, swingId: n.actT, swing: (t - n.actT) / 0.3, castId: n.actKind === 'heal' ? n.actT : null, castKind: n.actKind });
+      if (n.machine) drawGachaMachine(E, t, n);
+      else drawChar(E, n.look, n.job, 'dual', { t, ent: n.ent, spec: n.spec, swingId: n.actT, swing: (t - n.actT) / 0.3, castId: n.actKind === 'heal' ? n.actT : null, castKind: n.actKind });
       E.pop();
     }
     for (const m of ents) if (m.alpha > 0.02 && m._vis) drawMon(E, m, t);
@@ -3931,12 +3961,18 @@ void main(){
       label(ctx, '💬', a.x, a.y - 12 + bob, '#ffffff', 13); label(ctx, n.name, a.x, a.y + 6, '#ffe27a', 11); label(ctx, n.role, a.x, a.y + 20, '#d8f0ff', 9);
     }
     drawBubbles(ctx, proj);
-    // numbers
+    // numbers: hits on the same target form one stream (newest at the bottom, older pushed up)
+    { const ndt = Math.max(0, Math.min(0.1, t - (R3.numT == null ? t : R3.numT))); R3.numT = t; const st = {};
+      for (const n of W.nums) if (n.tk != null && t - n.t0 <= n.dur) (st[n.tk] || (st[n.tk] = [])).push(n);
+      for (const k in st) { const a = st[k].sort((x, y) => y.t0 - x.t0); let acc = 0;
+        a.forEach((n, i) => { n.sy = n.sy == null ? acc : n.sy + (acc - n.sy) * Math.min(1, ndt * 14); acc += n.crit ? (n.size || 30) * 1.75 : n.size * 1.2; if (i >= 9 && !n.fade) { n.fade = 1; n.dur = Math.min(n.dur, t - n.t0 + 0.18); } }); } }
     ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.lineJoin = 'round';
     for (const n of W.nums) {
       const p = (t - n.t0) / n.dur; if (p < 0 || p > 1) continue;
-      if (n.crit) { const qc = proj(n.x, n.y); drawCrit(ctx, n, qc.x, qc.y - 22, t); continue; }
-      const q = proj(n.x, n.y), yy = q.y - 22 - 26 * easeOut(p), sc = n.pop && p < 0.12 ? 1 + (0.12 - p) * 4 : 1, size = n.size * sc * 1.1;
+      const so = n.sy || 0, sx = so * 0.14;
+      const ax = n.tg ? n.tg.x : n.x, ay = n.tg ? n.tg.y + n.oy : n.y;
+      if (n.crit) { const qc = proj(ax, ay); drawCrit(ctx, n, qc.x + sx, qc.y - 22 - so - (n.tk != null ? 14 * easeOut(p) : 0), t); continue; }
+      const q = proj(ax, ay); q.x += sx; const yy = q.y - 22 - so - (n.tk != null ? 18 : 26) * easeOut(p), sc = n.pop && p < 0.12 ? 1 + (0.12 - p) * 4 : 1, size = n.size * sc * 1.1;
       ctx.globalAlpha = p > 0.7 ? 1 - (p - 0.7) / 0.3 : 1;
       ctx.font = n.font === 'th' ? '700 ' + size + 'px "Bai Jamjuree","Noto Sans Thai",sans-serif' : '700 ' + size + 'px Silkscreen,"Courier New",monospace';
       ctx.lineWidth = Math.max(3, size * 0.26); ctx.strokeStyle = '#000'; ctx.strokeText(n.text, q.x, yy);
@@ -4311,6 +4347,15 @@ for (const sid of Object.keys(DG_SETS)) {
   GEAR['s_' + sid] = { slot: 'shoes', nm: 'รองเท้า' + S0.nm, ic: '👢', b: {}, pr: 1200 * t * t, set: sid, t, dg: true };
   GEAR['r_' + sid] = { slot: 'ring', nm: 'แหวน' + S0.nm, ic: '💍', b: {}, pr: 1200 * t * t, dset: sid, t, dg: true };
 }
+// gacha machine prizes: bound to the account (no marketplace)
+Object.assign(GEAR, {
+  g_crown: { slot: 'head', nm: 'มงกุฎนำโชค', ic: '👑', b: { str: 5, agi: 5, vit: 5, int: 5, dex: 5, luk: 5 }, pr: 2000, gacha: 1 },
+  g_candy: { slot: 'mouth', nm: 'ลูกอมสายรุ้ง', ic: '🍭', b: { str: 5, agi: 5, vit: 5, int: 5, dex: 5, luk: 5 }, pr: 2000, gacha: 1 },
+  g_mask: { slot: 'face', nm: 'หน้ากากนักสู้', ic: '🎭', b: { pdmg: 5, mdmg: 5 }, pr: 2000, gacha: 1 },
+  g_mask_u: { slot: 'face', nm: 'หน้ากากเทพยุทธ์ [Unique]', ic: '🎭', b: { pdmg: 12, mdmg: 12 }, pr: 5000, gacha: 1, uq: 1 },
+  g_wing: { slot: 'wings', nm: 'ปีกพลังวายุ', ic: '🦋', b: { pdmg: 5, mdmg: 5 }, pr: 2000, gacha: 1 },
+  g_wing_u: { slot: 'wings', nm: 'ปีกเทวะ [Unique]', ic: '🌟', b: { pdmg: 12, mdmg: 12 }, pr: 5000, gacha: 1, uq: 1 }
+});
 const canUse = (h, id) => !GEAR[id] || !GEAR[id].line || (JOBS[h.job].line === GEAR[id].line && (!GEAR[id].style || h.wstyle === GEAR[id].style));
 const lineText = (h, id) => { const g = GEAR[id]; if (!g || !g.dg) return ''; if (!g.line) return 'ใช้ได้ทุกอาชีพ'; return 'เฉพาะสาย' + LINE_TH[g.line] + (g.style === 'katar' ? ' สไตล์คาตาร์' : '') + (canUse(h, id) ? ' ✓' : JOBS[h.job].line === g.line ? ' (เปลี่ยนสไตล์เป็นคาตาร์ที่ร้านก่อน)' : ' (ไม่ตรงอาชีพคุณ)'); };
 const setBonus = (t, n) => n >= 3 ? { atkPct: 2 * t, matkPct: 2 * t, hpPct: 3 * t, crit: t + 1 } : n >= 2 ? { atkPct: 2 * t, matkPct: 2 * t } : null;
@@ -4341,7 +4386,7 @@ function cardBonus(tpl) {
 function lootItem(tpl) { return { k: 'L:' + tpl.id, kind: 'loot', nm: (LOOT_PRE[tpl.arch] || 'ชิ้นส่วน') + tpl.name, ar: tpl.arch, pr: Math.max(2, Math.round(tpl.gold * 0.9)), lv: tpl.lv, col: tpl.color }; }
 function cardItem(tpl) { return { k: 'C:' + tpl.id, kind: 'card', nm: 'การ์ด' + tpl.name, ar: tpl.arch, pr: 400 + tpl.lv * 30, lv: tpl.lv, b: cardBonus(tpl), col: tpl.color, cs: CS_TH[tpl.cs] ? tpl.cs : (ARCH_CS[tpl.arch] || 'armor') }; }
 function gearPrice(id) { const o = CONFIG.shop && CONFIG.shop.gear[id]; return o && o.pr != null ? o.pr : (GEAR[id] ? GEAR[id].pr : 0); }
-function gearOnSale(id) { const o = CONFIG.shop && CONFIG.shop.gear[id]; return !(o && o.on === false); }
+function gearOnSale(id) { if (GEAR[id] && GEAR[id].gacha) return false; const o = CONFIG.shop && CONFIG.shop.gear[id]; return !(o && o.on === false); }
 function gearItem(id) { const g = GEAR[id]; return { k: 'G:' + id + ':' + Math.random().toString(36).slice(2, 8), kind: 'gear', id, nm: g.nm, pr: Math.round(gearPrice(id) / 2), cards: [] }; }
 function sanitizeCard(x) { const c = sanitizeItem(x, false); return c && c.kind === 'card' ? c : null; }
 function sanitizeItem(x, withN) {
@@ -4599,7 +4644,7 @@ function renderEquip() {
   body.append(det);
   // inventory
   const tiles = Object.keys(POT).filter((kd) => kd === 'hp' || kd === 'sp' || (h[POT[kd].f] || 0) > 0).map((kd) => ({ k: 'P:' + kd, pot: kd, icon: POT[kd].ic, n: h[POT[kd].f] || 0, nm: POT[kd].nm, blue: kd === 'sp' }));
-  for (const it of h.inv) tiles.push({ k: it.k, icon: it.kind === 'card' ? '🃏' : it.kind === 'gear' ? GEAR[it.id].ic : it.kind === 'key' ? '🗝️' : it.kind === 'ore' ? ORE[it.id].ic : (ARCH_ICON[it.ar] || '📦'), n: it.n, nm: it.nm, it });
+  for (const it of h.inv) tiles.push({ k: it.k, icon: it.kind === 'card' ? '🃏' : it.kind === 'gear' ? GEAR[it.id].ic : it.kind === 'key' ? '🗝️' : it.kind === 'ore' ? ORE[it.id].ic : it.k === 'L:salt' ? '🧂' : (ARCH_ICON[it.ar] || '📦'), n: it.n, nm: it.nm, it });
   body.append(el('div', { class: 'sub', id: 'eqInv', text: 'กระเป๋า ' + h.inv.length + '/' + INV_MAX }));
   const sel = tiles.find((t) => t.k === EQ.invSel), idet = el('div', { class: 'invdet' });
   if (!sel) idet.append(el('p', { class: 'note', style: 'margin:0', text: 'แตะไอเทมเพื่อดูรายละเอียด การ์ดดรอปจากมอนทุกตัว ' + CONFIG.cardChance + '% และแต่ละใบใส่ได้เฉพาะช่องของมัน' }));
@@ -4629,10 +4674,11 @@ function renderEquip() {
       for (const op of it.o || []) idet.append(el('div', { class: 'ds gopt', text: '✦ ' + bonusText({ [op[0]]: op[1] }) }));
       if (GEAR[it.id].dg) idet.append(el('div', { class: 'meta', style: canUse(h, it.id) ? null : 'color:var(--bad)', text: lineText(h, it.id) }));
       if (GEAR[it.id].set) idet.append(setLine(h, GEAR[it.id].set));
+      if (GEAR[it.id].gacha) idet.append(el('div', { class: 'meta', style: 'color:var(--bad);font-weight:700', text: (GEAR[it.id].uq ? '✦ Unique  ' : '') + 'ของจากตู้กาชา ไม่สามารถขายลงตลาดกลางได้' }));
     }
     else if (it.kind === 'ore') idet.append(el('div', { class: 'ds', text: 'วัสดุ' + ORE[it.id].use + ' ใช้ที่ช่างตีบวกในหมู่บ้าน' }));
     else if (it.kind === 'key') { const dg = dgDef(it.dg); idet.append(el('div', { class: 'ds', text: 'ใช้เข้า ' + (dg ? dg.name + '  (Lv.' + dg.minLv + '+)' : 'ดันเจี้ยน') })); }
-    else idet.append(el('div', { class: 'ds', text: 'วัตถุดิบจากมอนสเตอร์ Lv ' + it.lv }));
+    else idet.append(el('div', { class: 'ds', text: it.k === 'L:salt' ? 'ได้จากตู้กาชา ขายร้านค้าได้' : 'วัตถุดิบจากมอนสเตอร์ Lv ' + it.lv }));
     idet.append(el('div', { class: 'meta', text: 'ขายได้ ' + fmt(it.pr) + ' G' + (it.kind === 'gear' ? '' : ' ต่อชิ้น') }));
     idet.append(el('div', { class: 'acts' },
       it.kind === 'card' ? el('button', { class: 'mini pri', text: 'ใส่การ์ด', onclick: () => autoInsert(it.k) }) : null,
@@ -5744,6 +5790,7 @@ const NPCS = [
     spec: { m: 'Ranger', line: 'acolyte', hide: ['Ranger_Quiver', 'Ranger_Cape'], r: 'fw_hammer_C', vkey: 'npc_smith', shine: 0,
       rec: [{ h: [185, 235], to: 24, s: 1.05 }] } }
 ];
+NPCS.push({ id: 'gacha', name: 'ตู้กาชา', role: '10 ลูก 200,000 G', x: 360, y: 506, machine: true, job: 'novice', look: { g: 'm', hair: 0, hc: '#333' } });
 for (const n of NPCS) { n.actT = -9; n.actKind = ''; n.ent = {}; n.x += TOX; n.y += TOY; }
 const isTown = () => !!(W.map && W.map.town);
 
@@ -5853,6 +5900,46 @@ function panelSmith(body) {
       el('button', { class: 'mini pri', text: REF.busy ? '…' : max ? 'MAX' : '+' + (r + 1), disabled: !ok || max || !enough || REF.busy, onclick: () => refineSlot(slot) })));
   }
   body.append(el('p', { class: 'note', text: 'Oridecon และ Elunium ดรอปจากมอนสเตอร์ทุกแผนที่ บอสแผนที่และบอสดันเจี้ยนดรอปหลายก้อน ค่าตีบวกเพิ่มขึ้นทุกขั้น ส่วนลดสายพ่อค้าใช้ได้' }));
+}
+
+/* ---------- gacha machine: a gold sink, prizes cannot go to the marketplace ---------- */
+const GACHA_PRICE = 200000, GACHA_N = 10;
+const GACHA_TBL = [['g_crown', 0.1], ['g_candy', 0.1], ['g_mask', 0.5], ['g_mask_u', 0.01], ['g_wing', 0.5], ['g_wing_u', 0.01]];
+const saltItem = () => ({ k: 'L:salt', kind: 'loot', nm: 'ผงเกลือ', ar: 'blob', pr: 100, lv: 1, col: '#e8e8e8' });
+const GA = { last: null, t: 0 };
+function gachaRoll() { const r = Math.random() * 100; let acc = 0; for (const [id, p] of GACHA_TBL) { acc += p; if (r < acc) return id; } return null; }
+function gachaSpin() {
+  const h = S.hero;
+  if (h.gold < GACHA_PRICE) { toast('ทองไม่พอ ต้องใช้ ' + fmt(GACHA_PRICE) + ' G'); return; }
+  const res = []; for (let i = 0; i < GACHA_N; i++) res.push(gachaRoll());
+  const wins = res.filter(Boolean), salt = res.length - wins.length;
+  const free = INV_MAX - h.inv.length - (salt && !h.inv.some((x) => x.k === 'L:salt') ? 1 : 0);
+  if (free < wins.length || free < 0) { toast('กระเป๋าใกล้เต็ม เคลียร์ช่องว่างก่อนหมุน'); return; }
+  h.gold -= GACHA_PRICE;
+  for (const id of wins) { addItem(gearItem(id), 1); chatSend('🎰 ' + h.name + ' ได้ ' + GEAR[id].ic + ' ' + GEAR[id].nm + ' จากตู้กาชา!', 'w', true, true); }
+  if (salt) addItem(saltItem(), salt);
+  GA.last = res; GA.t = W.t; npcAct('gacha', 'spin');
+  AU.sfx(wins.some((id) => GEAR[id].uq) ? 'legend' : wins.length ? 'jobup' : 'coin');
+  if (wins.length) addFx({ kind: 'pillar', x: P.x, y: P.y, color: '#ffd166', dur: 1.2, w: 40 });
+  S.dirty = true; save(); hudText(); renderSheet();
+}
+function panelGacha(body) {
+  const h = S.hero;
+  body.append(el('div', { class: 'npcsay' }, el('b', { text: '🎰 ตู้กาชานำโชค' }), el('p', { text: 'หมุนครั้งละ ' + GACHA_N + ' ลูก ' + fmt(GACHA_PRICE) + ' G ลุ้นหมวก ปาก ใบหน้า และปีกสุดหายาก ลูกที่ไม่ถูกรางวัลจะได้ผงเกลือ (ขายร้านได้ 100 G)' })));
+  body.append(el('div', { class: 'orebar' }, el('span', { text: '💰 ' + fmt(h.gold) + ' G' })));
+  body.append(el('button', { class: 'btn-main', text: '🎰 หมุน ' + GACHA_N + ' ลูก (' + fmt(GACHA_PRICE) + ' G)', disabled: h.gold < GACHA_PRICE, onclick: gachaSpin }));
+  if (GA.last) {
+    const g = el('div', { class: 'gres' });
+    GA.last.forEach((id, i) => { const b = el('div', { class: 'gball' + (id ? (GEAR[id].uq ? ' uq' : ' win') : ''), title: id ? GEAR[id].nm : 'ผงเกลือ', text: id ? GEAR[id].ic : '🧂' }); b.style.animationDelay = (i * 0.08) + 's'; g.append(b); });
+    body.append(el('div', { class: 'sub', text: 'ผลการหมุนล่าสุด' }), g);
+    const wins = GA.last.filter(Boolean);
+    body.append(el('p', { class: 'note', text: wins.length ? '🎉 ได้ ' + wins.map((id) => GEAR[id].nm).join(', ') : 'ครั้งนี้ได้ผงเกลือ ' + GA.last.length + ' ลูก ลองใหม่นะ!' }));
+  }
+  body.append(el('div', { class: 'sub', text: 'อัตราออกต่อลูก' }));
+  for (const [id, p] of GACHA_TBL) body.append(el('div', { class: 'grate' }, el('span', { text: GEAR[id].ic + ' ' + GEAR[id].nm + '  (' + GEAR_TYPE_TH[GEAR[id].slot] + ')' }), el('b', { text: p + '%' })));
+  body.append(el('div', { class: 'grate' }, el('span', { text: '🧂 ผงเกลือ' }), el('b', { text: (100 - GACHA_TBL.reduce((a, x) => a + x[1], 0)).toFixed(2) + '%' })));
+  body.append(el('p', { class: 'note', text: 'หมวกและปาก: ทุกสเตตัส +5  ใบหน้าและปีก: ดาเมจกายภาพและดาเมจเวท +5% (Unique +12%)' }));
+  body.append(el('p', { class: 'note', style: 'color:var(--bad);font-weight:700', text: 'ของจากตู้กาชาไม่สามารถขายลงตลาดกลางได้' }));
 }
 /* =================== PARTY: leader, follow, join requests, dungeon ready check =================== */
 Object.assign(PARTY, { pl: null, req: null, reqs: [], rej: [], follow: false, sel: '', rc: null, myRc: null, fwT: 0 });
@@ -6450,12 +6537,13 @@ $('#mmCv').addEventListener('click', (e) => {
 const PANELS = {
   stats: ['สถานะตัวละคร', panelStats], skills: ['สกิล', panelSkills], job: ['เปลี่ยนอาชีพ', panelJob],
   map: ['แผนที่', panelMap], dungeon: ['ดันเจี้ยน', panelDungeon], npc_healer: ['ซิสเตอร์ลูน่า', panelHealer], npc_smith: ['ริว ช่างตีบวก', panelSmith], market: ['ตลาดซื้อ-ขาย', panelMarket], shop: ['ร้านช่างตีเหล็ก', panelShop], rank: ['ทำเนียบนักผจญภัย', panelRank], gm: ['ห้องควบคุม GM', panelGM],
-  album: ['📖 อัลบั้มการ์ด', panelAlbum], auto: ['โหมดออโต้', panelAuto], online: ['ผู้เล่นและปาร์ตี้', panelOnline], sound: ['ตั้งค่า', panelSound], chat: ['แชท', panelChat]
+  npc_gacha: ['🎰 ตู้กาชา', panelGacha], album: ['📖 อัลบั้มการ์ด', panelAlbum], auto: ['โหมดออโต้', panelAuto], online: ['ผู้เล่นและปาร์ตี้', panelOnline], sound: ['ตั้งค่า', panelSound], chat: ['แชท', panelChat]
 };
 function openPanel(name) {
   if (name === 'bag' || name === 'equip') { openEquip(name === 'bag' ? 'bag' : 'eq'); return; }
   if (!PANELS[name]) return;
   S.sheet = name; $('#sheetTitle').textContent = PANELS[name][0];
+  { const npc = name.startsWith('npc_') && typeof NPCS === 'object' ? NPCS.find((n) => 'npc_' + n.id === name) : null; $('#sheetWrap').classList.toggle('side', !!npc); document.body.classList.toggle('npctalk', !!npc); R3.focus = npc || null; }
   if (name === 'gm' && !S.draftDirty) S.draft = clone(CONFIG);
   $('#sheetWrap').hidden = false; $('#sheetBody').scrollTop = 0; renderSheet();
 }
@@ -6465,7 +6553,7 @@ function renderSheet() {
   body.textContent = ''; PANELS[S.sheet][1](body); body.scrollTop = st;
 }
 function renderSheetIfOpen() { if (S.sheet && S.sheet !== 'gm' && !$('#sheetWrap').hidden) renderSheet(); }
-function closeSheet() { $('#sheetWrap').hidden = true; S.sheet = null; }
+function closeSheet() { $('#sheetWrap').hidden = true; S.sheet = null; $('#sheetWrap').classList.remove('side'); document.body.classList.remove('npctalk'); R3.focus = null; }
 $('#sheetClose').addEventListener('click', closeSheet);
 $('#sheetWrap').addEventListener('pointerdown', (e) => { if (e.target === e.currentTarget) closeSheet(); });
 function twoStep(btn, label, armedLabel, fn) {
