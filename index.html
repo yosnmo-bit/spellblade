@@ -891,8 +891,8 @@ function MON(id, name, arch, color, lv, extra) {
 }
 
 const DEFAULT_CONFIG = {
-  version: '2.9.31',
-  patchNotes: 'อัปเดต 2.9.31\n• การ์ดบอสแผนที่ดรอป 0.05%\n• การ์ดบอสดันเจี้ยน 0.1% ต่อการเคลียร์\n• (จาก 2.9.30) กุญแจดันเจี้ยนแบบเดียว มีดสองมือ',
+  version: '2.9.32',
+  patchNotes: 'อัปเดต 2.9.32: แหวน 2 รู\n• แหวน 2 รู ใส่การ์ดแหวนได้ 2 ใบ\n• บอสดันเจี้ยน: แหวนที่ดรอปมีโอกาสเป็น 2 รู 10%\n• บอสแผนที่ดรอปแหวนเซ็ตตามเลเวลบอส: 1 รู 10%  2 รู 1%',
   announcement: 'ยินดีต้อนรับสู่ช่วงทดสอบ! เจอบั๊กบอก GM ได้เลย',
   rates: { bexp: 1, jexp: 1, gold: 1, drop: 1 },
   deathPenalty: 1,
@@ -983,7 +983,7 @@ function sanitizeConfig(raw) {
   const c = {
     version: str(raw.version, DEFAULT_CONFIG.version, 20),
     patchNotes: txt(raw.patchNotes, 2000),
-    announcement: txt(raw.announcement, 300), keyChance: num(raw.keyChance, 0.6, 0, 100), bossCard: num(raw.bossCard, 0.05, 0, 100), dgBossCard: num(raw.dgBossCard, 0.1, 0, 100),
+    announcement: txt(raw.announcement, 300), keyChance: num(raw.keyChance, 0.6, 0, 100), bossCard: num(raw.bossCard, 0.05, 0, 100), dgBossCard: num(raw.dgBossCard, 0.1, 0, 100), fbRing1: num(raw.fbRing1, 10, 0, 100), fbRing2: num(raw.fbRing2, 1, 0, 100), dgRing2: num(raw.dgRing2, 10, 0, 100),
     announceAt: num(raw.announceAt, 0, 0, 1e15), reloadAt: num(raw.reloadAt, 0, 0, 1e15),
     rates: { bexp: num(r.bexp, 1, 0, 100), jexp: num(r.jexp, 1, 0, 100), gold: num(r.gold, 1, 0, 100), drop: num(r.drop, 1, 0, 100) },
     deathPenalty: num(raw.deathPenalty, 1, 0, 100),
@@ -1859,6 +1859,8 @@ function processKill(m, killer, ti) {
     }
     if (Math.random() < Math.min(1, 0.35 * R.drop)) { const it = lootItem(tpl); if (addItem(it, 1)) addNum(m.x, m.y + 22, '+' + it.nm, '#d8e6ff', 10, { font: 'th', dur: 1.3 }); }
     if (!tpl.raid && Math.random() * 100 < (tpl.boss ? CONFIG.bossCard : CONFIG.cardChance)) { const c = cardItem(tpl); if (addItem(c, 1)) gotCard(c); }
+    if (tpl.boss && !tpl.raid && !isDg()) { const rr = Math.random() * 100, sk = rr < CONFIG.fbRing2 ? 2 : rr < CONFIG.fbRing2 + CONFIG.fbRing1 ? 1 : 0;
+      if (sk) { const it = fieldBossRing(tpl, sk); if (it && addItem(it, 1)) { const nm = it.nm + (sk === 2 ? ' [2 รู]' : ''); toast('💍 ได้รับ ' + nm + ' (' + RAR[it.r].nm + ')'); addNum(m.x, m.y + 50, '+💍 ' + nm, rarCol(it.r), 12, { font: 'th', dur: 2, pop: true }); AU.sfx(it.r >= 3 ? 'legend' : 'card'); if (sk === 2) chatSend('💍 ' + h.name + ' ได้ ' + nm + ' จากบอส ' + tpl.name + '!', 'w', true, true); } } }
     dropKeys(m, tpl); dropOres(m, tpl);
   } else addNum(P.x, P.y - 60, 'ปาร์ตี้ +' + fmt(b) + ' EXP', '#8dff9a', 10, { font: 'th', dur: 1.2 });
   gainExp(b, j);
@@ -4409,9 +4411,10 @@ function sanitizeItem(x, withN) {
   if (kind === 'gear') {
     if (!GEAR[x.id]) return null;
     const r = int(x.r, GEAR[x.id].dg ? 1 : 0, 0, 4);
-    const it = { k: x.k.slice(0, 60), kind, id: x.id, nm: GEAR[x.id].nm, pr: itemPrice(x.id, r), cards: [], r, o: sanitizeOpts(x.o) };
-    { const v = itemVar(x); if (v) it.v = v; }
-    it.cards = (Array.isArray(x.cards) ? x.cards : []).slice(0, 1).map((c) => (c ? sanitizeCard(c) : null));
+    const sk2 = GEAR[x.id].slot === 'ring' && x.sk === 2;
+    const it = { k: x.k.slice(0, 60), kind, id: x.id, nm: GEAR[x.id].nm + (sk2 ? ' [2 รู]' : ''), pr: Math.round(itemPrice(x.id, r) * (sk2 ? 1.5 : 1)), cards: [], r, o: sanitizeOpts(x.o) };
+    { const v = itemVar(x); if (v) it.v = v; } if (sk2) it.sk = 2;
+    it.cards = (Array.isArray(x.cards) ? x.cards : []).slice(0, sk2 ? 2 : 1).map((c) => (c ? sanitizeCard(c) : null));
     if (withN) it.n = 1;
     return it;
   }
@@ -4444,7 +4447,8 @@ function sockets(h, key) {
   if (key === 'weapon') return { knife: 1, sword: 1, mace: 1, staff: 2, bow: 2, katar: 2, dual: 2, axe: 2 }[w] || 1;
   if (key === 'off') return (w === 'sword' || w === 'mace') ? 1 : w === 'dual' ? 2 : 0;
   if (key === 'armor') return 1;
-  if (key === 'head' || key === 'face' || key === 'mouth' || key === 'shoes' || key === 'ring1' || key === 'ring2') return h.eq[key] ? 1 : 0;
+  if (key === 'ring1' || key === 'ring2') return h.eq[key] ? (h.eq[key].sk === 2 ? 2 : 1) : 0;
+  if (key === 'head' || key === 'face' || key === 'mouth' || key === 'shoes') return h.eq[key] ? 1 : 0;
   return 0;
 }
 function accepts(h, key) { if (key === 'weapon') return 'weapon'; if (key === 'off') return weaponOf(h.job, h.wstyle) === 'dual' ? 'weapon' : 'shield'; return baseSlot(key); }
@@ -4455,7 +4459,8 @@ function sanitizeEq(d, h) {
   const cardsOf = (x, n) => (Array.isArray(x.cards) ? x.cards : []).slice(0, n).map((c) => (c ? sanitizeCard(c) : null));
   for (const k of GEAR_SLOTS) {
     const x = e[k];
-    out[k] = (x && GEAR[x.id] && GEAR[x.id].slot === baseSlot(k)) ? { id: x.id, r: int(x.r, GEAR[x.id].dg ? 1 : 0, 0, 4), o: sanitizeOpts(x.o), v: itemVar(x), cards: cardsOf(x, 1) } : null;
+    const sk2 = x && GEAR[x.id] && GEAR[x.id].slot === 'ring' && x.sk === 2;
+    out[k] = (x && GEAR[x.id] && GEAR[x.id].slot === baseSlot(k)) ? Object.assign({ id: x.id, r: int(x.r, GEAR[x.id].dg ? 1 : 0, 0, 4), o: sanitizeOpts(x.o), v: itemVar(x), cards: cardsOf(x, sk2 ? 2 : 1) }, sk2 ? { sk: 2 } : {}) : null;
   }
   for (const k of ['weapon', 'off', 'armor']) {
     const x = e[k] || {}, o = { cards: cardsOf(x, 4) };
@@ -4539,15 +4544,15 @@ function equipGear(k, toOff) {
     if (old && old.id) pushInv(h, Object.assign(gearItem(old.id), { r: old.r, o: old.o, v: old.v }), 1);
     h.eq[slot] = { id: it.id, r: it.r || 0, o: it.o || [], v: itemVar(it), cards: (old && old.cards) || [] };
   } else {
-    if (old) pushInv(h, Object.assign(gearItem(old.id), { cards: old.cards, r: old.r, o: old.o, v: old.v }), 1);
-    h.eq[slot] = { id: it.id, r: it.r || 0, o: it.o || [], v: itemVar(it), cards: it.cards && it.cards.length ? it.cards : [] };
+    if (old) pushInv(h, Object.assign(gearItem(old.id), { cards: old.cards, r: old.r, o: old.o, v: old.v, sk: old.sk }), 1);
+    h.eq[slot] = Object.assign({ id: it.id, r: it.r || 0, o: it.o || [], v: itemVar(it), cards: it.cards && it.cards.length ? it.cards : [] }, it.sk === 2 ? { sk: 2 } : {});
   }
   normalizeGear(h); EQ.sel = slot; EQ.invSel = null; AU.sfx((it.r || 0) >= 2 ? 'legend' : 'buff'); afterGear();
 }
 function unequipGear(slot) {
   const h = S.hero, old = h.eq[slot]; if (!old || !old.id) return;
   const keep = slot === 'weapon' || slot === 'armor' || slot === 'off';
-  if (!addItem(Object.assign(gearItem(old.id), { cards: keep ? [] : old.cards, r: old.r, o: old.o, v: old.v }), 1)) return;
+  if (!addItem(Object.assign(gearItem(old.id), { cards: keep ? [] : old.cards, r: old.r, o: old.o, v: old.v, sk: old.sk }), 1)) return;
   h.eq[slot] = keep ? { cards: old.cards } : null; afterGear();
 }
 function sellItem(k, n) {
@@ -4586,7 +4591,7 @@ function slotInfo(h, key) {
   const s = h.eq[key];
   if (!s) return { ic: '', nm: 'ว่าง', empty: true, note: 'ซื้อได้ที่ร้าน แล้วกดสวมใส่จากกระเป๋า' };
   const g = GEAR[s.id];
-  return { ic: g.ic, nm: g.nm, ref: (h.ref && h.ref[key]) || 0, b: itemBase(s), r: s.r || 0, o: s.o, set: g.set, item: true, note: sockets(h, key) ? 'ใส่การ์ด' + CS_TH[baseSlot(key)] + 'ได้ 1 ใบ' : 'ไม่มีช่องการ์ด' };
+  return { ic: g.ic, nm: g.nm + (s.sk === 2 ? ' [2 รู]' : ''), ref: (h.ref && h.ref[key]) || 0, b: itemBase(s), r: s.r || 0, o: s.o, set: g.set, item: true, note: sockets(h, key) ? 'ใส่การ์ด' + CS_TH[baseSlot(key)] + 'ได้ ' + sockets(h, key) + ' ใบ' : 'ไม่มีช่องการ์ด' };
 }
 function ensureEquipDom() {
   if ($('#eqWrap')) return;
@@ -4692,7 +4697,7 @@ function renderEquip() {
     if (it.kind === 'card') idet.append(el('div', { class: 'ds', text: 'ใส่ช่อง' + CS_TH[it.cs] + '  ' + bonusText(it.b) }));
     else if (it.kind === 'gear') {
       const gs = GEAR[it.id].slot;
-      idet.append(el('div', { class: 'ds', text: GEAR_TYPE_TH[gs] + (gs === 'wings' || gs === 'weapon' || gs === 'armor' ? '' : '  ใส่การ์ด' + CS_TH[gs] + ' 1 ใบ') + '  ' + bonusText(itemBase(it)) }));
+      idet.append(el('div', { class: 'ds', text: GEAR_TYPE_TH[gs] + (gs === 'wings' || gs === 'weapon' || gs === 'armor' ? '' : '  ใส่การ์ด' + CS_TH[gs] + ' ' + (it.sk === 2 ? 2 : 1) + ' ใบ') + '  ' + bonusText(itemBase(it)) }));
       for (const op of it.o || []) idet.append(el('div', { class: 'ds gopt', text: '✦ ' + bonusText({ [op[0]]: op[1] }) }));
       if (GEAR[it.id].dg) idet.append(el('div', { class: 'meta', style: canUse(h, it.id) ? null : 'color:var(--bad)', text: lineText(h, it.id) }));
       if (GEAR[it.id].set) idet.append(setLine(h, GEAR[it.id].set));
@@ -4717,7 +4722,7 @@ function renderEquip() {
     const rr = t.it && t.it.kind === 'gear' ? t.it.r || 0 : 0;
     const b = el('button', { class: 'tile' + (EQ.invSel === t.k ? ' sel' : '') + (t.it && t.it.kind === 'card' ? ' card' : '') + (rr >= 1 ? ' rar' : ''), style: rr >= 1 ? '--rc:' + rarCol(rr) : null, 'aria-label': t.nm + ' ' + t.n },
       el('span', { text: t.icon, style: t.blue ? 'filter:hue-rotate(200deg)' : null }), t.it && t.it.kind === 'gear' ? null : el('b', { text: String(t.n) }),
-      t.it && t.it.kind === 'card' ? el('em', { text: CS_TH[t.it.cs] }) : null);
+      t.it && t.it.kind === 'card' ? el('em', { text: CS_TH[t.it.cs] }) : t.it && t.it.sk === 2 ? el('em', { text: '2 รู' }) : null);
     if (t.it && t.it.kind === 'card') b.style.setProperty('--c', t.it.col);
     b.addEventListener('click', () => { EQ.invSel = t.k; renderEquip(); });
     g.append(b);
@@ -5339,13 +5344,20 @@ function rollOpt(t, used) {
   used.add(k); return [k, v];
 }
 function pickW(ws) { const tot = ws.reduce((a, b) => a + b, 0) || 1; let r = Math.random() * tot; for (let i = 0; i < ws.length; i++) { r -= ws[i]; if (r <= 0) return i; } return 0; }
-function rollDgItem(dg, forceR) {
-  const WK = DG_LINES.concat('katar'), roll = Math.random(), id = roll < 0.35 ? 'w_' + dg.id + '_' + WK[(Math.random() * WK.length) | 0] : (roll < 0.6 ? 'a_' : roll < 0.8 ? 's_' : 'r_') + dg.id;
+function rollDgItem(dg, forceR, forceId, forceSk) {
+  const WK = DG_LINES.concat('katar'), roll = Math.random(), id = forceId || (roll < 0.35 ? 'w_' + dg.id + '_' + WK[(Math.random() * WK.length) | 0] : (roll < 0.6 ? 'a_' : roll < 0.8 ? 's_' : 'r_') + dg.id);
   if (!GEAR[id]) return null;
   const r = forceR || 1 + pickW(dg.rar), used = new Set(), o = [];
   for (let i = 0; i < RAR[r].opts; i++) o.push(rollOpt(dg.diff, used));
   const vs = varsOf(id);
-  return Object.assign(gearItem(id), { r, o }, vs ? { v: vs[(Math.random() * vs.length) | 0] } : {});
+  const sk = id.startsWith('r_') && (forceSk != null ? forceSk === 2 : Math.random() * 100 < CONFIG.dgRing2) ? { sk: 2 } : {};
+  return Object.assign(gearItem(id), { r, o }, vs ? { v: vs[(Math.random() * vs.length) | 0] } : {}, sk);
+}
+// field bosses: a set ring matching the boss level
+function fieldBossRing(tpl, sk) {
+  const list = CONFIG.dungeons.filter((d) => GEAR['r_' + d.id]).sort((a, b) => a.minLv - b.minLv); if (!list.length) return null;
+  let dg = list[0]; for (const d of list) if (d.minLv <= tpl.lv) dg = d;
+  return rollDgItem(dg, 0, 'r_' + dg.id, sk);
 }
 // one key opens every dungeon
 function keyItem() { return { k: 'K:any', kind: 'key', nm: 'กุญแจดันเจี้ยน', dg: 'any', ar: 'blob', pr: 200, lv: 1, col: '#ffd166' }; }
@@ -5746,7 +5758,7 @@ function mkItemInfo(h, it) {
     el('div', { class: 'nm2', style: 'color:' + rarCol(r), text: g.ic + ' ' + it.nm }),
     el('span', { class: 'rchip', style: '--rc:' + rarCol(r), text: RAR[r].nm }),
     el('div', { class: 'ds', text: bonusText(itemBase(it)) + ((it.o || []).length ? '  ✦ ' + it.o.map((o) => bonusText({ [o[0]]: o[1] })).join('  ✦ ') : '') }),
-    el('div', { class: 'meta', style: canUse(h, it.id) ? null : 'color:var(--bad)', text: GEAR_TYPE_TH[g.slot] + '  ' + lineText(h, it.id) }));
+    el('div', { class: 'meta', style: canUse(h, it.id) ? null : 'color:var(--bad)', text: GEAR_TYPE_TH[g.slot] + (g.slot === 'ring' ? '  ใส่การ์ด ' + (it.sk === 2 ? 2 : 1) + ' ใบ' : '') + '  ' + lineText(h, it.id) }));
 }
 function panelMarket(body) {
   const h = S.hero;
@@ -6945,6 +6957,7 @@ function panelGM(body) {
       fNum('ทอง', d.rates.gold, (v) => { d.rates.gold = v; }, 0.5), fNum('ดรอปยา', d.rates.drop, (v) => { d.rates.drop = v; }, 0.5),
       fNum('ตายเสีย EXP %', d.deathPenalty, (v) => { d.deathPenalty = v; }, 0.5), fNum('การ์ดดรอป %', d.cardChance, (v) => { d.cardChance = v; }, 0.1), fNum('กุญแจดันเจี้ยนดรอป %', d.keyChance, (v) => { d.keyChance = Math.max(0, v); }, 0.1)),
       el('div', { class: 'g2' }, fNum('การ์ดบอสแผนที่ %', d.bossCard, (v) => { d.bossCard = Math.max(0, v); }, 0.01), fNum('การ์ดบอสดันเจี้ยน % (ต่อการเคลียร์)', d.dgBossCard, (v) => { d.dgBossCard = Math.max(0, v); }, 0.01)),
+      el('div', { class: 'g3' }, fNum('บอสแผนที่: แหวน 1 รู %', d.fbRing1, (v) => { d.fbRing1 = Math.max(0, v); }, 0.1), fNum('บอสแผนที่: แหวน 2 รู %', d.fbRing2, (v) => { d.fbRing2 = Math.max(0, v); }, 0.1), fNum('ดัน: แหวนที่ออกเป็น 2 รู %', d.dgRing2, (v) => { d.dgRing2 = Math.max(0, v); }, 0.1)),
     el('div', { class: 'acts' },
       el('button', { class: 'mini', text: 'อีเวนต์ EXP x2', onclick: () => { d.rates.bexp = 2; d.rates.jexp = 2; markDraft(); rebuildGM(); } }),
       el('button', { class: 'mini', text: 'คืนค่าปกติ', onclick: () => { d.rates = { bexp: 1, jexp: 1, gold: 1, drop: 1 }; markDraft(); rebuildGM(); } }))));
