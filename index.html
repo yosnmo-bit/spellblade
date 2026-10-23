@@ -106,6 +106,9 @@ button:disabled{cursor:default}
 .sbtn .dot[hidden]{display:none}
 .sbtn.glow{border-color:#ffd166;box-shadow:0 0 12px rgba(255,209,102,.8)}
 .sbtn[hidden]{display:none}
+.mtog{border-color:rgba(255,209,102,.55)}
+.rcol.folded .side{display:none}
+.rcol.folded .mtog{background:rgba(10,14,24,.78)}
 .hud-bottom{position:absolute;left:8px;right:8px;bottom:10px;display:flex;align-items:flex-end;gap:7px}
 .pots{display:flex;flex-direction:column;gap:6px}
 .pot{position:relative;width:44px;height:44px;border-radius:12px;border:1px solid rgba(255,255,255,.18);background:rgba(10,14,24,.66);font-size:1.2rem;padding:0}
@@ -455,7 +458,8 @@ details.box summary{font-weight:700;cursor:pointer}
     <div class="rcol">
       <div class="mmap"><canvas id="mmCv" aria-label="มินิแมพ แตะเพื่อเดินไปจุดนั้น"></canvas><div class="mmname" id="mmName"></div></div>
       <div class="money"><span id="goldT"></span><small id="saveT"></small></div>
-      <div class="side">
+      <button class="sbtn mtog" id="menuTog" aria-expanded="false" aria-controls="sideMenu"><span id="menuTogI">☰</span><small id="menuTogT">เมนู</small><span class="dot" id="dotMenu" hidden>!</span></button>
+      <div class="side" id="sideMenu">
       <button class="sbtn" data-panel="stats"><span>👤</span><small>สถานะ</small><span class="dot" id="dotStat" hidden></span></button>
       <button class="sbtn" data-panel="skills"><span>✨</span><small>สกิล</small><span class="dot" id="dotSkill" hidden></span></button>
       <button class="sbtn" data-panel="bag"><span>🎒</span><small>กระเป๋า</small></button>
@@ -847,8 +851,8 @@ function MON(id, name, arch, color, lv, extra) {
 }
 
 const DEFAULT_CONFIG = {
-  version: '2.9.15',
-  patchNotes: 'อัปเดต 2.9.15: แก้รองเท้าดันเจี้ยน\n• รองเท้าไม่มีค่าคงที่แล้ว สุ่ม 1 ชุดจาก 4 ชุด: AGI+หลบ+ความเร็วตี / STR+ATK+HIT / INT+MATK+SP สูงสุด / DEX+ATK+HIT\n• เกราะ: สเตตัสสุ่ม 1 อย่าง + HP สูงสุด (เหมือน 2.9.14)',
+  version: '2.9.16',
+  patchNotes: 'อัปเดต 2.9.16\n• เมนูด้านขวาหุบได้ กดปุ่ม ☰ เมนู เพื่อกาง เลือกเมนูแล้วหุบเอง (มีจุดแดงเตือนเมื่อมีแต้มเหลือหรือคนชวนปาร์ตี้)\n• GM: ปุ่มเพิ่มเงินเป็น +100,000 G\n• (จาก 2.9.15) รองเท้าดันเจี้ยนสุ่ม 1 ใน 4 ชุด',
   announcement: 'ยินดีต้อนรับสู่ช่วงทดสอบ! เจอบั๊กบอก GM ได้เลย',
   rates: { bexp: 1, jexp: 1, gold: 1, drop: 1 },
   deathPenalty: 1,
@@ -6153,6 +6157,7 @@ function hudText() {
   dk.hidden = h.skillPts < 1; dk.textContent = h.skillPts;
   $('#btnJob').classList.toggle('glow', canJobChange(h));
   renderPartyHud(); renderChatFeed(); renderChatDot(); renderBossBar(); renderOnlineDot();
+  $('#dotMenu').hidden = !(menuFolded() && (!$('#dotStat').hidden || !$('#dotSkill').hidden || !$('#dotOnline').hidden || $('#btnJob').classList.contains('glow')));
 }
 function hud() {
   const h = S.hero, D = P.D, tier = JOBS[h.job].tier;
@@ -6203,6 +6208,17 @@ function panelAuto(body) {
 $('#potHp').addEventListener('click', () => { usePot((S.hero.potBtn || ['hp'])[0]); hudText(); });
 $('#chatBtn').addEventListener('click', () => openPanel('chat'));
 $('#avatar').addEventListener('click', () => openEquip('eq'));
+// side menu: folded by default so it does not cover the map; picking an item folds it again
+const menuFolded = () => $('#sideMenu').closest('.rcol').classList.contains('folded');
+function setMenu(open, keep) {
+  const rc = $('#sideMenu').closest('.rcol'); rc.classList.toggle('folded', !open);
+  $('#menuTog').setAttribute('aria-expanded', String(open)); $('#menuTogI').textContent = open ? '✕' : '☰'; $('#menuTogT').textContent = open ? 'ซ่อน' : 'เมนู';
+  if (!keep) lsSet('spellblade_menu', open ? '1' : '0');
+  if (S.hero) hudText();
+}
+setMenu(lsGet('spellblade_menu') === '1', true);
+$('#menuTog').addEventListener('click', () => setMenu(menuFolded()));
+$('#sideMenu').addEventListener('click', (e) => { if (e.target.closest('.sbtn')) setTimeout(() => setMenu(false), 0); });
 function hudLayout() {
   const g = $('#scrGame'), pl = g && g.querySelector('.plate'), rb = $('#raidBar'); if (!g || !pl || !pl.offsetHeight) return;
   const gt = g.getBoundingClientRect().top, pb = Math.ceil(pl.getBoundingClientRect().bottom - gt);
@@ -6743,7 +6759,7 @@ function renderGMPlayers() {
     box.append(el('div', { class: 'prow' },
       el('div', { class: 'hd' }, el('span', { text: p.name + (p.id === S.uid ? ' (คุณ)' : '') }), el('span', { class: 'muted', text: jobName(p.job) + '  B' + p.level + '/J' + p.jobLv + '  ' + fmt(p.gold) + 'G' })),
       el('div', { class: 'ct' },
-        el('button', { class: 'mini', text: '+1,000 G', onclick: () => gmWrite(p.id, (r) => r.update({ gold: p.gold + 1000, gmStamp: Date.now() })) }),
+        el('button', { class: 'mini', text: '+100,000 G', onclick: () => gmWrite(p.id, (r) => r.update({ gold: p.gold + 100000, gmStamp: Date.now() })) }),
         el('button', { class: 'mini', text: '+10 ยาแดง', onclick: () => gmWrite(p.id, (r) => r.update({ potHp: p.potHp + 10, gmStamp: Date.now() })) }),
         reset),
       el('div', { class: 'ct' }, 'Base', bl, el('button', { class: 'mini', text: 'ตั้ง', onclick: () => gmWrite(p.id, (r) => r.update({ level: int(bl.value, p.level, 1, 999), exp: 0, gmStamp: Date.now() })) }),
