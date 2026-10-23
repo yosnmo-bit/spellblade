@@ -391,6 +391,10 @@ details.box summary{font-weight:700;cursor:pointer}
 .mcard .mb{padding:14px 16px 16px}
 .mcard p{white-space:pre-wrap;overflow-wrap:anywhere;margin:0 0 14px}
 .mcard .btn-main{width:100%}
+.aprow{display:flex;align-items:center;gap:10px;padding:7px 10px;margin:5px 0;border-radius:12px;background:var(--panel-2)}
+.aprow .apic{font-size:1.3rem;width:26px;text-align:center}
+.aprow input[type=range]{width:100%;margin:4px 0 0;accent-color:#e0a920}
+.aprow b{min-width:78px;text-align:right;font-size:.8rem;white-space:nowrap}
 .mkqty{width:58px;padding:5px 6px;border-radius:8px;border:1px solid var(--line);background:var(--panel);color:inherit;font:inherit}
 .mkql{display:flex;align-items:center;gap:3px;font-size:.74rem;white-space:nowrap}
 .rwcd{text-align:center;font-weight:800;font-size:1rem;margin:10px 0 4px !important;color:var(--accent,#c98a00)}
@@ -861,8 +865,8 @@ function MON(id, name, arch, color, lv, extra) {
 }
 
 const DEFAULT_CONFIG = {
-  version: '2.9.23',
-  patchNotes: 'อัปเดต 2.9.23\n• แหวนดันเจี้ยน: เปลี่ยนจากเพิ่มทุกสเตตัส เป็นสุ่มสเตตัสเดียว (STR/AGI/VIT/INT/DEX/LUK) +3 ถึง +11 ตามระดับดัน (ก่อนคูณความหายาก)\n• แหวนที่มีอยู่แล้วได้สเตตัสสุ่มอัตโนมัติ\n• (จาก 2.9.22) พรแห่งแสงบัฟทั้งปาร์ตี้',
+  version: '2.9.24',
+  patchNotes: 'อัปเดต 2.9.24: ยาอัตโนมัติ\n• ตั้งได้ว่าเหลือ HP/SP ต่ำกว่ากี่ % ให้ใช้ยาแต่ละชนิดเอง (ร้านค้า หรือ ตั้งค่า > ใช้ยาอัตโนมัติ) ทำงานแม้ไม่เปิด AUTO\n• คูลดาวน์ยา: ยาแดง/ยาฟ้า 1.5 วิ ขวดใหญ่ 2.5 วิ ยาพิเศษไม่มีคูลดาวน์ (แต่ละชนิดนับแยกกัน)',
   announcement: 'ยินดีต้อนรับสู่ช่วงทดสอบ! เจอบั๊กบอก GM ได้เลย',
   rates: { bexp: 1, jexp: 1, gold: 1, drop: 1 },
   deathPenalty: 1,
@@ -1532,7 +1536,7 @@ function canJobChange(h) {
 
 function newHero(name, look) {
   return { name, look, job: 'novice', level: 1, exp: 0, jobLv: 1, jobExp: 0, stats: { str: 1, agi: 1, vit: 1, int: 1, dex: 1, luk: 1 },
-    statPts: 48, skillPts: 0, skills: {}, hotbar: ['', '', '', '', '', '', '', ''], gold: 200, refineW: 0, refineA: 0, potHp: 10, potSp: 3, potHpL: 0, potSpL: 0, potAll: 0, potBtn: ['hp', 'sp'],
+    statPts: 48, skillPts: 0, skills: {}, hotbar: ['', '', '', '', '', '', '', ''], gold: 200, refineW: 0, refineA: 0, potHp: 10, potSp: 3, potHpL: 0, potSpL: 0, potAll: 0, potBtn: ['hp', 'sp'], potAuto: { hp: 35, sp: 12, hpL: 0, spL: 0, all: 0 },
     mapId: 'village', kills: 0, wstyle: 'dual', gmStamp: 0, inv: [], eq: null, ref: {} };
 }
 function sanitizeHero(d) {
@@ -1546,6 +1550,7 @@ function sanitizeHero(d) {
     stats: {}, statPts: 0, skillPts: 0, skills: {}, hotbar: ['', '', '', '', '', '', '', ''],
     gold: int(d.gold, 0, 0, 1e13), refineW: int(d.refineW, 0, 0, 15), refineA: int(d.refineA, 0, 0, 15),
     potHp: int(d.potHp, 0, 0, 99999), potSp: int(d.potSp, 0, 0, 99999), potHpL: int(d.potHpL, 0, 0, 99999), potSpL: int(d.potSpL, 0, 0, 99999), potAll: int(d.potAll, 0, 0, 99999),
+    potAuto: (() => { const a = d.potAuto || {}, o = {}; for (const k of ['hp', 'sp', 'hpL', 'spL', 'all']) o[k] = int(a[k], { hp: 35, sp: 12, hpL: 0, spL: 0, all: 0 }[k], 0, 95); return o; })(),
     potBtn: [0, 1].map((i) => { const v = Array.isArray(d.potBtn) ? d.potBtn[i] : null; return typeof v === 'string' && ['hp', 'sp', 'hpL', 'spL', 'all'].includes(v) ? v : ['hp', 'sp'][i]; }),
     mapId: typeof d.mapId === 'string' ? d.mapId.slice(0, 40) : '', kills: int(d.kills, 0, 0, 1e12),
     wstyle: d.wstyle === 'katar' ? 'katar' : 'dual', gmStamp: num(d.gmStamp, 0, 0, 1e15),
@@ -2008,11 +2013,11 @@ function castSkill(id, fromQueue) {
   return true;
 }
 const POT = {
-  hp: { f: 'potHp', nm: 'ยาแดง', hp: 0.3, ic: '🧪', col: '#e2484f', ds: 'ฟื้น HP 30%' },
-  sp: { f: 'potSp', nm: 'ยาฟ้า', sp: 0.3, ic: '🧪', col: '#3f8de0', ds: 'ฟื้น SP 30%' },
-  hpL: { f: 'potHpL', nm: 'ยาแดงขวดใหญ่', hp: 0.75, ic: '🍷', col: '#c4202d', ds: 'ฟื้น HP 75%' },
-  spL: { f: 'potSpL', nm: 'ยาฟ้าขวดใหญ่', sp: 0.75, ic: '🫙', col: '#2a6fd0', ds: 'ฟื้น SP 75%' },
-  all: { f: 'potAll', nm: 'ยาพิเศษ', hp: 1, sp: 1, ic: '✨', col: '#e0a920', ds: 'ฟื้น HP และ SP เต็ม 100%' }
+  hp: { f: 'potHp', nm: 'ยาแดง', hp: 0.3, cd: 1.5, ic: '🧪', col: '#e2484f', ds: 'ฟื้น HP 30%' },
+  sp: { f: 'potSp', nm: 'ยาฟ้า', sp: 0.3, cd: 1.5, ic: '🧪', col: '#3f8de0', ds: 'ฟื้น SP 30%' },
+  hpL: { f: 'potHpL', nm: 'ยาแดงขวดใหญ่', hp: 0.75, cd: 2.5, ic: '🍷', col: '#c4202d', ds: 'ฟื้น HP 75%' },
+  spL: { f: 'potSpL', nm: 'ยาฟ้าขวดใหญ่', sp: 0.75, cd: 2.5, ic: '🫙', col: '#2a6fd0', ds: 'ฟื้น SP 75%' },
+  all: { f: 'potAll', nm: 'ยาพิเศษ', hp: 1, sp: 1, cd: 0, ic: '✨', col: '#e0a920', ds: 'ฟื้น HP และ SP เต็ม 100%' }
 };
 const potSell = (kind) => Math.max(1, Math.floor((CONFIG.potion[kind] || 0) / 2));
 function sellPot(kind, n) {
@@ -2021,9 +2026,21 @@ function sellPot(kind, n) {
   const g = potSell(kind) * n; h[pt.f] -= n; h.gold += g; S.dirty = true;
   AU.sfx('coin'); toast('ขาย' + pt.nm + ' ' + n + ' ขวด ได้ ' + fmt(g) + ' G'); hudText(); renderHotbar(); renderEquip();
 }
+const POT_AUTO_DEF = { hp: 35, sp: 12, hpL: 0, spL: 0, all: 0 };
+function autoPotTick() {
+  const h = S.hero, D = P.D; if (P.dead || !D) return;
+  const A = h.potAuto || POT_AUTO_DEF, hp = P.hp / Math.max(1, D.maxHp) * 100, sp = P.sp / Math.max(1, D.maxSp) * 100;
+  for (const kind of ['hp', 'hpL', 'all', 'sp', 'spL']) {
+    const thr = A[kind] || 0, pt = POT[kind]; if (!thr || (h[pt.f] || 0) <= 0) continue;
+    const low = kind === 'all' ? (hp < thr || sp < thr) : pt.hp ? hp < thr : sp < thr;
+    if (low) usePot(kind, true);
+  }
+}
 function usePot(kind, quiet) {
   const h = S.hero, D = P.D, pt = POT[kind];
-  if (!pt || P.dead || W.t < P.potT) return false;
+  if (!pt || P.dead) return false;
+  const cdl = ((P.potCd || (P.potCd = {}))[kind] || 0) - W.t;
+  if (cdl > 0) { if (!quiet) toast(pt.nm + ' ใช้ได้อีกใน ' + cdl.toFixed(1) + ' วิ'); return false; }
   if ((h[pt.f] || 0) <= 0) { if (!quiet) toast(pt.nm + 'หมด ซื้อได้ที่ร้าน'); return false; }
   const needHp = pt.hp && P.hp < D.maxHp, needSp = pt.sp && P.sp < D.maxSp;
   if (!needHp && !needSp) { if (!quiet) toast((pt.hp && pt.sp ? 'HP และ SP' : pt.hp ? 'HP' : 'SP') + ' เต็มอยู่แล้ว'); return false; }
@@ -2031,14 +2048,12 @@ function usePot(kind, quiet) {
   if (pt.hp) { const a = Math.round(D.maxHp * pt.hp); P.hp = Math.min(D.maxHp, P.hp + a); addNum(P.x, P.y - 54, '+' + fmt(a), '#7dff9a', pt.hp >= 0.75 ? 16 : 14, pt.hp >= 0.75 ? { pop: true } : undefined); }
   if (pt.sp) { const a = Math.round(D.maxSp * pt.sp); P.sp = Math.min(D.maxSp, P.sp + a); addNum(P.x, P.y - (pt.hp ? 72 : 54), '+' + fmt(a), '#8fc0ff', pt.sp >= 0.75 ? 16 : 14, pt.sp >= 0.75 ? { pop: true } : undefined); }
   if (kind === 'all') addFx({ kind: 'pillar', x: P.x, y: P.y, color: '#ffe27a', dur: 0.8, w: 30 });
-  P.potT = W.t + 0.5; S.dirty = true; AU.sfx('potion'); return true;
+  P.potCd[kind] = W.t + (pt.cd || 0); S.dirty = true; AU.sfx('potion'); return true;
 }
 function autoAct() {
   if (W.t < P.nextAuto) return;
   P.nextAuto = W.t + 0.25;
   const D = P.D, h = S.hero;
-  if (P.hp < D.maxHp * 0.35) { if (!(h.potHp > 0 && usePot('hp', true)) && h.potHpL > 0) usePot('hpL', true); }
-  if (P.sp < D.maxSp * 0.12) { if (!(h.potSp > 0 && usePot('sp', true)) && h.potSpL > 0) usePot('spL', true); }
   if (P.queued) return;
   for (const id of h.hotbar) {
     if (!id || id.startsWith('pot:')) continue;
@@ -2136,6 +2151,7 @@ function update(dt) {
   } else if (P.tx != null) { moving = moveToward(P.tx, P.ty, dt, 2); if (!moving) P.tx = null; }
   P.walking = moving;
   npcTick();
+  if (W.t - (P.apT || 0) > 0.15) { P.apT = W.t; autoPotTick(); }
   if (W.t - (PARTY.ft || 0) > 0.25) { PARTY.ft = W.t; partyFollowTick(); }
 }
 
@@ -2325,7 +2341,7 @@ window.addEventListener('resize', resize);
 function heroDoc() {
   const h = S.hero;
   return { name: h.name, look: h.look, job: h.job, level: h.level, exp: h.exp, jobLv: h.jobLv, jobExp: h.jobExp, stats: h.stats,
-    skills: h.skills, hotbar: h.hotbar, gold: h.gold, refineW: h.refineW, refineA: h.refineA, potHp: h.potHp, potSp: h.potSp, potHpL: h.potHpL || 0, potSpL: h.potSpL || 0, potAll: h.potAll || 0, potBtn: h.potBtn || ['hp', 'sp'],
+    skills: h.skills, hotbar: h.hotbar, gold: h.gold, refineW: h.refineW, refineA: h.refineA, potHp: h.potHp, potSp: h.potSp, potHpL: h.potHpL || 0, potSpL: h.potSpL || 0, potAll: h.potAll || 0, potBtn: h.potBtn || ['hp', 'sp'], potAuto: h.potAuto || { hp: 35, sp: 12, hpL: 0, spL: 0, all: 0 },
     mapId: h.mapId, kills: h.kills, wstyle: h.wstyle, gmStamp: h.gmStamp || 0, inv: h.inv, eq: h.eq, mkDone: h.mkDone || [], ref: h.ref || {}, updatedAt: Date.now() };
 }
 function saveLocal() { if (S.hero) lsSet(LS_SAVE + (S.uid || ''), JSON.stringify(heroDoc())); }
@@ -5111,6 +5127,7 @@ function panelSound(body) {
     el('button', { class: 'mini', text: 'ลองเสียงคริ', onclick: () => AU.sfx('crit') }),
     el('button', { class: 'mini', text: 'ลองเสียงการ์ด', onclick: () => AU.sfx('card') })));
   body.append(el('p', { class: 'note', style: 'margin-top:12px', text: 'แต่ละแผนที่มีเพลงของตัวเอง ถ้าไม่ได้ยินเสียง ให้ตรวจว่ามือถือไม่ได้เปิดโหมดเงียบ' }));
+  potAutoSection(body);
   body.append(el('div', { class: 'sub', text: 'ภาพ' }));
   const kk = R3.kkUse !== false;
   body.append(el('div', { class: 'acts' }, el('button', { class: 'mini' + (kk ? ' on' : ''), text: kk ? '✅ ตัวละครโมเดลใหม่' : 'ตัวละครแบบเดิม', onclick: () => { R3.kkUse = !kk; lsSet('spellblade_kk', R3.kkUse ? '1' : '0'); drawAvatar(); renderSheet(); } })));
@@ -6655,6 +6672,19 @@ function panelMap(body) {
 /* shop */
 const refineChance = (r) => r < 4 ? 100 : Math.max(20, 100 - (r - 3) * 12);
 const refineCost = (kind, r) => Math.round((kind === 'w' ? CONFIG.shop.refineW : CONFIG.shop.refineA) * Math.pow(1.5, r));
+function potAutoSection(body) {
+  const h = S.hero; h.potAuto = h.potAuto || { hp: 35, sp: 12, hpL: 0, spL: 0, all: 0 };
+  body.append(el('div', { class: 'sub', text: '🧪 ใช้ยาอัตโนมัติ' }));
+  body.append(el('p', { class: 'note', text: 'ตั้งว่าเหลือ HP/SP ต่ำกว่ากี่ % ให้ใช้ยาเอง ทำงานตลอดแม้ไม่เปิดโหมด AUTO ตั้ง 0% = ไม่ใช้ ยาพิเศษจะใช้เมื่อ HP หรือ SP ต่ำกว่าค่าที่ตั้ง' }));
+  for (const kind of ['hp', 'hpL', 'sp', 'spL', 'all']) {
+    const pt = POT[kind], v = h.potAuto[kind] || 0, lab = el('b', { text: v ? (pt.sp && !pt.hp ? 'SP' : pt.hp && pt.sp ? 'HP/SP' : 'HP') + ' < ' + v + '%' : 'ปิด' });
+    const rg = el('input', { type: 'range', min: 0, max: 95, step: 5, value: v, 'aria-label': 'ใช้' + pt.nm + 'อัตโนมัติเมื่อต่ำกว่า' });
+    rg.addEventListener('input', () => { const n = +rg.value; h.potAuto[kind] = n; lab.textContent = n ? (pt.sp && !pt.hp ? 'SP' : pt.hp && pt.sp ? 'HP/SP' : 'HP') + ' < ' + n + '%' : 'ปิด'; S.dirty = true; });
+    rg.addEventListener('change', () => save());
+    body.append(el('div', { class: 'aprow' }, el('span', { class: 'apic', text: pt.ic, style: kind === 'sp' ? 'filter:hue-rotate(200deg)' : null }),
+      el('div', { class: 'grow' }, el('div', { class: 'nm2', text: pt.nm + '  มี ' + (h[pt.f] || 0) }), rg), lab));
+  }
+}
 function buyPot(kind, n) {
   const h = S.hero, D = derived(), unit = Math.max(1, Math.round(CONFIG.potion[kind] * (1 - D.discount / 100))), cost = unit * n;
   if (h.gold < cost) { toast('ทองไม่พอ'); return; }
@@ -6670,10 +6700,11 @@ function panelShop(body) {
     const pt = POT[kind], nm = pt.nm, ds = pt.ds, have = h[pt.f] || 0;
     const unit = Math.max(1, Math.round(CONFIG.potion[kind] * (1 - disc / 100)));
     body.append(el('div', { class: 'list-row' }, el('span', { style: 'font-size:1.5rem;' + (kind === 'sp' ? 'filter:hue-rotate(200deg)' : ''), text: pt.ic }),
-      el('div', { class: 'grow' }, el('div', { class: 'nm2', text: nm + '  มี ' + have }), el('div', { class: 'ds', text: ds + '  ขวดละ ' + fmt(unit) + ' G' })),
+      el('div', { class: 'grow' }, el('div', { class: 'nm2', text: nm + '  มี ' + have }), el('div', { class: 'ds', text: ds + '  ขวดละ ' + fmt(unit) + ' G' + '  คูลดาวน์ ' + (pt.cd ? pt.cd + ' วิ' : 'ไม่มี') })),
       el('button', { class: 'mini', text: 'x1', disabled: h.gold < unit, onclick: () => buyPot(kind, 1) }),
       el('button', { class: 'mini pri', text: 'x10', disabled: h.gold < unit * 10, onclick: () => buyPot(kind, 10) })));
   }
+  potAutoSection(body);
   body.append(el('div', { class: 'sub', text: 'อุปกรณ์สวมใส่' }));
   body.append(el('p', { class: 'note', text: 'ซื้อแล้วไปสวมได้ที่หน้าตัวละคร (แตะรูปตัวละครมุมซ้ายบน)' }));
   for (const id in GEAR) {
