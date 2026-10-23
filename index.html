@@ -847,8 +847,8 @@ function MON(id, name, arch, color, lv, extra) {
 }
 
 const DEFAULT_CONFIG = {
-  version: '2.9.11',
-  patchNotes: 'อัปเดต 2.9.11: ปรับสกิลสายนักเวท (Lv10)\n• ฝนอุกกาบาต 870% คูลดาวน์ 5 วิ\n• พายุหิมะ 800% คูลดาวน์ 4 วิ\n• หอกมิติ 1500%\n• ทัณฑ์สวรรค์ 1100% คูลดาวน์ 5 วิ',
+  version: '2.9.12',
+  patchNotes: 'อัปเดต 2.9.12\n• เอาหัวข้อยาในช่องลัดออกจากหน้าสกิล (ตั้งปุ่มยาหลักได้ที่กระเป๋า แตะยาแล้วกด 📌)\n• (จาก 2.9.11) ฝนอุกกาบาต 870% พายุหิมะ 800% หอกมิติ 1500% ทัณฑ์สวรรค์ 1100%',
   announcement: 'ยินดีต้อนรับสู่ช่วงทดสอบ! เจอบั๊กบอก GM ได้เลย',
   rates: { bexp: 1, jexp: 1, gold: 1, drop: 1 },
   deathPenalty: 1,
@@ -6386,14 +6386,7 @@ function assignSlot(id, i) {
 function panelSkills(body) {
   const h = S.hero;
   body.append(el('div', { class: 'pts' }, 'แต้มสกิลคงเหลือ ', el('b', { text: String(h.skillPts) }), el('span', { class: 'muted', text: '  ได้ 1 แต้มทุก Job Lv' })));
-  body.append(el('p', { class: 'note', text: 'สกิลในช่อง 1–8 จะอยู่ที่แถบล่าง (แถวบน 1–4 แถวล่าง 5–8) และโหมดออโต้จะใช้ให้เองตามลำดับช่อง ใส่ยาลงช่องได้ด้วย' }));
-  body.append(el('div', { class: 'sub', text: '🧪 ยาในช่องลัด' }));
-  for (const kind of Object.keys(POT)) {
-    const pt = POT[kind], id = 'pot:' + kind, sl = el('div', { class: 'slots' }, 'ช่อง ');
-    for (let i = 0; i < 8; i++) { const on = h.hotbar[i] === id; sl.append(el('button', { class: 'mini' + (on ? ' on' : ''), text: String(i + 1), 'aria-pressed': String(on), onclick: () => assignSlot(id, i) })); }
-    const ic = el('div', { class: 'ic', text: pt.ic }); ic.style.setProperty('--c', pt.col);
-    body.append(el('div', { class: 'card' }, ic, el('div', { class: 'bd' }, el('div', { class: 'nm2', text: pt.nm + '  มี ' + (h[pt.f] || 0) }), el('div', { class: 'ds', text: pt.ds }), sl)));
-  }
+  body.append(el('p', { class: 'note', text: 'สกิลในช่อง 1–8 จะอยู่ที่แถบล่าง (แถวบน 1–4 แถวล่าง 5–8) และโหมดออโต้จะใช้ให้เองตามลำดับช่อง' }));
   for (const jid of chainOf(h.job)) {
     const list = Object.values(SKILLS).filter((s) => s.job === jid);
     if (!list.length) continue;
