@@ -770,11 +770,11 @@ defSkill('hp_aegis', 'highpriest', 'เกราะแห่งศรัทธ�
 defSkill('mg_fire', 'magician', 'ศรเพลิง', '🔥', 'atk', { dmg: 'magic', m: [1.4, 0.3], hits: 3, sp: [8, 0.8], cd: 1.2, color: '#ff7a3d', fx: 'bolt' });
 defSkill('mg_frost', 'magician', 'ศรน้ำแข็ง', '❄️', 'atk', { dmg: 'magic', m: [1.6, 0.3], hits: 2, sp: [10, 1], cd: 2, color: '#7fd4ff', fx: 'bolt' });
 defSkill('mg_spark', 'magician', 'ประกายอัสนี', '⚡', 'aoe', { dmg: 'magic', m: [1.1, 0.2], r: 90, hits: 2, sp: [14, 1], cd: 4, color: '#c9b8ff', fx: 'pillars' });
-defSkill('wz_meteor', 'wizard', 'ฝนอุกกาบาต', '☄️', 'aoe', { dmg: 'magic', m: [2.2, 0.88], r: 130, hits: 4, sp: [30, 2], cd: 5, color: '#ff9248', fx: 'meteor' });
-defSkill('wz_blizzard', 'wizard', 'พายุหิมะ', '🌨️', 'aoe', { dmg: 'magic', m: [2.0, 0.9], r: 140, hits: 3, sp: [28, 2], cd: 4, color: '#bfeaff', fx: 'pillars' });
+defSkill('wz_meteor', 'wizard', 'ฝนอุกกาบาต', '☄️', 'aoe', { dmg: 'magic', m: [2.2, 0.65], r: 130, hits: 4, sp: [30, 2], cd: 5, color: '#ff9248', fx: 'meteor' });
+defSkill('wz_blizzard', 'wizard', 'พายุหิมะ', '🌨️', 'aoe', { dmg: 'magic', m: [2.0, 0.6], r: 140, hits: 3, sp: [28, 2], cd: 4, color: '#bfeaff', fx: 'pillars' });
 defSkill('wz_focus', 'wizard', 'จิตวิเวก', '🧘', 'buff', { b: { matk: 4 }, dur: 90, sp: [25, 2], cd: 120, color: '#d5b3ff' });
 defSkill('hw_void', 'highwizard', 'หอกมิติ', '🌌', 'atk', { dmg: 'magic', m: [5.0, 1.0], hits: 3, sp: [30, 2], cd: 3, color: '#b18cff', fx: 'pillar' });
-defSkill('hw_cata', 'highwizard', 'ทัณฑ์สวรรค์', '🌠', 'aoe', { dmg: 'magic', m: [3.5, 1.05], r: 160, hits: 5, sp: [45, 3], cd: 5, color: '#ffd166', fx: 'meteor' });
+defSkill('hw_cata', 'highwizard', 'ทัณฑ์สวรรค์', '🌠', 'aoe', { dmg: 'magic', m: [3.5, 0.75], r: 160, hits: 5, sp: [45, 3], cd: 5, color: '#ffd166', fx: 'meteor' });
 defSkill('hw_mind', 'highwizard', 'จิตอนันต์', '🔯', 'buff', { b: { matk: 6, cdr: 2 }, dur: 90, sp: [35, 2], cd: 120, color: '#e0c3ff' });
 // Archer line
 defSkill('ar_double', 'archer', 'ศรคู่', '🏹', 'atk', { m: [1.4, 0.2], hits: 2, sp: [6, 0.5], cd: 1.2, color: '#ffe08a', fx: 'arrow' });
@@ -847,8 +847,8 @@ function MON(id, name, arch, color, lv, extra) {
 }
 
 const DEFAULT_CONFIG = {
-  version: '2.9.10',
-  patchNotes: 'อัปเดต 2.9.10: ปรับสกิลสายนักเวท (Lv10)\n• ฝนอุกกาบาต 570% → 1100% คูลดาวน์ 6 → 5 วิ\n• พายุหิมะ 500% → 1100% คูลดาวน์ 5 → 4 วิ\n• หอกมิติ 1200% → 1500%\n• ทัณฑ์สวรรค์ 850% → 1400% คูลดาวน์ 7 → 5 วิ\n• (จาก 2.9.9) ยาทุกชนิดในกระเป๋า ตั้งปุ่มยาหลัก ขายยาได้',
+  version: '2.9.11',
+  patchNotes: 'อัปเดต 2.9.11: ปรับสกิลสายนักเวท (Lv10)\n• ฝนอุกกาบาต 870% คูลดาวน์ 5 วิ\n• พายุหิมะ 800% คูลดาวน์ 4 วิ\n• หอกมิติ 1500%\n• ทัณฑ์สวรรค์ 1100% คูลดาวน์ 5 วิ',
   announcement: 'ยินดีต้อนรับสู่ช่วงทดสอบ! เจอบั๊กบอก GM ได้เลย',
   rates: { bexp: 1, jexp: 1, gold: 1, drop: 1 },
   deathPenalty: 1,
