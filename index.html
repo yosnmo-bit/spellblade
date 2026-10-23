@@ -769,15 +769,15 @@ defSkill('lk_fury', 'lordknight', 'โทสะจ้าวสงคราม', 
 // Acolyte line
 defSkill('ac_heal', 'acolyte', 'แสงเยียวยา', '💚', 'heal', { party: 1, h: [0.1, 0.03], sp: [8, 1], cd: 3, color: '#8ff0a4' });
 defSkill('ac_bolt', 'acolyte', 'ศรศักดิ์สิทธิ์', '✨', 'atk', { dmg: 'magic', m: [1.2, 0.25], sp: [6, 0.6], cd: 1.5, color: '#fff1a8', fx: 'pillar' });
-defSkill('ac_bless', 'acolyte', 'พรแห่งแสง', '🙏', 'buff', { b: { atk: 2, matk: 2 }, dur: 120, sp: [20, 1], cd: 120, color: '#ffe8a3' });
-defSkill('ac_divine', 'acolyte', 'พรแห่งเทพ', '👼', 'buff', { party: 1, b: { str: 1, agi: 1, vit: 1, int: 1, dex: 1, luk: 1 }, dur: 120, sp: [30, 2], cd: 120, color: '#fff3b0' });
+defSkill('ac_bless', 'acolyte', 'พรแห่งแสง', '🙏', 'buff', { b: { atk: 2, matk: 2 }, dur: 120, sp: [20, 1], cd: 5, color: '#ffe8a3' });
+defSkill('ac_divine', 'acolyte', 'พรแห่งเทพ', '👼', 'buff', { party: 1, b: { str: 1, agi: 1, vit: 1, int: 1, dex: 1, luk: 1 }, dur: 120, sp: [30, 2], cd: 5, color: '#fff3b0' });
 defSkill('pr_smite', 'priest', 'แสงพิพากษา', '☀️', 'aoe', { dmg: 'magic', m: [1.5, 0.25], r: 110, hits: 3, sp: [20, 1.5], cd: 4, color: '#fff6c2', fx: 'pillars' });
-defSkill('pr_grace', 'priest', 'พรวายุ', '🍃', 'buff', { party: 1, b: { aspd: 3, flee: 2, crit: 3 }, dur: 120, sp: [20, 1], cd: 120, color: '#c8f7ff' });
+defSkill('pr_grace', 'priest', 'พรวายุ', '🍃', 'buff', { party: 1, b: { aspd: 3, flee: 2, crit: 3 }, dur: 120, sp: [20, 1], cd: 5, color: '#c8f7ff' });
 defSkill('pr_mend', 'priest', 'มหาเยียวยา', '💖', 'heal', { zone: { r: 130, dur: 3 }, h: [0.2, 0.05], sp: [25, 2], cd: 6, color: '#9df5b5' });
 defSkill('hp_nova', 'highpriest', 'ดาราศักดิ์สิทธิ์', '🌟', 'aoe', { dmg: 'magic', m: [3.0, 0.4], r: 140, hits: 4, sp: [35, 2.5], cd: 5, color: '#fffbe0', fx: 'pillars' });
 defSkill('hp_res', 'highpriest', 'ชุบชีวิต', '🕊️', 'res', { maxLv: 1, sp: [60, 0], cd: 3, color: '#fffbe6' });
 defSkill('hp_lance', 'highpriest', 'หอกแสงสวรรค์', '🔱', 'atk', { dmg: 'magic', m: [4.0, 0.6], hits: 3, sp: [25, 2], cd: 3, color: '#ffe9a0', fx: 'pillar' });
-defSkill('hp_aegis', 'highpriest', 'เกราะแห่งศรัทธา', '🔰', 'buff', { party: 1, b: { def: 5, matk: 3 }, dur: 90, sp: [30, 2], cd: 120, color: '#a0e7ff' });
+defSkill('hp_aegis', 'highpriest', 'เกราะแห่งศรัทธา', '🔰', 'buff', { party: 1, b: { def: 5, matk: 3 }, dur: 90, sp: [30, 2], cd: 5, color: '#a0e7ff' });
 // Magician line
 defSkill('mg_fire', 'magician', 'ศรเพลิง', '🔥', 'atk', { dmg: 'magic', m: [1.4, 0.3], hits: 3, sp: [8, 0.8], cd: 1.2, color: '#ff7a3d', fx: 'bolt' });
 defSkill('mg_frost', 'magician', 'ศรน้ำแข็ง', '❄️', 'atk', { dmg: 'magic', m: [1.6, 0.3], hits: 2, sp: [10, 1], cd: 2, color: '#7fd4ff', fx: 'bolt' });
@@ -859,8 +859,8 @@ function MON(id, name, arch, color, lv, extra) {
 }
 
 const DEFAULT_CONFIG = {
-  version: '2.9.19',
-  patchNotes: 'อัปเดต 2.9.19\n• แสงเยียวยา: ฮีลเพื่อนคิดจาก HP สูงสุดของผู้ใช้สกิล + พลังเวท\n• มหาเยียวยา: Lv10 ฟื้น 60% เป็น 70%\n• (จาก 2.9.18) แถบบัฟด้านบนจอ',
+  version: '2.9.20',
+  patchNotes: 'อัปเดต 2.9.20\n• คูลดาวน์ พรแห่งแสง พรแห่งเทพ พรวายุ เกราะแห่งศรัทธา: 120 วิ เหลือ 5 วิ (ระยะเวลาบัฟเท่าเดิม)\n• (จาก 2.9.19) แสงเยียวยาคิดจาก HP ผู้ใช้สกิล มหาเยียวยา 70%',
   announcement: 'ยินดีต้อนรับสู่ช่วงทดสอบ! เจอบั๊กบอก GM ได้เลย',
   rates: { bexp: 1, jexp: 1, gold: 1, drop: 1 },
   deathPenalty: 1,
