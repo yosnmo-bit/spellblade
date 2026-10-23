@@ -807,7 +807,7 @@ defSkill('ws_execute', 'whitesmith', 'ประหารเหล็กกล้
 defSkill('ws_quake', 'whitesmith', 'ขวานถล่มปฐพี', '🌋', 'aoe', { m: [3.2, 0.45], r: 150, self: true, hits: 3, sp: [42, 3], cd: 6, color: '#ff8f3d', fx: 'quake' });
 defSkill('ws_titan', 'whitesmith', 'พลังไททัน', '💪', 'buff', { b: { atk: 6, def: 3 }, dur: 90, sp: [35, 2], cd: 120, color: '#fff3c4' });
 
-const BUFF_TH = { cdr: 'ลดคูลดาวน์สกิล', watk: 'ATK', wmatk: 'MATK', str: 'STR', agi: 'AGI', vit: 'VIT', int: 'INT', luk: 'LUK', matkPct: 'MATK', atk: 'ATK', matk: 'MATK', aspd: 'ความเร็วตี', def: 'DEF', crit: 'คริ', flee: 'หลบ', hpPct: 'HP สูงสุด', atkPct: 'ATK', aspdPct: 'ความเร็วตี', discount: 'ส่วนลดร้าน', dex: 'DEX' };
+const BUFF_TH = { hit: 'HIT', msp: 'SP สูงสุด', cdr: 'ลดคูลดาวน์สกิล', watk: 'ATK', wmatk: 'MATK', str: 'STR', agi: 'AGI', vit: 'VIT', int: 'INT', luk: 'LUK', matkPct: 'MATK', atk: 'ATK', matk: 'MATK', aspd: 'ความเร็วตี', def: 'DEF', crit: 'คริ', flee: 'หลบ', hpPct: 'HP สูงสุด', atkPct: 'ATK', aspdPct: 'ความเร็วตี', discount: 'ส่วนลดร้าน', dex: 'DEX' };
 const PCT_KEYS = { cdr: 1, matkPct: 1, atk: 1, matk: 1, aspd: 1, hpPct: 1, atkPct: 1, aspdPct: 1, discount: 1, crit: 1 };
 
 /* ---------- monsters & maps ---------- */
@@ -847,8 +847,8 @@ function MON(id, name, arch, color, lv, extra) {
 }
 
 const DEFAULT_CONFIG = {
-  version: '2.9.12',
-  patchNotes: 'อัปเดต 2.9.12\n• เอาหัวข้อยาในช่องลัดออกจากหน้าสกิล (ตั้งปุ่มยาหลักได้ที่กระเป๋า แตะยาแล้วกด 📌)\n• (จาก 2.9.11) ฝนอุกกาบาต 870% พายุหิมะ 800% หอกมิติ 1500% ทัณฑ์สวรรค์ 1100%',
+  version: '2.9.15',
+  patchNotes: 'อัปเดต 2.9.15: แก้รองเท้าดันเจี้ยน\n• รองเท้าไม่มีค่าคงที่แล้ว สุ่ม 1 ชุดจาก 4 ชุด: AGI+หลบ+ความเร็วตี / STR+ATK+HIT / INT+MATK+SP สูงสุด / DEX+ATK+HIT\n• เกราะ: สเตตัสสุ่ม 1 อย่าง + HP สูงสุด (เหมือน 2.9.14)',
   announcement: 'ยินดีต้อนรับสู่ช่วงทดสอบ! เจอบั๊กบอก GM ได้เลย',
   rates: { bexp: 1, jexp: 1, gold: 1, drop: 1 },
   deathPenalty: 1,
@@ -1586,13 +1586,13 @@ function derived(h) {
   const matk = (st.int * 2 + Math.pow(Math.floor(st.int / 7), 2) + wm + (pa.wmatk || 0) + h.level) * (1 + ((pa.matkPct || 0) + (bu.matk || 0)) / 100);
   const hpMod = tier === 0 ? 1 : L.hp[ti], spMod = tier === 0 ? 1 : L.sp[ti];
   const maxHp = Math.round((70 + 12 * h.level + 0.35 * h.level * h.level) * hpMod * (1 + st.vit / 100) * (1 + ((pa.hpPct || 0) + h.refineA * 2) / 100));
-  const maxSp = Math.round((20 + 4 * h.level) * spMod * (1 + st.int / 100));
+  const maxSp = Math.round((20 + 4 * h.level) * spMod * (1 + st.int / 100) + (pa.msp || 0));
   const def = Math.round(st.vit * 0.5 + h.refineA * 3 + (L.shield ? 5 * (tier + 1) : 0) + (pa.def || 0) + (bu.def || 0));
   const aspdMs = Math.max(260, (1500 - st.agi * 7 - st.dex * 2) * L.aspd * (w === 'katar' ? 1.08 : w === 'dual' ? 0.95 : 1)) / (1 + ((pa.aspdPct || 0) + (bu.aspd || 0)) / 100);
   return {
     st, jb, w, atkType: L.atk, range: L.range,
     atk: Math.round(atk), matk: Math.round(matk), maxHp, maxSp, def, aspdMs,
-    hit: h.level + st.dex + 10, flee: h.level + st.agi + L.flee + (pa.flee || 0) + (bu.flee || 0),
+    hit: h.level + st.dex + 10 + (pa.hit || 0), flee: h.level + st.agi + L.flee + (pa.flee || 0) + (bu.flee || 0),
     crit: st.luk * 0.3 + L.crit + (w === 'katar' ? 8 : 0) + (pa.crit || 0) + (bu.crit || 0),
     discount: Math.min(40, pa.discount || 0),
     // skill cooldown reduction: DEX 0.15% per point + buffs/passives, capped at 60%
@@ -4215,13 +4215,26 @@ for (const sid of Object.keys(DG_SETS)) {
     thief: ['กริช', '🔪', { watk: Math.round(V * 1.5) }], merchant: ['ขวาน', '🪓', { watk: Math.round(V * 1.7) }] };
   for (const ln of DG_LINES) GEAR['w_' + sid + '_' + ln] = { slot: 'weapon', nm: WL[ln][0] + S0.nm, ic: WL[ln][1], b: WL[ln][2], pr: 1500 * t * t, set: sid, t, dg: true, line: ln };
   GEAR['w_' + sid + '_katar'] = { slot: 'weapon', nm: 'คาตาร์' + S0.nm, ic: '⚔️', b: { watk: Math.round(V * 1.65), crit: t }, pr: 1500 * t * t, set: sid, t, dg: true, line: 'thief', style: 'katar' };
-  GEAR['a_' + sid] = { slot: 'armor', nm: 'เกราะ' + S0.nm, ic: '🧥', b: { def: [0, 6, 14, 24, 38, 55][t], hpPct: [0, 4, 7, 10, 14, 18][t] }, pr: 1500 * t * t, set: sid, t, dg: true };
-  GEAR['s_' + sid] = { slot: 'shoes', nm: 'รองเท้า' + S0.nm, ic: '👢', b: { agi: t + 1, flee: 3 * t + 1, aspdPct: t }, pr: 1200 * t * t, set: sid, t, dg: true };
+  GEAR['a_' + sid] = { slot: 'armor', nm: 'เกราะ' + S0.nm, ic: '🧥', b: { hpPct: [0, 4, 7, 10, 14, 18][t] }, pr: 1500 * t * t, set: sid, t, dg: true };
+  GEAR['s_' + sid] = { slot: 'shoes', nm: 'รองเท้า' + S0.nm, ic: '👢', b: {}, pr: 1200 * t * t, set: sid, t, dg: true };
+  GEAR['r_' + sid] = { slot: 'ring', nm: 'แหวน' + S0.nm, ic: '💍', b: { str: t, agi: t, vit: t, int: t, dex: t, luk: t }, pr: 1200 * t * t, dset: sid, t, dg: true };
 }
 const canUse = (h, id) => !GEAR[id] || !GEAR[id].line || (JOBS[h.job].line === GEAR[id].line && (!GEAR[id].style || h.wstyle === GEAR[id].style));
 const lineText = (h, id) => { const g = GEAR[id]; if (!g || !g.dg) return ''; if (!g.line) return 'ใช้ได้ทุกอาชีพ'; return 'เฉพาะสาย' + LINE_TH[g.line] + (g.style === 'katar' ? ' สไตล์คาตาร์' : '') + (canUse(h, id) ? ' ✓' : JOBS[h.job].line === g.line ? ' (เปลี่ยนสไตล์เป็นคาตาร์ที่ร้านก่อน)' : ' (ไม่ตรงอาชีพคุณ)'); };
 const setBonus = (t, n) => n >= 3 ? { atkPct: 2 * t, matkPct: 2 * t, hpPct: 3 * t, crit: t + 1 } : n >= 2 ? { atkPct: 2 * t, matkPct: 2 * t } : null;
-function itemBase(it) { const g = GEAR[it.id], m = (RAR[it.r || 0] || RAR[0]).mult, o = {}; if (!g) return o; for (const k in g.b) o[k] = Math.round(g.b[k] * m); return o; }
+const ARMOR_VARS = ['str', 'agi', 'vit', 'int', 'dex', 'luk'], SHOE_VARS = ['agi', 'str', 'int', 'dex'];
+const VAR_TH = { str: 'STR', agi: 'AGI', vit: 'VIT', int: 'INT', dex: 'DEX', luk: 'LUK' };
+const varsOf = (id) => { const g = GEAR[id]; return !g || !g.dg ? null : g.slot === 'armor' ? ARMOR_VARS : g.slot === 'shoes' ? SHOE_VARS : null; };
+function hashPick(s, arr) { let x = 2166136261; for (let i = 0; i < s.length; i++) { x ^= s.charCodeAt(i); x = Math.imul(x, 16777619); } return arr[(x >>> 0) % arr.length]; }
+// older items without a variant get a stable one from their own data, so every client sees the same thing
+function itemVar(x) { const vs = x && varsOf(x.id); if (!vs) return undefined; return vs.includes(x.v) ? x.v : hashPick(String(x.k || '') + '|' + x.id + '|' + (x.r || 0) + '|' + JSON.stringify(x.o || []), vs); }
+const VAR_B = { armor: (t, v) => ({ [v]: 2 * t + 1 }), shoes: (t, v) => (v === 'agi' ? { agi: t + 1, flee: 3 * t + 1, aspdPct: t } : v === 'int' ? { int: t + 1, wmatk: 6 * t, msp: 25 * t } : { [v]: t + 1, watk: 6 * t, hit: 3 * t + 2 }) };
+function itemBase(it) {
+  const g = GEAR[it.id], m = (RAR[it.r || 0] || RAR[0]).mult, o = {}; if (!g) return o;
+  const b = Object.assign({}, g.b), v = itemVar(it);
+  if (v && VAR_B[g.slot]) { const ex = VAR_B[g.slot](g.t, v); for (const k in ex) b[k] = (b[k] || 0) + ex[k]; }
+  for (const k in b) o[k] = Math.round(b[k] * m); return o;
+}
 function sanitizeOpts(o) { return (Array.isArray(o) ? o : []).slice(0, 3).filter((e) => Array.isArray(e) && OPT_KEYS.includes(e[0])).map((e) => [e[0], int(e[1], 1, 1, 999)]); }
 const itemPrice = (id, r) => Math.round(gearPrice(id) * (1 + Math.max(0, (r || 0) - 1) * 0.6) / 2);
 const WNAME = { knife: 'มีดสั้น', sword: 'ดาบ', mace: 'คทาศักดิ์สิทธิ์', staff: 'ไม้เท้าเวท', bow: 'ธนู', katar: 'คาตาร์', dual: 'มีดมือขวา', axe: 'ขวาน' };
@@ -4253,6 +4266,7 @@ function sanitizeItem(x, withN) {
     if (!GEAR[x.id]) return null;
     const r = int(x.r, GEAR[x.id].dg ? 1 : 0, 0, 4);
     const it = { k: x.k.slice(0, 60), kind, id: x.id, nm: GEAR[x.id].nm, pr: itemPrice(x.id, r), cards: [], r, o: sanitizeOpts(x.o) };
+    { const v = itemVar(x); if (v) it.v = v; }
     it.cards = (Array.isArray(x.cards) ? x.cards : []).slice(0, 1).map((c) => (c ? sanitizeCard(c) : null));
     if (withN) it.n = 1;
     return it;
@@ -4297,11 +4311,11 @@ function sanitizeEq(d, h) {
   const cardsOf = (x, n) => (Array.isArray(x.cards) ? x.cards : []).slice(0, n).map((c) => (c ? sanitizeCard(c) : null));
   for (const k of GEAR_SLOTS) {
     const x = e[k];
-    out[k] = (x && GEAR[x.id] && GEAR[x.id].slot === baseSlot(k)) ? { id: x.id, r: int(x.r, GEAR[x.id].dg ? 1 : 0, 0, 4), o: sanitizeOpts(x.o), cards: cardsOf(x, 1) } : null;
+    out[k] = (x && GEAR[x.id] && GEAR[x.id].slot === baseSlot(k)) ? { id: x.id, r: int(x.r, GEAR[x.id].dg ? 1 : 0, 0, 4), o: sanitizeOpts(x.o), v: itemVar(x), cards: cardsOf(x, 1) } : null;
   }
   for (const k of ['weapon', 'off', 'armor']) {
     const x = e[k] || {}, o = { cards: cardsOf(x, 4) };
-    if (k !== 'off' && GEAR[x.id] && GEAR[x.id].slot === k) Object.assign(o, { id: x.id, r: int(x.r, 1, 0, 4), o: sanitizeOpts(x.o) });
+    if (k !== 'off' && GEAR[x.id] && GEAR[x.id].slot === k) Object.assign(o, { id: x.id, r: int(x.r, 1, 0, 4), o: sanitizeOpts(x.o), v: itemVar(x) });
     out[k] = o;
   }
   if (!d.eq) out.shoes = { id: 'leather', r: 0, o: [], cards: [] };
@@ -4310,7 +4324,7 @@ function sanitizeEq(d, h) {
   normalizeGear(h);
 }
 function normalizeGear(h) {
-  { const s = h.eq.weapon; if (s && s.id && GEAR[s.id] && !canUse(h, s.id)) { const it = Object.assign(gearItem(s.id), { r: s.r || 0, o: s.o || [] }); if (pushInv(h, it, 1) !== false) { delete s.id; delete s.r; delete s.o; } } }
+  { const s = h.eq.weapon; if (s && s.id && GEAR[s.id] && !canUse(h, s.id)) { const it = Object.assign(gearItem(s.id), { r: s.r || 0, o: s.o || [], v: s.v }); if (pushInv(h, it, 1) !== false) { delete s.id; delete s.r; delete s.o; delete s.v; } } }
   for (const k of Object.keys(SLOT_TH)) {
     const s = h.eq[k]; if (!s) continue;
     const n = sockets(h, k), acc = accepts(h, k);
@@ -4371,17 +4385,17 @@ function equipGear(k) {
   const old = h.eq[slot];
   takeItem(k, 1);
   if (slot === 'weapon' || slot === 'armor') {
-    if (old && old.id) pushInv(h, Object.assign(gearItem(old.id), { r: old.r, o: old.o }), 1);
-    h.eq[slot] = { id: it.id, r: it.r || 0, o: it.o || [], cards: (old && old.cards) || [] };
+    if (old && old.id) pushInv(h, Object.assign(gearItem(old.id), { r: old.r, o: old.o, v: old.v }), 1);
+    h.eq[slot] = { id: it.id, r: it.r || 0, o: it.o || [], v: itemVar(it), cards: (old && old.cards) || [] };
   } else {
-    if (old) pushInv(h, Object.assign(gearItem(old.id), { cards: old.cards, r: old.r, o: old.o }), 1);
-    h.eq[slot] = { id: it.id, r: it.r || 0, o: it.o || [], cards: it.cards && it.cards.length ? it.cards : [] };
+    if (old) pushInv(h, Object.assign(gearItem(old.id), { cards: old.cards, r: old.r, o: old.o, v: old.v }), 1);
+    h.eq[slot] = { id: it.id, r: it.r || 0, o: it.o || [], v: itemVar(it), cards: it.cards && it.cards.length ? it.cards : [] };
   }
   normalizeGear(h); EQ.sel = slot; EQ.invSel = null; AU.sfx((it.r || 0) >= 2 ? 'legend' : 'buff'); afterGear();
 }
 function unequipGear(slot) {
   const h = S.hero, old = h.eq[slot]; if (!old || !old.id) return;
-  if (!addItem(Object.assign(gearItem(old.id), { cards: slot === 'weapon' || slot === 'armor' ? [] : old.cards, r: old.r, o: old.o }), 1)) return;
+  if (!addItem(Object.assign(gearItem(old.id), { cards: slot === 'weapon' || slot === 'armor' ? [] : old.cards, r: old.r, o: old.o, v: old.v }), 1)) return;
   h.eq[slot] = slot === 'weapon' || slot === 'armor' ? { cards: old.cards } : null; afterGear();
 }
 function sellItem(k, n) {
@@ -5156,11 +5170,12 @@ function rollOpt(t, used) {
 }
 function pickW(ws) { const tot = ws.reduce((a, b) => a + b, 0) || 1; let r = Math.random() * tot; for (let i = 0; i < ws.length; i++) { r -= ws[i]; if (r <= 0) return i; } return 0; }
 function rollDgItem(dg, forceR) {
-  const WK = DG_LINES.concat('katar'), roll = Math.random(), id = roll < 0.4 ? 'w_' + dg.id + '_' + WK[(Math.random() * WK.length) | 0] : (roll < 0.7 ? 'a_' : 's_') + dg.id;
+  const WK = DG_LINES.concat('katar'), roll = Math.random(), id = roll < 0.35 ? 'w_' + dg.id + '_' + WK[(Math.random() * WK.length) | 0] : (roll < 0.6 ? 'a_' : roll < 0.8 ? 's_' : 'r_') + dg.id;
   if (!GEAR[id]) return null;
   const r = forceR || 1 + pickW(dg.rar), used = new Set(), o = [];
   for (let i = 0; i < RAR[r].opts; i++) o.push(rollOpt(dg.diff, used));
-  return Object.assign(gearItem(id), { r, o });
+  const vs = varsOf(id);
+  return Object.assign(gearItem(id), { r, o }, vs ? { v: vs[(Math.random() * vs.length) | 0] } : {});
 }
 function keyItem(dg) { return { k: 'K:' + dg.id, kind: 'key', nm: dg.keyName, dg: dg.id, ar: 'blob', pr: 40 * dg.diff, lv: dg.minLv, col: DIFF_COL[dg.diff] || '#ffd166' }; }
 function keyCount(id) { const it = S.hero.inv.find((x) => x.k === 'K:' + id); return it ? it.n : 0; }
@@ -5431,7 +5446,7 @@ function panelDungeon(body) {
       el('div', { class: 'dgtop' }, el('b', { text: '🏰 ' + dg.name }), el('span', { class: 'dgdiff', text: DIFF_TH[dg.diff] })),
       el('div', { class: 'ds', text: 'บอส: ' + dg.boss + '  Lv.' + dg.bossLv + '   เข้าได้ Lv.' + dg.minLv + '+' }),
       el('div', { class: 'meta', text: 'สกิลบอส: ' + dg.skills.map((s) => DG_SKILL_TH[s]).join(' · ') }),
-      el('div', { class: 'meta', text: 'ดรอปชุด' + (DG_SETS[dg.id] ? DG_SETS[dg.id].nm : '') + ': อาวุธ 6 สายอาชีพ เกราะ รองเท้า' }),
+      el('div', { class: 'meta', text: 'ดรอปชุด' + (DG_SETS[dg.id] ? DG_SETS[dg.id].nm : '') + ': อาวุธ 6 สายอาชีพ + คาตาร์ 35%  เกราะ 25%  รองเท้า 20%  แหวน 20%' }),
       chips,
       el('div', { class: 'dgkey' }, el('span', { text: '🗝️ ' + dg.keyName + '  มี ' + kc + ' ดอก' }), el('small', { text: 'ดรอปที่: ' + dg.keyMaps.map(mapName).join(', ') + '  (มอน ' + dg.keyChance + '%, บอสแผนที่ 100%)' })),
       el('button', { class: 'mini pri', text: low ? 'ต้อง Lv.' + dg.minLv : kc < 1 ? 'ไม่มีกุญแจ' : !okP ? 'ต้องมีปาร์ตี้ ' + cp.min + ' คนขึ้นไป' : hasMates() && !isLeader() ? 'รอหัวหน้าปาร์ตี้กดเข้า' : hasMates() ? '👑 เรียกปาร์ตี้เข้าดัน (ใช้กุญแจคนละ 1)' : 'เข้าดันเจี้ยน (ใช้กุญแจ 1)', disabled: low || kc < 1 || !okP || P.dead || (hasMates() && !isLeader()), onclick: () => enterDungeon(dg.id) })));
@@ -5565,7 +5580,7 @@ function panelMarket(body) {
   body.append(tabs, el('p', { class: 'note', text: 'ซื้อขายอุปกรณ์จากดันเจี้ยนและการ์ดระหว่างผู้เล่น ผู้ขายเสียภาษี ' + MK_TAX + '% และได้เงินอัตโนมัติเมื่อขายได้ ลงขายพร้อมกันได้คนละ ' + MK_MAX + ' ชิ้น' }));
   if (MK.tab === 'buy') {
     const fl = el('div', { class: 'mkf' });
-    for (const [id, lb] of [['all', 'ทั้งหมด'], ['mine', 'ตรงอาชีพฉัน'], ['weapon', 'อาวุธ'], ['armor', 'เกราะ'], ['shoes', 'รองเท้า'], ['card', '🃏 การ์ด']])
+    for (const [id, lb] of [['all', 'ทั้งหมด'], ['mine', 'ตรงอาชีพฉัน'], ['weapon', 'อาวุธ'], ['armor', 'เกราะ'], ['shoes', 'รองเท้า'], ['ring', '💍 แหวน'], ['card', '🃏 การ์ด']])
       fl.append(el('button', { class: 'chip' + (MK.filter === id ? ' on' : ''), text: lb, onclick: () => { MK.filter = id; renderSheet(); } }));
     const so = el('select', { 'aria-label': 'เรียงตาม', onchange: (e) => { MK.sort = e.target.value; renderSheet(); } });
     for (const [v, lb] of [['new', 'ล่าสุด'], ['low', 'ราคาต่ำสุด'], ['high', 'ราคาสูงสุด'], ['rar', 'หายากสุด']]) so.append(el('option', { value: v, text: lb, selected: MK.sort === v }));
