@@ -698,7 +698,7 @@ const TAU = Math.PI * 2;
 const STATS = ['str', 'agi', 'vit', 'int', 'dex', 'luk'];
 const STAT_INFO = {
   str: 'พลังโจมตีระยะประชิด', agi: 'ความเร็วโจมตีและการหลบ', vit: 'พลังชีวิตและพลังป้องกัน',
-  int: 'พลังเวทและ SP', dex: 'ความแม่นยำและพลังธนู', luk: 'โอกาสคริติคอล'
+  int: 'พลังเวทและ SP', dex: 'ความแม่นยำ พลังธนู และลดคูลดาวน์สกิล', luk: 'โอกาสคริติคอล'
 };
 const HAIR_NAMES = ['สั้นชี้ฟู', 'บ็อบหน้าม้า', 'ยาวตรง', 'แกละคู่', 'หางม้า', 'ปัดข้าง'];
 const HAIR_COLORS = ['#2b2230', '#6b3f2a', '#c8893e', '#f2d27a', '#e6e6ef', '#c24a4a', '#e98bb6', '#7a6fd6', '#4f9be0', '#4fb88a'];
@@ -774,7 +774,7 @@ defSkill('wz_blizzard', 'wizard', 'พายุหิมะ', '🌨️', 'aoe', 
 defSkill('wz_focus', 'wizard', 'จิตวิเวก', '🧘', 'buff', { b: { matk: 4 }, dur: 90, sp: [25, 2], cd: 120, color: '#d5b3ff' });
 defSkill('hw_void', 'highwizard', 'หอกมิติ', '🌌', 'atk', { dmg: 'magic', m: [5.0, 0.7], hits: 3, sp: [30, 2], cd: 3, color: '#b18cff', fx: 'pillar' });
 defSkill('hw_cata', 'highwizard', 'ทัณฑ์สวรรค์', '🌠', 'aoe', { dmg: 'magic', m: [3.5, 0.5], r: 160, hits: 5, sp: [45, 3], cd: 7, color: '#ffd166', fx: 'meteor' });
-defSkill('hw_mind', 'highwizard', 'จิตอนันต์', '🔯', 'buff', { b: { matk: 6, aspd: 2 }, dur: 90, sp: [35, 2], cd: 120, color: '#e0c3ff' });
+defSkill('hw_mind', 'highwizard', 'จิตอนันต์', '🔯', 'buff', { b: { matk: 6, cdr: 2 }, dur: 90, sp: [35, 2], cd: 120, color: '#e0c3ff' });
 // Archer line
 defSkill('ar_double', 'archer', 'ศรคู่', '🏹', 'atk', { m: [1.4, 0.2], hits: 2, sp: [6, 0.5], cd: 1.2, color: '#ffe08a', fx: 'arrow' });
 defSkill('ar_rain', 'archer', 'ห่าศร', '🌧️', 'aoe', { m: [1.2, 0.2], r: 100, hits: 3, sp: [15, 1], cd: 4, color: '#f5d76e', fx: 'pillars' });
@@ -806,8 +806,8 @@ defSkill('ws_execute', 'whitesmith', 'ประหารเหล็กกล้
 defSkill('ws_quake', 'whitesmith', 'ขวานถล่มปฐพี', '🌋', 'aoe', { m: [3.2, 0.45], r: 150, self: true, hits: 3, sp: [42, 3], cd: 6, color: '#ff8f3d', fx: 'quake' });
 defSkill('ws_titan', 'whitesmith', 'พลังไททัน', '💪', 'buff', { b: { atk: 6, def: 3 }, dur: 90, sp: [35, 2], cd: 120, color: '#fff3c4' });
 
-const BUFF_TH = { watk: 'ATK', wmatk: 'MATK', str: 'STR', agi: 'AGI', vit: 'VIT', int: 'INT', luk: 'LUK', matkPct: 'MATK', atk: 'ATK', matk: 'MATK', aspd: 'ความเร็วตี', def: 'DEF', crit: 'คริ', flee: 'หลบ', hpPct: 'HP สูงสุด', atkPct: 'ATK', aspdPct: 'ความเร็วตี', discount: 'ส่วนลดร้าน', dex: 'DEX' };
-const PCT_KEYS = { matkPct: 1, atk: 1, matk: 1, aspd: 1, hpPct: 1, atkPct: 1, aspdPct: 1, discount: 1, crit: 1 };
+const BUFF_TH = { cdr: 'ลดคูลดาวน์สกิล', watk: 'ATK', wmatk: 'MATK', str: 'STR', agi: 'AGI', vit: 'VIT', int: 'INT', luk: 'LUK', matkPct: 'MATK', atk: 'ATK', matk: 'MATK', aspd: 'ความเร็วตี', def: 'DEF', crit: 'คริ', flee: 'หลบ', hpPct: 'HP สูงสุด', atkPct: 'ATK', aspdPct: 'ความเร็วตี', discount: 'ส่วนลดร้าน', dex: 'DEX' };
+const PCT_KEYS = { cdr: 1, matkPct: 1, atk: 1, matk: 1, aspd: 1, hpPct: 1, atkPct: 1, aspdPct: 1, discount: 1, crit: 1 };
 
 /* ---------- monsters & maps ---------- */
 const ARCHES = ['blob', 'shroom', 'beast', 'bat', 'plant', 'bones', 'ghost', 'brute', 'drake'];
@@ -846,8 +846,8 @@ function MON(id, name, arch, color, lv, extra) {
 }
 
 const DEFAULT_CONFIG = {
-  version: '2.9.7',
-  patchNotes: 'อัปเดต 2.9.7\n• ช่องสกิลเพิ่มเป็น 8 ช่อง (2 แถว) ใส่ยาลงช่องลัดได้ที่หน้าสกิล\n• ยาใหม่: ยาแดงขวดใหญ่ / ยาฟ้าขวดใหญ่ ฟื้น 75% ขวดละ 1,000 G และยาพิเศษ ฟื้น HP และ SP เต็ม ขวดละ 10,000 G\n• ออโต้ใช้ยาขวดใหญ่ต่อเมื่อขวดเล็กหมด (ไม่ใช้ยาพิเศษเอง)\n• บอสดันเจี้ยนดรอปคาตาร์ของทุกเซ็ต ใช้ได้กับสายโจรสไตล์คาตาร์',
+  version: '2.9.8',
+  patchNotes: 'อัปเดต 2.9.8\n• High Wizard: จิตอนันต์ เปลี่ยนจากความเร็วตี +2%/Lv เป็นลดคูลดาวน์สกิล 2%/Lv (Lv10 = 20%)\n• DEX: นอกจากความแม่นยำและพลังธนู ยังลดคูลดาวน์สกิล 0.15% ต่อแต้ม (DEX 99 ประมาณ 15%)\n• ลดคูลดาวน์รวมสูงสุด 60% ดูค่าได้ที่หน้าสถานะ\n• (จาก 2.9.7) ช่องสกิล 8 ช่อง ยาขวดใหญ่ ยาพิเศษ คาตาร์ดันเจี้ยน',
   announcement: 'ยินดีต้อนรับสู่ช่วงทดสอบ! เจอบั๊กบอก GM ได้เลย',
   rates: { bexp: 1, jexp: 1, gold: 1, drop: 1 },
   deathPenalty: 1,
@@ -1592,7 +1592,9 @@ function derived(h) {
     atk: Math.round(atk), matk: Math.round(matk), maxHp, maxSp, def, aspdMs,
     hit: h.level + st.dex + 10, flee: h.level + st.agi + L.flee + (pa.flee || 0) + (bu.flee || 0),
     crit: st.luk * 0.3 + L.crit + (w === 'katar' ? 8 : 0) + (pa.crit || 0) + (bu.crit || 0),
-    discount: Math.min(40, pa.discount || 0)
+    discount: Math.min(40, pa.discount || 0),
+    // skill cooldown reduction: DEX 0.15% per point + buffs/passives, capped at 60%
+    cdr: Math.min(60, Math.round((st.dex * 0.15 + (pa.cdr || 0) + (bu.cdr || 0)) * 10) / 10)
   };
 }
 const spCost = (sk, lv) => Math.round(sk.sp[0] + sk.sp[1] * lv);
@@ -1896,7 +1898,8 @@ function castSkill(id, fromQueue) {
     P.target = tg; P.tx = null;
     if (!fromQueue && Math.hypot(tg.x - P.x, tg.y - P.y) > skillRange(sk)) { P.queued = id; return true; }
   }
-  P.sp -= cost; P.cds[id] = W.t + sk.cd; P.swingT = W.t; P.castT = W.t; P.castKind = sk.type; S.dirty = true;
+  const cdEff = sk.cd * (1 - (P.D.cdr || 0) / 100);
+  P.sp -= cost; P.cds[id] = W.t + cdEff; (P.cdMax || (P.cdMax = {}))[id] = cdEff; P.swingT = W.t; P.castT = W.t; P.castKind = sk.type; S.dirty = true;
   addFx({ kind: 'circle', x: P.x, y: P.y, color: sk.color, dur: 0.75 });
   addNum(P.x, P.y - 70, sk.name + '!', sk.color, 13, { font: 'th', dur: 1.1 });
   AU.sfx(AU.skillSfx(sk));
@@ -6118,7 +6121,7 @@ function hud() {
   for (const it of S.hb) {
     if (!it.id) continue;
     const sk = SKILLS[it.id], rem = Math.max(0, (P.cds[it.id] || 0) - W.t);
-    it.cd.style.setProperty('--cd', (rem / sk.cd).toFixed(3));
+    it.cd.style.setProperty('--cd', Math.min(1, rem / ((P.cdMax && P.cdMax[it.id]) || sk.cd)).toFixed(3));
     it.b.classList.toggle('nosp', P.sp < spCost(sk, h.skills[it.id] || 1));
   }
   const now = performance.now();
@@ -6327,7 +6330,7 @@ function panelStats(body) {
   }
   const kv = el('div', { class: 'kv' });
   [['ATK', fmt(D.atk)], ['MATK', fmt(D.matk)], ['DEF', fmt(D.def)], ['HIT', fmt(D.hit)], ['FLEE', fmt(D.flee)], ['CRIT', D.crit.toFixed(1) + '%'],
-   ['ตี/วินาที', (1000 / D.aspdMs).toFixed(2)], ['MAX HP', fmt(D.maxHp)], ['MAX SP', fmt(D.maxSp)]]
+   ['ตี/วินาที', (1000 / D.aspdMs).toFixed(2)], ['ลดคูลดาวน์', D.cdr.toFixed(1) + '%'], ['MAX HP', fmt(D.maxHp)], ['MAX SP', fmt(D.maxSp)]]
     .forEach(([a, b]) => kv.append(el('div', null, a, el('b', { text: b }))));
   body.append(kv);
   const reset = twoStep(el('button', { class: 'mini warn', text: 'สร้างตัวละครใหม่' }), 'สร้างตัวละครใหม่', 'แตะอีกครั้ง ตัวละครนี้จะหายไป', () => {
@@ -6376,7 +6379,7 @@ function panelSkills(body) {
       const bd = el('div', { class: 'bd' },
         el('div', { class: 'nm2', text: sk.name + '  Lv ' + lv + '/' + sk.maxLv }),
         el('div', { class: 'ds', text: ds, style: 'white-space:pre-line' }),
-        el('div', { class: 'meta', text: sk.type === 'passive' ? 'ติดตัวถาวร' : 'SP ' + spCost(sk, Math.max(1, lv)) + '  คูลดาวน์ ' + sk.cd + ' วิ' }));
+        el('div', { class: 'meta', text: sk.type === 'passive' ? 'ติดตัวถาวร' : 'SP ' + spCost(sk, Math.max(1, lv)) + '  คูลดาวน์ ' + sk.cd + ' วิ' + (P.D && P.D.cdr ? ' (ลดเหลือ ' + (Math.round(sk.cd * (1 - P.D.cdr / 100) * 10) / 10) + ' วิ)' : '') }));
       if (lv && sk.type !== 'passive') {
         const sl = el('div', { class: 'slots' }, 'ช่อง ');
         for (let i = 0; i < 8; i++) { const on = h.hotbar[i] === sk.id; sl.append(el('button', { class: 'mini' + (on ? ' on' : ''), text: String(i + 1), 'aria-pressed': String(on), onclick: () => assignSlot(sk.id, i) })); }
