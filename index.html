@@ -391,6 +391,8 @@ details.box summary{font-weight:700;cursor:pointer}
 .mcard .mb{padding:14px 16px 16px}
 .mcard p{white-space:pre-wrap;overflow-wrap:anywhere;margin:0 0 14px}
 .mcard .btn-main{width:100%}
+.mkqty{width:58px;padding:5px 6px;border-radius:8px;border:1px solid var(--line);background:var(--panel);color:inherit;font:inherit}
+.mkql{display:flex;align-items:center;gap:3px;font-size:.74rem;white-space:nowrap}
 .rwcd{text-align:center;font-weight:800;font-size:1rem;margin:10px 0 4px !important;color:var(--accent,#c98a00)}
 .rwcd b{font-size:1.5rem;font-variant-numeric:tabular-nums}
 </style>
@@ -859,8 +861,8 @@ function MON(id, name, arch, color, lv, extra) {
 }
 
 const DEFAULT_CONFIG = {
-  version: '2.9.20',
-  patchNotes: 'อัปเดต 2.9.20\n• คูลดาวน์ พรแห่งแสง พรแห่งเทพ พรวายุ เกราะแห่งศรัทธา: 120 วิ เหลือ 5 วิ (ระยะเวลาบัฟเท่าเดิม)\n• (จาก 2.9.19) แสงเยียวยาคิดจาก HP ผู้ใช้สกิล มหาเยียวยา 70%',
+  version: '2.9.21',
+  patchNotes: 'อัปเดต 2.9.21\n• ตลาดกลาง: ลงขายกุญแจดันเจี้ยน Oridecon และ Elunium ได้แล้ว\n• การ์ด กุญแจ และแร่ เลือกจำนวนต่อรายการได้ ราคาที่ตั้งคือราคารวม (หน้าซื้อบอกราคาต่อชิ้น)\n• มีตัวกรอง 🗝️ กุญแจ และ 🔷 แร่ และปุ่ม 🏪 ลงขายตลาดในกระเป๋า',
   announcement: 'ยินดีต้อนรับสู่ช่วงทดสอบ! เจอบั๊กบอก GM ได้เลย',
   rates: { bexp: 1, jexp: 1, gold: 1, drop: 1 },
   deathPenalty: 1,
@@ -4606,7 +4608,7 @@ function renderEquip() {
     idet.append(el('div', { class: 'acts' },
       it.kind === 'card' ? el('button', { class: 'mini pri', text: 'ใส่การ์ด', onclick: () => autoInsert(it.k) }) : null,
       it.kind === 'gear' ? el('button', { class: 'mini pri', text: 'สวมใส่', disabled: !canUse(h, it.id), onclick: () => equipGear(it.k) }) : null,
-      it.kind === 'gear' && GEAR[it.id].dg ? el('button', { class: 'mini', text: '🏪 ลงขายตลาด', onclick: () => { closeEquip(); MK.tab = 'sell'; MK.pick = it.k; openPanel('market'); } }) : null,
+      mkSellable(it) ? el('button', { class: 'mini', text: '🏪 ลงขายตลาด', onclick: () => { closeEquip(); MK.tab = 'sell'; MK.pick = it.k; openPanel('market'); } }) : null,
       it.kind === 'key' ? el('button', { class: 'mini pri', text: 'ไปหน้าดันเจี้ยน', onclick: () => { closeEquip(); openPanel('dungeon'); } }) : null,
       el('button', { class: 'mini', text: 'ขาย 1', onclick: () => sellItem(it.k, 1) }),
       it.n > 1 ? el('button', { class: 'mini', text: 'ขายทั้งหมด', onclick: () => sellItem(it.k, it.n) }) : null));
@@ -5533,11 +5535,14 @@ const myAura = () => auraArgs(topRar(S.hero), weaponRar(S.hero), S.hero.refineW,
 const MK = { all: [], sub: false, tab: 'buy', filter: 'all', sort: 'new', busy: false, pick: null, collecting: false };
 const MK_TAX = 5, MK_MAX = 8;
 
-const mkSellable = (it) => !!it && ((it.kind === 'gear' && GEAR[it.id] && GEAR[it.id].dg) || it.kind === 'card');
-const mkCol = (it) => (it.kind === 'card' ? '#d9a8ff' : rarCol(it.r || 0));
+const mkStack = (it) => !!it && (it.kind === 'card' || it.kind === 'key' || it.kind === 'ore');
+const mkSellable = (it) => !!it && ((it.kind === 'gear' && GEAR[it.id] && GEAR[it.id].dg) || mkStack(it));
+const mkN = (it) => (mkStack(it) ? Math.max(1, it.n | 0) : 1);
+const mkCol = (it) => (it.kind === 'card' ? '#d9a8ff' : it.kind === 'key' ? (it.col || '#ffd166') : it.kind === 'ore' ? (it.id === 'ori' ? '#5d8cff' : '#9fb3d8') : rarCol(it.r || 0));
+function mkUnit(it) { if (it.kind === 'ore') return 300; if (it.kind === 'key') { const dg = dgDef(it.dg); return 1000 * Math.pow((dg && dg.diff) || 1, 2); } if (it.kind === 'card') return Math.max(100, Math.round(it.pr * 5 / 100) * 100); return Math.max(100, Math.round(it.pr * 4 / 100) * 100); }
 function mkSanitize(d, id) {
   if (!d || typeof d !== 'object') return null;
-  const it = sanitizeItem(d.it, false);
+  const it = sanitizeItem(d.it, true);
   if (!mkSellable(it)) return null;
   return { id, s: txt(d.s, 64), sn: str(d.sn, 'นักผจญภัย', 16), it, p: int(d.p, 1, 1, 1e9), t: num(d.t, 0, 0, 1e15),
     st: ['open', 'sold', 'cancel'].includes(d.st) ? d.st : 'open', b: txt(d.b, 64), bn: str(d.bn, '', 16) };
@@ -5568,22 +5573,24 @@ async function mkCollect() {
   MK.collecting = false;
 }
 const mkMine = () => MK.all.filter((L) => L.s === S.uid && L.st === 'open');
-async function mkList(k, price) {
+async function mkList(k, price, qty) {
   const h = S.hero, it = h.inv.find((x) => x.k === k);
   if (!S.db || !S.uid) { toast('ตลาดใช้ได้เมื่อเชื่อมต่อออนไลน์'); return; }
-  if (!mkSellable(it)) { toast('ลงขายได้เฉพาะอุปกรณ์จากดันเจี้ยนและการ์ด'); return; }
+  if (!mkSellable(it)) { toast('ลงขายได้เฉพาะอุปกรณ์จากดันเจี้ยน การ์ด กุญแจ และแร่'); return; }
+  const q = mkStack(it) ? Math.max(1, Math.min(it.n, Math.floor(Number(qty) || 1))) : 1;
   price = Math.floor(Number(price));
   if (!(price >= 1 && price <= 1e9)) { toast('ใส่ราคา 1 ถึง 1,000,000,000 G'); return; }
   if (mkMine().length >= MK_MAX) { toast('ลงขายพร้อมกันได้สูงสุด ' + MK_MAX + ' ชิ้น'); return; }
   if (MK.busy) return;
   MK.busy = true;
   const item = sanitizeItem(it, false), id = 'm' + uid36();
-  takeItem(k, 1); save();
+  if (mkStack(it)) item.n = q;
+  takeItem(k, q); save();
   try {
     await S.db.doc('market/' + id).set({ s: S.uid, sn: h.name, it: item, p: price, t: Date.now(), st: 'open', b: '', bn: '' });
-    toast('🏪 ลงขาย ' + item.nm + ' ราคา ' + fmt(price) + ' G แล้ว'); AU.sfx('coin');
+    toast('🏪 ลงขาย ' + item.nm + (q > 1 ? ' x' + q : '') + ' ราคา ' + fmt(price) + ' G แล้ว'); AU.sfx('coin');
     MK.pick = null;
-  } catch (e) { pushInv(h, item, 1); save(); toast('ลงขายไม่สำเร็จ ลองใหม่อีกครั้ง'); }
+  } catch (e) { pushInv(h, item, q); save(); toast('ลงขายไม่สำเร็จ ลองใหม่อีกครั้ง'); }
   MK.busy = false; renderSheetIfOpen();
 }
 // claim the listing under a short lease so two buyers can never both win it
@@ -5607,8 +5614,8 @@ async function mkBuy(id) {
     if (c.err) { toast(c.err); return; }
     if (h.gold < c.cur.p) { toast('ทองไม่พอ'); return; }
     await c.ref.update({ st: 'sold', b: S.uid, bn: h.name, bt: Date.now() });
-    h.gold -= c.cur.p; pushInv(h, c.cur.it, 1); S.dirty = true; save();
-    toast('🛒 ซื้อ ' + c.cur.it.nm + ' แล้ว อยู่ในกระเป๋า'); AU.sfx((c.cur.it.r || 0) >= 2 ? 'legend' : 'coin');
+    h.gold -= c.cur.p; pushInv(h, c.cur.it, mkN(c.cur.it)); S.dirty = true; save();
+    toast('🛒 ซื้อ ' + c.cur.it.nm + (mkN(c.cur.it) > 1 ? ' x' + mkN(c.cur.it) : '') + ' แล้ว อยู่ในกระเป๋า'); AU.sfx((c.cur.it.r || 0) >= 2 ? 'legend' : 'coin');
   } catch (e) { toast('ซื้อไม่สำเร็จ ลองใหม่อีกครั้ง'); }
   finally { MK.busy = false; renderSheetIfOpen(); if (S.screen === 'game') hudText(); }
 }
@@ -5620,7 +5627,7 @@ async function mkCancel(id) {
     const c = await mkClaim(id, true);
     if (c.err) { toast(c.err); return; }
     await c.ref.update({ st: 'cancel' });
-    pushInv(S.hero, c.cur.it, 1); S.dirty = true; save();
+    pushInv(S.hero, c.cur.it, mkN(c.cur.it)); S.dirty = true; save();
     toast('ยกเลิกการขาย ' + c.cur.it.nm + ' แล้ว ของกลับเข้ากระเป๋า');
     c.ref.delete().catch(() => {});
   } catch (e) { toast('ยกเลิกไม่สำเร็จ ลองใหม่อีกครั้ง'); }
@@ -5629,8 +5636,15 @@ async function mkCancel(id) {
 
 /* ---------- panel ---------- */
 function mkItemInfo(h, it) {
+  const xn = mkN(it) > 1 ? '  x' + mkN(it) : '';
+  if (it.kind === 'key') { const dg = dgDef(it.dg); return el('div', { class: 'grow' },
+    el('div', { class: 'nm2', text: '🗝️ ' + it.nm + xn }), el('span', { class: 'rchip', style: '--rc:' + mkCol(it), text: 'กุญแจดันเจี้ยน' }),
+    el('div', { class: 'ds', text: 'ใช้เข้า ' + (dg ? dg.name + '  (Lv.' + dg.minLv + '+)' : 'ดันเจี้ยน') }), el('div', { class: 'meta', text: 'ใช้ 1 ดอกต่อการเข้า 1 ครั้ง' })); }
+  if (it.kind === 'ore') return el('div', { class: 'grow' },
+    el('div', { class: 'nm2', text: ORE[it.id].ic + ' ' + it.nm + xn }), el('span', { class: 'rchip', style: '--rc:' + mkCol(it), text: 'วัสดุตีบวก' }),
+    el('div', { class: 'ds', text: ORE[it.id].use }), el('div', { class: 'meta', text: 'ใช้ที่ริว ช่างตีบวก กลางหมู่บ้าน' }));
   if (it.kind === 'card') return el('div', { class: 'grow' },
-    el('div', { class: 'nm2', style: 'color:#b06ad8', text: '🃏 ' + it.nm }), el('span', { class: 'rchip', style: '--rc:#d9a8ff', text: 'การ์ด Lv.' + (it.lv || 1) }),
+    el('div', { class: 'nm2', style: 'color:#b06ad8', text: '🃏 ' + it.nm + xn }), el('span', { class: 'rchip', style: '--rc:#d9a8ff', text: 'การ์ด Lv.' + (it.lv || 1) }),
     el('div', { class: 'ds', text: bonusText(it.b || {}) }), el('div', { class: 'meta', text: 'ใส่ช่อง: ' + (CS_TH[it.cs] || it.cs || '-') }));
   const g = GEAR[it.id], r = it.r || 0;
   return el('div', { class: 'grow' },
@@ -5646,36 +5660,38 @@ function panelMarket(body) {
   const tabs = el('div', { class: 'mktabs', role: 'tablist' });
   for (const [id, lb] of [['buy', '🛒 ซื้อ'], ['sell', '💰 ขาย'], ['mine', '📋 ของฉัน (' + mkMine().length + ')']])
     tabs.append(el('button', { class: 'mkt' + (MK.tab === id ? ' on' : ''), role: 'tab', 'aria-selected': MK.tab === id ? 'true' : 'false', text: lb, onclick: () => { MK.tab = id; renderSheet(); } }));
-  body.append(tabs, el('p', { class: 'note', text: 'ซื้อขายอุปกรณ์จากดันเจี้ยนและการ์ดระหว่างผู้เล่น ผู้ขายเสียภาษี ' + MK_TAX + '% และได้เงินอัตโนมัติเมื่อขายได้ ลงขายพร้อมกันได้คนละ ' + MK_MAX + ' ชิ้น' }));
+  body.append(tabs, el('p', { class: 'note', text: 'ซื้อขายอุปกรณ์จากดันเจี้ยน การ์ด กุญแจ และแร่ระหว่างผู้เล่น ผู้ขายเสียภาษี ' + MK_TAX + '% และได้เงินอัตโนมัติเมื่อขายได้ ลงขายพร้อมกันได้คนละ ' + MK_MAX + ' ชิ้น' }));
   if (MK.tab === 'buy') {
     const fl = el('div', { class: 'mkf' });
-    for (const [id, lb] of [['all', 'ทั้งหมด'], ['mine', 'ตรงอาชีพฉัน'], ['weapon', 'อาวุธ'], ['armor', 'เกราะ'], ['shoes', 'รองเท้า'], ['ring', '💍 แหวน'], ['card', '🃏 การ์ด']])
+    for (const [id, lb] of [['all', 'ทั้งหมด'], ['mine', 'ตรงอาชีพฉัน'], ['weapon', 'อาวุธ'], ['armor', 'เกราะ'], ['shoes', 'รองเท้า'], ['ring', '💍 แหวน'], ['card', '🃏 การ์ด'], ['key', '🗝️ กุญแจ'], ['ore', '🔷 แร่']])
       fl.append(el('button', { class: 'chip' + (MK.filter === id ? ' on' : ''), text: lb, onclick: () => { MK.filter = id; renderSheet(); } }));
     const so = el('select', { 'aria-label': 'เรียงตาม', onchange: (e) => { MK.sort = e.target.value; renderSheet(); } });
     for (const [v, lb] of [['new', 'ล่าสุด'], ['low', 'ราคาต่ำสุด'], ['high', 'ราคาสูงสุด'], ['rar', 'หายากสุด']]) so.append(el('option', { value: v, text: lb, selected: MK.sort === v }));
     fl.append(so); body.append(fl);
     let list = MK.all.filter((L) => L.st === 'open');
-    if (MK.filter === 'mine') list = list.filter((L) => L.it.kind === 'card' || (GEAR[L.it.id].line ? canUse(h, L.it.id) : true));
-    else if (MK.filter === 'card') list = list.filter((L) => L.it.kind === 'card');
+    if (MK.filter === 'mine') list = list.filter((L) => L.it.kind !== 'gear' || (GEAR[L.it.id].line ? canUse(h, L.it.id) : true));
+    else if (MK.filter === 'card' || MK.filter === 'key' || MK.filter === 'ore') list = list.filter((L) => L.it.kind === MK.filter);
     else if (MK.filter !== 'all') list = list.filter((L) => L.it.kind === 'gear' && GEAR[L.it.id].slot === MK.filter);
     list.sort(MK.sort === 'low' ? (a, b) => a.p - b.p : MK.sort === 'high' ? (a, b) => b.p - a.p : MK.sort === 'rar' ? (a, b) => (b.it.r || 0) - (a.it.r || 0) || a.p - b.p : (a, b) => b.t - a.t);
     if (!list.length) body.append(el('p', { class: 'note', text: 'ยังไม่มีของในหมวดนี้' }));
     for (const L of list.slice(0, 60)) {
       const own = L.s === S.uid;
       body.append(el('div', { class: 'mkrow', style: '--rc:' + mkCol(L.it) }, mkItemInfo(h, L.it),
-        el('div', { class: 'mkbuy' }, el('b', { text: fmt(L.p) + ' G' }), el('small', { text: 'โดย ' + L.sn }),
+        el('div', { class: 'mkbuy' }, el('b', { text: fmt(L.p) + ' G' }), mkN(L.it) > 1 ? el('small', { text: 'ชิ้นละ ' + fmt(Math.round(L.p / mkN(L.it))) + ' G' }) : null, el('small', { text: 'โดย ' + L.sn }),
           el('button', { class: 'mini pri', text: own ? 'ของคุณ' : 'ซื้อ', disabled: own || MK.busy || h.gold < L.p, onclick: () => mkBuy(L.id) }))));
     }
   } else if (MK.tab === 'sell') {
     const mine = h.inv.filter(mkSellable);
-    if (!mine.length) body.append(el('p', { class: 'note', text: 'ยังไม่มีอุปกรณ์จากดันเจี้ยนหรือการ์ดในกระเป๋า ไปล่ามอนหรือเคลียร์ดันเจี้ยนแล้วกลับมาขายได้เลย' }));
-    else if (mine.some((x) => x.kind === 'card')) body.append(el('p', { class: 'note', text: 'การ์ดลงขายได้ทีละ 1 ใบต่อรายการ' }));
+    if (!mine.length) body.append(el('p', { class: 'note', text: 'ยังไม่มีของที่ลงขายได้ (อุปกรณ์ดันเจี้ยน การ์ด กุญแจ แร่) ไปล่ามอนหรือเคลียร์ดันเจี้ยนแล้วกลับมาขายได้เลย' }));
+    else if (mine.some(mkStack)) body.append(el('p', { class: 'note', text: 'การ์ด กุญแจ และแร่ ใส่จำนวนที่จะขายได้ ราคาที่ตั้งคือราคารวมของทั้งรายการ' }));
     for (const it of mine) {
-      const sug = Math.max(100, Math.round(it.pr * (it.kind === 'card' ? 5 : 4) / 100) * 100);
-      const inp = el('input', { class: 'mkprice', type: 'number', min: 1, max: 1e9, step: 100, value: sug, 'aria-label': 'ราคาขาย ' + it.nm, inputmode: 'numeric' });
+      const unit = mkUnit(it), stack = mkStack(it), q0 = stack ? Math.min(it.n, it.kind === 'ore' ? 10 : 1) : 1;
+      const inp = el('input', { class: 'mkprice', type: 'number', min: 1, max: 1e9, step: 100, value: unit * q0, 'aria-label': 'ราคาขายรวม ' + it.nm, inputmode: 'numeric' });
+      const qty = stack ? el('input', { class: 'mkqty', type: 'number', min: 1, max: it.n, step: 1, value: q0, 'aria-label': 'จำนวนที่จะขาย ' + it.nm, inputmode: 'numeric' }) : null;
+      if (qty) qty.addEventListener('input', () => { const q = Math.max(1, Math.min(it.n, Math.floor(Number(qty.value) || 1))); inp.value = unit * q; });
       body.append(el('div', { class: 'mkrow' + (MK.pick === it.k ? ' pick' : ''), style: '--rc:' + mkCol(it) }, mkItemInfo(h, it),
-        el('div', { class: 'mkbuy' }, inp, el('small', { text: (it.kind === 'card' && it.n > 1 ? 'มี ' + it.n + ' ใบ  ' : '') + 'ขาย NPC ได้ ' + fmt(it.pr) + ' G' }),
-          el('button', { class: 'mini pri', text: 'ลงขาย', disabled: MK.busy, onclick: () => mkList(it.k, inp.value) }))));
+        el('div', { class: 'mkbuy' }, qty ? el('label', { class: 'mkql' }, 'จำนวน ', qty, el('small', { text: ' / ' + it.n })) : null, inp, el('small', { text: (qty ? 'ราคารวม  ' : '') + 'ขาย NPC ได้ ' + fmt(it.pr) + ' G' + (stack ? '/ชิ้น' : '') }),
+          el('button', { class: 'mini pri', text: 'ลงขาย', disabled: MK.busy, onclick: () => mkList(it.k, inp.value, qty ? qty.value : 1) }))));
     }
   } else {
     const mine = mkMine();
