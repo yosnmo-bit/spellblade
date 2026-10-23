@@ -761,15 +761,17 @@ defSkill('lk_judge', 'lordknight', 'ดาบพิพากษา', '⚡', 'atk
 defSkill('lk_cata', 'lordknight', 'ปฐพีถล่ม', '🌋', 'aoe', { m: [3.0, 0.4], r: 130, self: true, hits: 2, sp: [30, 2], cd: 6, color: '#ff9f43', fx: 'quake' });
 defSkill('lk_fury', 'lordknight', 'โทสะจ้าวสงคราม', '😤', 'buff', { b: { atk: 5, aspd: 3 }, dur: 60, sp: [40, 3], cd: 90, color: '#ff6b6b' });
 // Acolyte line
-defSkill('ac_heal', 'acolyte', 'แสงเยียวยา', '💚', 'heal', { h: [0.1, 0.03], sp: [8, 1], cd: 3, color: '#8ff0a4' });
+defSkill('ac_heal', 'acolyte', 'แสงเยียวยา', '💚', 'heal', { party: 1, h: [0.1, 0.03], sp: [8, 1], cd: 3, color: '#8ff0a4' });
 defSkill('ac_bolt', 'acolyte', 'ศรศักดิ์สิทธิ์', '✨', 'atk', { dmg: 'magic', m: [1.2, 0.25], sp: [6, 0.6], cd: 1.5, color: '#fff1a8', fx: 'pillar' });
 defSkill('ac_bless', 'acolyte', 'พรแห่งแสง', '🙏', 'buff', { b: { atk: 2, matk: 2 }, dur: 120, sp: [20, 1], cd: 120, color: '#ffe8a3' });
+defSkill('ac_divine', 'acolyte', 'พรแห่งเทพ', '👼', 'buff', { party: 1, b: { str: 1, agi: 1, vit: 1, int: 1, dex: 1, luk: 1 }, dur: 120, sp: [30, 2], cd: 120, color: '#fff3b0' });
 defSkill('pr_smite', 'priest', 'แสงพิพากษา', '☀️', 'aoe', { dmg: 'magic', m: [1.5, 0.25], r: 110, hits: 3, sp: [20, 1.5], cd: 4, color: '#fff6c2', fx: 'pillars' });
-defSkill('pr_grace', 'priest', 'พรวายุ', '🍃', 'buff', { b: { aspd: 3, flee: 2 }, dur: 120, sp: [20, 1], cd: 120, color: '#c8f7ff' });
-defSkill('pr_mend', 'priest', 'มหาเยียวยา', '💖', 'heal', { h: [0.2, 0.04], sp: [25, 2], cd: 6, color: '#9df5b5' });
+defSkill('pr_grace', 'priest', 'พรวายุ', '🍃', 'buff', { party: 1, b: { aspd: 3, flee: 2, crit: 3 }, dur: 120, sp: [20, 1], cd: 120, color: '#c8f7ff' });
+defSkill('pr_mend', 'priest', 'มหาเยียวยา', '💖', 'heal', { zone: { r: 130, dur: 3 }, h: [0.2, 0.04], sp: [25, 2], cd: 6, color: '#9df5b5' });
 defSkill('hp_nova', 'highpriest', 'ดาราศักดิ์สิทธิ์', '🌟', 'aoe', { dmg: 'magic', m: [3.0, 0.4], r: 140, hits: 4, sp: [35, 2.5], cd: 5, color: '#fffbe0', fx: 'pillars' });
+defSkill('hp_res', 'highpriest', 'ชุบชีวิต', '🕊️', 'res', { maxLv: 1, sp: [60, 0], cd: 3, color: '#fffbe6' });
 defSkill('hp_lance', 'highpriest', 'หอกแสงสวรรค์', '🔱', 'atk', { dmg: 'magic', m: [4.0, 0.6], hits: 3, sp: [25, 2], cd: 3, color: '#ffe9a0', fx: 'pillar' });
-defSkill('hp_aegis', 'highpriest', 'เกราะแห่งศรัทธา', '🔰', 'buff', { b: { def: 5, matk: 3 }, dur: 90, sp: [30, 2], cd: 120, color: '#a0e7ff' });
+defSkill('hp_aegis', 'highpriest', 'เกราะแห่งศรัทธา', '🔰', 'buff', { party: 1, b: { def: 5, matk: 3 }, dur: 90, sp: [30, 2], cd: 120, color: '#a0e7ff' });
 // Magician line
 defSkill('mg_fire', 'magician', 'ศรเพลิง', '🔥', 'atk', { dmg: 'magic', m: [1.4, 0.3], hits: 3, sp: [8, 0.8], cd: 1.2, color: '#ff7a3d', fx: 'bolt' });
 defSkill('mg_frost', 'magician', 'ศรน้ำแข็ง', '❄️', 'atk', { dmg: 'magic', m: [1.6, 0.3], hits: 2, sp: [10, 1], cd: 2, color: '#7fd4ff', fx: 'bolt' });
@@ -851,8 +853,8 @@ function MON(id, name, arch, color, lv, extra) {
 }
 
 const DEFAULT_CONFIG = {
-  version: '2.9.16',
-  patchNotes: 'อัปเดต 2.9.16\n• เมนูด้านขวาหุบได้ กดปุ่ม ☰ เมนู เพื่อกาง เลือกเมนูแล้วหุบเอง (มีจุดแดงเตือนเมื่อมีแต้มเหลือหรือคนชวนปาร์ตี้)\n• GM: ปุ่มเพิ่มเงินเป็น +100,000 G\n• (จาก 2.9.15) รองเท้าดันเจี้ยนสุ่ม 1 ใน 4 ชุด',
+  version: '2.9.17',
+  patchNotes: 'อัปเดต 2.9.17: สายนักบวชช่วยปาร์ตี้ได้\n• แสงเยียวยา: ฮีลตัวเองหรือเพื่อนในปาร์ตี้ที่เลือดน้อยสุด\n• สกิลใหม่ Acolyte พรแห่งเทพ: ทุกสเตตัส +10 (Lv10) ทั้งปาร์ตี้ 120 วิ\n• พรวายุ: เพิ่มคริ +30 และบัฟให้ทั้งปาร์ตี้\n• มหาเยียวยา: ฮีลหมู่วงกว้าง 3 วิ เพื่อนที่ยืนในวงได้ฮีล\n• เกราะแห่งศรัทธา: บัฟให้ทั้งปาร์ตี้\n• สกิลใหม่ High Priest ชุบชีวิต: ฟื้นเพื่อนที่ล้มด้วย HP 60% คูลดาวน์ 3 วิ\n• ตายตอนมีเพื่อนในแผนที่ จะรอชุบชีวิต 12 วิ ก่อนกลับเมือง',
   announcement: 'ยินดีต้อนรับสู่ช่วงทดสอบ! เจอบั๊กบอก GM ได้เลย',
   rates: { bexp: 1, jexp: 1, gold: 1, drop: 1 },
   deathPenalty: 1,
@@ -1857,7 +1859,7 @@ function monHit(m) {
 }
 function playerDie() {
   const h = S.hero;
-  P.dead = true; P.hp = 0; P.deadUntil = W.t + 4; P.target = null; P.queued = null; P.tx = null;
+  P.dead = true; P.hp = 0; P.deadUntil = W.t + (typeof partyMates === 'function' && partyMates(false).length ? 12 : 4); P.target = null; P.queued = null; P.tx = null;
   const loss = Math.round(baseNeed(h.level) * CONFIG.deathPenalty / 100);
   if (loss > 0 && h.level < CONFIG.maxBase) h.exp = Math.max(0, h.exp - loss);
   $('#dead').hidden = false; S.dirty = true; AU.sfx('death');
@@ -1889,6 +1891,46 @@ function skillRange(sk) {
   if (sk.type === 'aoe') return sk.self ? Math.max(D.range, sk.r * 0.7) : 210;
   return 9999;
 }
+/* ---------- party support: heals, buffs and revives reach teammates through presence ---------- */
+const SUP_R = 450;
+const supMates = (r, dead) => (typeof partyMates === 'function' ? partyMates(false) : []).filter((o) => !!o.dead === !!dead && Math.hypot(o.x - P.x, o.y - P.y) <= (r || SUP_R));
+function sendSup(o, type, data) {
+  NET.sup = (NET.sup || []).filter((e) => Date.now() - e[5] < 8000).slice(-11);
+  NET.sup.push([uid36().slice(0, 9), o.key, type, data[0], data[1] == null ? 0 : data[1], Date.now()]);
+}
+function healTarget() {
+  let best = null, bp = P.hp / Math.max(1, P.D.maxHp);
+  for (const o of supMates(SUP_R * 0.75)) if (o.hp / 100 < bp) { bp = o.hp / 100; best = o; }
+  return best;
+}
+const partyNeedsHeal = () => supMates(SUP_R * 0.75).some((o) => o.hp < 60);
+const deadMateNear = () => supMates(SUP_R * 0.9, true)[0] || null;
+function healSelf(pct, flat, color) {
+  const D = P.D, amt = Math.round(D.maxHp * pct + flat); if (P.dead || amt <= 0) return;
+  P.hp = Math.min(D.maxHp, P.hp + amt); addNum(P.x, P.y - 54, '+' + fmt(amt), '#7dff9a', 15); addFx({ kind: 'heal', x: P.x, y: P.y, color, dur: 0.9 });
+}
+function healZone(sk, pct, flat) {
+  const cx = P.x, cy = P.y, r = sk.zone.r, n = sk.zone.dur, color = sk.color;
+  addFx({ kind: 'circle', x: cx, y: cy, color, dur: n + 0.3, r });
+  for (let i = 0; i < n; i++) later(i, () => {
+    addFx({ kind: 'ring', x: cx, y: cy, r, color, dur: 0.6 });
+    if (Math.hypot(P.x - cx, (P.y - cy) * 1.3) <= r) healSelf(pct / n, flat / n, color);
+    for (const o of supMates(SUP_R * 2)) if (Math.hypot(o.x - cx, (o.y - cy) * 1.3) <= r) { sendSup(o, 'h', [pct / n, flat / n]); addFx({ kind: 'heal', x: o.x, y: o.y, color, dur: 0.8 }); }
+  });
+}
+// a teammate's support arriving on this client
+function applySup(e, from) {
+  const [, , type, a, b] = e, D = P.D || derived();
+  if (type === 'h') { if (!P.dead) { const amt = Math.round(D.maxHp * clamp(a, 0, 1) + clamp(b, 0, 1e5)); P.hp = Math.min(D.maxHp, P.hp + amt); addNum(P.x, P.y - 54, '+' + fmt(amt), '#7dff9a', 15); addFx({ kind: 'heal', x: P.x, y: P.y, color: '#8ff0a4', dur: 0.9 }); } }
+  else if (type === 'b') { const sk = SKILLS[a]; if (sk && sk.type === 'buff' && sk.party && !P.dead) { P.buffs[a] = { until: W.t + sk.dur, lv: clamp(b | 0, 1, sk.maxLv) }; addNum(P.x, P.y - 66, sk.icon + ' ' + sk.name, sk.color, 12, { font: 'th', dur: 1.4 }); addFx({ kind: 'ring', x: P.x, y: P.y, r: 40, color: sk.color, dur: 0.6 }); P.D = derived(); } }
+  else if (type === 'r') { if (P.dead) reviveBy(clamp(a, 0.1, 1), from.name); }
+  S.dirty = true;
+}
+function reviveBy(pct, who) {
+  P.dead = false; P.D = derived(); P.hp = Math.max(1, Math.round(P.D.maxHp * pct)); P.ccUntil = 0; P.deadUntil = 0;
+  $('#dead').hidden = true; addFx({ kind: 'pillar', x: P.x, y: P.y, color: '#fffbe6', dur: 1.2, w: 40 }); AU.sfx('jobup');
+  toast('🕊️ ' + who + ' ชุบชีวิตคุณ ฟื้นด้วย HP ' + Math.round(pct * 100) + '%');
+}
 function castSkill(id, fromQueue) {
   if (ccActive()) { toast(P.ccType === 'freeze' ? 'ถูกแช่แข็ง ใช้สกิลไม่ได้' : 'มึนงงอยู่ ใช้สกิลไม่ได้'); return; }
   const h = S.hero, sk = SKILLS[id], lv = h.skills[id] | 0;
@@ -1904,6 +1946,8 @@ function castSkill(id, fromQueue) {
     P.target = tg; P.tx = null;
     if (!fromQueue && Math.hypot(tg.x - P.x, tg.y - P.y) > skillRange(sk)) { P.queued = id; return true; }
   }
+  let resTg = null;
+  if (sk.type === 'res') { resTg = deadMateNear(); if (!resTg) { if (!S.auto) toast('ไม่มีเพื่อนในปาร์ตี้ที่ล้มอยู่ใกล้ๆ'); return false; } }
   const cdEff = sk.cd * (1 - (P.D.cdr || 0) / 100);
   P.sp -= cost; P.cds[id] = W.t + cdEff; (P.cdMax || (P.cdMax = {}))[id] = cdEff; P.swingT = W.t; P.castT = W.t; P.castKind = sk.type; S.dirty = true;
   addFx({ kind: 'circle', x: P.x, y: P.y, color: sk.color, dur: 0.75 });
@@ -1938,14 +1982,20 @@ function castSkill(id, fromQueue) {
       }
     });
   } else if (sk.type === 'heal') {
-    const amt = Math.round(D.maxHp * (sk.h[0] + sk.h[1] * lv) + D.matk * 0.4);
-    P.hp = Math.min(D.maxHp, P.hp + amt);
-    addNum(P.x, P.y - 54, '+' + fmt(amt), '#7dff9a', 15);
-    addFx({ kind: 'heal', x: P.x, y: P.y, color: sk.color, dur: 0.9 });
+    const pct = sk.h[0] + sk.h[1] * lv, flat = D.matk * 0.4;
+    if (sk.zone) healZone(sk, pct, flat);
+    else {
+      const mate = sk.party ? healTarget() : null;
+      if (mate) { sendSup(mate, 'h', [pct, flat]); addFx({ kind: 'heal', x: mate.x, y: mate.y, color: sk.color, dur: 0.9 }); addNum(mate.x, mate.y - 54, 'ฮีล', '#7dff9a', 13, { font: 'th' }); }
+      else healSelf(pct, flat, sk.color);
+    }
   } else if (sk.type === 'buff') {
     P.buffs[id] = { until: W.t + sk.dur, lv };
     addFx({ kind: 'ring', x: P.x, y: P.y, r: 42, color: sk.color, dur: 0.6 });
     addFx({ kind: 'pillar', x: P.x, y: P.y, color: sk.color, dur: 0.6, w: 28 });
+    if (sk.party) for (const o of supMates()) { sendSup(o, 'b', [id, lv]); addFx({ kind: 'pillar', x: o.x, y: o.y, color: sk.color, dur: 0.6, w: 22 }); }
+  } else if (sk.type === 'res') {
+    sendSup(resTg, 'r', [0.6]); addFx({ kind: 'pillar', x: resTg.x, y: resTg.y, color: sk.color, dur: 1.2, w: 40 }); addNum(resTg.x, resTg.y - 60, '🕊️ ชุบชีวิต', '#fffbe6', 14, { font: 'th', dur: 1.4 });
   }
   return true;
 }
@@ -1987,7 +2037,8 @@ function autoAct() {
     const sk = SKILLS[id], lv = h.skills[id] | 0;
     if (!sk || !lv || (P.cds[id] || 0) > W.t || P.sp < spCost(sk, lv)) continue;
     if (sk.type === 'buff') { if (P.buffs[id] || !P.target) continue; castSkill(id); return; }
-    if (sk.type === 'heal') { if (P.hp < D.maxHp * 0.6) { castSkill(id); return; } continue; }
+    if (sk.type === 'heal') { if (P.hp < D.maxHp * 0.6 || ((sk.party || sk.zone) && partyNeedsHeal())) { castSkill(id); return; } continue; }
+    if (sk.type === 'res') { if (deadMateNear()) { castSkill(id); return; } continue; }
     if (!P.target) continue;
     if (sk.type === 'aoe' && sk.self && Math.hypot(P.target.x - P.x, P.target.y - P.y) > sk.r * 0.8) continue;
     castSkill(id); return;
@@ -2093,7 +2144,7 @@ function drawFx(ctx, f, p, t) {
   ctx.save();
   switch (f.kind) {
     case 'circle': {
-      ctx.translate(f.x, f.y); ctx.scale(1, 0.42); ctx.rotate(t * 1.6);
+      ctx.translate(f.x, f.y); ctx.scale(f.r ? f.r / 34 : 1, (f.r ? f.r / 34 : 1) * 0.42); ctx.rotate(t * 1.6);
       ctx.globalAlpha = p < 0.2 ? p / 0.2 : 1 - (p - 0.2) / 0.8;
       ctx.strokeStyle = f.color; ctx.lineWidth = 2; ctx.shadowColor = f.color; ctx.shadowBlur = 10;
       ctx.beginPath(); ctx.arc(0, 0, 34, 0, TAU); ctx.stroke();
@@ -3735,7 +3786,7 @@ void main(){
     for (const f of W.fx) {
       const p = (t - f.t0) / f.dur; if (p < 0 || p > 1) continue;
       const [X, Z] = L2W(f.x, f.y), col = c3(f.color || '#ffffff');
-      if (f.kind === 'circle') { const a = p < 0.2 ? p / 0.2 : 1 - (p - 0.2) / 0.8; E.push(); E.T(X, 0.025, Z); E.RY(t * 1.7); E.Sc(1.35); E.flat('plane', [col[0], col[1], col[2], a], { tex: texOf(E, 'circle', circleCanvas) }); E.pop(); }
+      if (f.kind === 'circle') { const a = p < 0.2 ? p / 0.2 : 1 - (p - 0.2) / 0.8; E.push(); E.T(X, 0.025, Z); E.RY(t * 1.7); E.Sc(1.35 * (f.r ? f.r / 34 : 1)); E.flat('plane', [col[0], col[1], col[2], a], { tex: texOf(E, 'circle', circleCanvas) }); E.pop(); }
       else if (f.kind === 'ring') { const r = (f.r / R3.U) * easeOut(p); E.push(); E.T(X, 0.03, Z); E.Sc(Math.max(0.01, r)); E.flat('ring', [col[0], col[1], col[2], 1 - p], { fade: 3 }); E.flat('disc', [col[0], col[1], col[2], (1 - p) * 0.25], { fade: 2 }); E.pop(); }
       else if (f.kind === 'quake') { for (let k = 0; k < 3; k++) { const r = (f.r / R3.U) * (0.35 + 0.65 * easeOut(clamp(p * 1.4 - k * 0.15, 0, 1))); E.push(); E.T(X, 0.03, Z); E.Sc(r); E.flat('ring', [col[0], col[1], col[2], (1 - p) * 0.9], { fade: 3 }); E.pop(); } }
       else if (f.kind === 'tap') { E.push(); E.T(X, 0.03, Z); E.Sc(0.15 + 0.35 * p); E.flat('ring', [col[0], col[1], col[2], 1 - p], { fade: 3 }); E.pop(); }
@@ -4622,6 +4673,7 @@ function readPresence(p) {
     rj: (Array.isArray(pr.rj) ? pr.rj : []).filter((x) => typeof x === 'string').slice(0, 8).map((x) => x.slice(0, 40)),
     rc: Array.isArray(pr.rc) ? [String(pr.rc[0] || '').slice(0, 20), String(pr.rc[1] || '').slice(0, 12), pr.rc[2] ? 1 : 0, String(pr.rc[3] || '').slice(0, 80)] : null,
     ra: Array.isArray(pr.ra) ? [String(pr.ra[0] || '').slice(0, 12), int(pr.ra[1], 0, -9, 9)] : null,
+    sup: (Array.isArray(pr.sup) ? pr.sup : []).slice(-12).filter((e) => Array.isArray(e) && typeof e[0] === 'string' && typeof e[1] === 'string' && ['h', 'b', 'r'].includes(e[2])).map((e) => [e[0].slice(0, 12), e[1].slice(0, 40), e[2], e[2] === 'b' ? String(e[3]).slice(0, 20) : num(e[3], 0, 0, 1), num(e[4], 0, 0, 1e5)]),
     eqv: (() => { const a = Array.isArray(pr.ev) ? pr.ev : [], g = (x, sl) => (typeof x === 'string' && GEAR[x] && GEAR[x].slot === sl ? x : null); return { head: g(a[0], 'head'), face: g(a[1], 'face'), mouth: g(a[2], 'mouth'), wings: g(a[3], 'wings') }; })()
   };
 }
@@ -4648,6 +4700,12 @@ function syncOthers() {
   }
   for (const k of [...ONLINE.others.keys()]) if (!seen.has(k)) ONLINE.others.delete(k);
   PARTY.invited = PARTY.invited.filter((k) => { const o = ONLINE.others.get(k); return o && o.pk !== PARTY.key; });
+  // support from teammates (heal / buff / revive), each event applied once
+  if (NET.me && PARTY.key) {
+    const seen = NET.supSeen || (NET.supSeen = new Map()), now = Date.now();
+    for (const o of ONLINE.others.values()) if (o.pk === PARTY.key && o.sup) for (const e of o.sup) if (e[1] === NET.me && !seen.has(e[0])) { seen.set(e[0], now); applySup(e, o); }
+    if (seen.size > 200) for (const [k, t] of seen) if (now - t > 30000) seen.delete(k);
+  }
   partyIntake();
 }
 const isGone = (o) => (o.aw && performance.now() - (o.awaySince || 0) > 20000) || performance.now() - (o.beat || 0) > 20000;
@@ -4823,6 +4881,7 @@ function onlineTick(dt) {
     if (isDg()) { pr.bk = NET.bk; pr.dq = DG.state; }
   }
   Object.assign(pr, partyPresence());
+  { const sp = (NET.sup || []).filter((e) => Date.now() - e[5] < 8000); NET.sup = sp; if (sp.length) pr.sup = sp.map((e) => e.slice(0, 5)); }
   const sig = JSON.stringify(pr);
   if (sig === ONLINE.sig && now - ONLINE.lastSend < 1000) return;
   ONLINE.sig = sig; ONLINE.lastSend = now;
@@ -5960,8 +6019,9 @@ function skillDesc(sk, lv) {
   switch (sk.type) {
     case 'atk': return (sk.dmg === 'magic' ? 'เวทโจมตี ' : 'โจมตี ') + pct(sk.m[0] + sk.m[1] * lv) + (sk.hits > 1 ? ' (' + sk.hits + ' ครั้ง)' : '') + (sk.crit ? ' คริติคอลแน่นอน' : '');
     case 'aoe': return (sk.dmg === 'magic' ? 'เวทวงกว้าง ' : 'โจมตีวงกว้าง ') + pct(sk.m[0] + sk.m[1] * lv) + (sk.self ? ' รอบตัว' : ' รอบเป้าหมาย');
-    case 'heal': return 'ฟื้น HP ' + pct(sk.h[0] + sk.h[1] * lv) + ' + ตามพลังเวท';
-    case 'buff': return bt(sk.b) + ' นาน ' + sk.dur + ' วิ';
+    case 'heal': return 'ฟื้น HP ' + pct(sk.h[0] + sk.h[1] * lv) + ' + ตามพลังเวท' + (sk.zone ? ' ฮีลหมู่วงกว้าง ' + sk.zone.dur + ' วิ (ตัวเองและเพื่อนที่ยืนในวง)' : sk.party ? ' (ตัวเองหรือเพื่อนในปาร์ตี้ที่เลือดน้อยสุด)' : '');
+    case 'buff': return bt(sk.b) + ' นาน ' + sk.dur + ' วิ' + (sk.party ? ' (ตัวเองและเพื่อนในปาร์ตี้)' : '');
+    case 'res': return 'ชุบชีวิตเพื่อนในปาร์ตี้ที่ล้มอยู่ใกล้ๆ 1 คน ฟื้นด้วย HP 60%';
     case 'passive': return bt(sk.p);
   }
   return '';
