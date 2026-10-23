@@ -402,6 +402,9 @@ details.box summary{font-weight:700;cursor:pointer}
 .mcard .mb{padding:14px 16px 16px}
 .mcard p{white-space:pre-wrap;overflow-wrap:anywhere;margin:0 0 14px}
 .mcard .btn-main{width:100%}
+.wstyle{margin-top:6px;text-align:center}
+.wstyle .acts{justify-content:center;margin:0}
+.wstyle small{display:block;margin-top:4px;font-size:.7rem;color:var(--muted)}
 #bcModal{z-index:90}
 .bctext{font-size:1.02rem;font-weight:700;line-height:1.5}
 .bccount{color:var(--bad);font-weight:700}
@@ -888,8 +891,8 @@ function MON(id, name, arch, color, lv, extra) {
 }
 
 const DEFAULT_CONFIG = {
-  version: '2.9.29',
-  patchNotes: 'อัปเดต 2.9.29\n• คุยกับ NPC: กล้องซูมเข้า NPC อยู่ซ้าย หน้าต่างอยู่ขวา เห็นฉากตีบวกชัด\n• ตู้กาชากลางเมือง 10 ลูก 200,000 G ลุ้นหมวก/ปาก (ทุกสเตตัส +5) หน้ากาก/ปีก (ดาเมจกายภาพและเวท) มีระดับ Unique ไม่ถูกได้ผงเกลือ\n• ของกาชาขายลงตลาดกลางไม่ได้\n• ตัวเลขดาเมจไหลเรียงเป็นแถว ไม่ซ้อนกันแล้ว',
+  version: '2.9.30',
+  patchNotes: 'อัปเดต 2.9.30\n• กุญแจดันเจี้ยนเหลือแบบเดียว ใช้เข้าได้ทุกดัน ดรอปจากมอนทุกแผนที่ (กุญแจเก่ารวมเป็นกุญแจใหม่ให้อัตโนมัติ)\n• สายโจรมีดสองข้าง: ใส่มีดจากกระเป๋าที่มือซ้ายได้ (ค่าพลัง 70%) และตีบวกมือซ้ายได้ที่ริว\n• ปุ่มเลือกมีดสองข้าง/คาตาร์ ย้ายมาอยู่หน้าตัวละคร',
   announcement: 'ยินดีต้อนรับสู่ช่วงทดสอบ! เจอบั๊กบอก GM ได้เลย',
   rates: { bexp: 1, jexp: 1, gold: 1, drop: 1 },
   deathPenalty: 1,
@@ -980,7 +983,7 @@ function sanitizeConfig(raw) {
   const c = {
     version: str(raw.version, DEFAULT_CONFIG.version, 20),
     patchNotes: txt(raw.patchNotes, 2000),
-    announcement: txt(raw.announcement, 300),
+    announcement: txt(raw.announcement, 300), keyChance: num(raw.keyChance, 0.6, 0, 100),
     announceAt: num(raw.announceAt, 0, 0, 1e15), reloadAt: num(raw.reloadAt, 0, 0, 1e15),
     rates: { bexp: num(r.bexp, 1, 0, 100), jexp: num(r.jexp, 1, 0, 100), gold: num(r.gold, 1, 0, 100), drop: num(r.drop, 1, 0, 100) },
     deathPenalty: num(raw.deathPenalty, 1, 0, 100),
@@ -1583,7 +1586,8 @@ function sanitizeHero(d) {
   };
   const st = d.stats || {}; for (const k of STATS) h.stats[k] = int(st[k], 1, 1, 99);
   const seenK = new Set();
-  h.inv = (Array.isArray(d.inv) ? d.inv : []).map((x) => sanitizeItem(x, true)).filter((x) => x && !seenK.has(x.k) && seenK.add(x.k)).slice(0, INV_MAX);
+  h.inv = [];
+  for (const x of (Array.isArray(d.inv) ? d.inv : [])) { const it = sanitizeItem(x, true); if (!it) continue; const same = h.inv.find((y) => y.k === it.k); if (same) { if (it.kind !== 'gear') same.n = Math.min(999, (same.n || 1) + (it.n || 1)); } else if (h.inv.length < INV_MAX) h.inv.push(it); }
   sanitizeEq(d, h);
   const sk = d.skills || {};
   for (const s of skillsFor(h.job)) { const v = int(sk[s.id], 0, 0, s.maxLv); if (v > 0) h.skills[s.id] = v; }
@@ -4356,6 +4360,10 @@ Object.assign(GEAR, {
   g_wing: { slot: 'wings', nm: 'ปีกพลังวายุ', ic: '🦋', b: { pdmg: 5, mdmg: 5 }, pr: 2000, gacha: 1 },
   g_wing_u: { slot: 'wings', nm: 'ปีกเทวะ [Unique]', ic: '🌟', b: { pdmg: 12, mdmg: 12 }, pr: 5000, gacha: 1, uq: 1 }
 });
+// thief daggers can also go in the left hand (dual style), at 70% of their stats
+const OFF_RATE = 0.7;
+const isDagger = (id) => !!GEAR[id] && GEAR[id].slot === 'weapon' && GEAR[id].line === 'thief' && !GEAR[id].style;
+const dualNow = (h) => weaponOf(h.job, h.wstyle) === 'dual';
 const canUse = (h, id) => !GEAR[id] || !GEAR[id].line || (JOBS[h.job].line === GEAR[id].line && (!GEAR[id].style || h.wstyle === GEAR[id].style));
 const lineText = (h, id) => { const g = GEAR[id]; if (!g || !g.dg) return ''; if (!g.line) return 'ใช้ได้ทุกอาชีพ'; return 'เฉพาะสาย' + LINE_TH[g.line] + (g.style === 'katar' ? ' สไตล์คาตาร์' : '') + (canUse(h, id) ? ' ✓' : JOBS[h.job].line === g.line ? ' (เปลี่ยนสไตล์เป็นคาตาร์ที่ร้านก่อน)' : ' (ไม่ตรงอาชีพคุณ)'); };
 const setBonus = (t, n) => n >= 3 ? { atkPct: 2 * t, matkPct: 2 * t, hpPct: 3 * t, crit: t + 1 } : n >= 2 ? { atkPct: 2 * t, matkPct: 2 * t } : null;
@@ -4395,8 +4403,7 @@ function sanitizeItem(x, withN) {
   if (!kind) return null;
   if (kind === 'ore') { if (!ORE[x.id]) return null; const it = oreItem(x.id); if (withN) it.n = int(x.n, 1, 1, 999); return it; }
   if (kind === 'key') {
-    const dg = CONFIG.dungeons.find((d) => d.id === x.dg); if (!dg) return null;
-    const it = Object.assign(keyItem(dg), {}); if (withN) it.n = int(x.n, 1, 1, 999);
+    const it = keyItem(); if (withN) it.n = int(x.n, 1, 1, 999);
     return it;
   }
   if (kind === 'gear') {
@@ -4452,7 +4459,7 @@ function sanitizeEq(d, h) {
   }
   for (const k of ['weapon', 'off', 'armor']) {
     const x = e[k] || {}, o = { cards: cardsOf(x, 4) };
-    if (k !== 'off' && GEAR[x.id] && GEAR[x.id].slot === k) Object.assign(o, { id: x.id, r: int(x.r, 1, 0, 4), o: sanitizeOpts(x.o), v: itemVar(x) });
+    if (GEAR[x.id] && (k === 'off' ? isDagger(x.id) : GEAR[x.id].slot === k)) Object.assign(o, { id: x.id, r: int(x.r, 1, 0, 4), o: sanitizeOpts(x.o), v: itemVar(x) });
     out[k] = o;
   }
   if (!d.eq) out.shoes = { id: 'leather', r: 0, o: [], cards: [] };
@@ -4461,6 +4468,7 @@ function sanitizeEq(d, h) {
   normalizeGear(h);
 }
 function normalizeGear(h) {
+  { const s = h.eq.off; if (s && s.id && (!isDagger(s.id) || !dualNow(h) || !canUse(h, s.id))) { const it = Object.assign(gearItem(s.id), { r: s.r || 0, o: s.o || [] }); if (pushInv(h, it, 1) !== false) { delete s.id; delete s.r; delete s.o; delete s.v; } } }
   { const s = h.eq.weapon; if (s && s.id && GEAR[s.id] && !canUse(h, s.id)) { const it = Object.assign(gearItem(s.id), { r: s.r || 0, o: s.o || [], v: s.v }); if (pushInv(h, it, 1) !== false) { delete s.id; delete s.r; delete s.o; delete s.v; } } }
   for (const k of Object.keys(SLOT_TH)) {
     const s = h.eq[k]; if (!s) continue;
@@ -4478,7 +4486,11 @@ function gearSum(h) {
   const o = {}, add = (b) => { for (const k in b) o[k] = (o[k] || 0) + b[k]; }, sets = {};
   for (const k of Object.keys(SLOT_TH)) {
     const s = h.eq && h.eq[k]; if (!s) continue;
-    if (s.id && GEAR[s.id]) { add(itemBase(s)); for (const op of s.o || []) add({ [op[0]]: op[1] }); if (GEAR[s.id].set) sets[GEAR[s.id].set] = (sets[GEAR[s.id].set] || 0) + 1; }
+    if (s.id && GEAR[s.id]) {
+      const f = k === 'off' ? OFF_RATE : 1, sc = (b) => { if (f === 1) return b; const o2 = {}; for (const kk in b) o2[kk] = Math.round(b[kk] * f); return o2; };
+      add(sc(itemBase(s))); for (const op of s.o || []) add(sc({ [op[0]]: op[1] }));
+      if (GEAR[s.id].set && k !== 'off') sets[GEAR[s.id].set] = (sets[GEAR[s.id].set] || 0) + 1;
+    }
     for (const c of s.cards || []) if (c && c.b) add(c.b);
   }
   for (const sid in sets) { const b = setBonus(DG_SETS[sid].t, sets[sid]); if (b) add(b); }
@@ -4487,6 +4499,7 @@ function gearSum(h) {
   for (const k of ['head', 'face', 'mouth']) { const r = on(k); if (r) add({ def: r }); }
   { const r = on('shoes'); if (r) add({ def: r, flee: r }); }
   { const r = on('wings'); if (r) add({ def: r, hpPct: r }); }
+  { const r = R.off || 0; if (r && dualNow(h)) add({ watk: 4 * r }); }
   return o;
 }
 function setInfo(h, sid) { let n = 0; for (const k of Object.keys(SLOT_TH)) { const s = h.eq && h.eq[k]; if (s && s.id && GEAR[s.id] && GEAR[s.id].set === sid) n++; } return n; }
@@ -4514,14 +4527,15 @@ function removeCard(key, idx) {
   if (!addItem(c, 1)) return;
   s.cards[idx] = null; afterGear();
 }
-function equipGear(k) {
+function equipGear(k, toOff) {
   const h = S.hero, it = h.inv.find((x) => x.k === k && x.kind === 'gear'); if (!it) return;
   if (!canUse(h, it.id)) { toast(lineText(h, it.id) + ' ลงขายที่ตลาดได้'); AU.sfx('miss'); return; }
   let slot = GEAR[it.id].slot;
+  if (slot === 'weapon' && (toOff || (EQ.picking && EQ.sel === 'off'))) { if (!isDagger(it.id) || !dualNow(h)) { toast('มือซ้ายใส่ได้เฉพาะมีด เมื่อเลือกสไตล์มีดสองข้าง'); return; } slot = 'off'; }
   if (slot === 'ring') slot = (EQ.sel === 'ring1' || EQ.sel === 'ring2') && EQ.picking ? EQ.sel : !h.eq.ring1 ? 'ring1' : !h.eq.ring2 ? 'ring2' : (EQ.sel === 'ring2' ? 'ring2' : 'ring1');
   const old = h.eq[slot];
   takeItem(k, 1);
-  if (slot === 'weapon' || slot === 'armor') {
+  if (slot === 'weapon' || slot === 'armor' || slot === 'off') {
     if (old && old.id) pushInv(h, Object.assign(gearItem(old.id), { r: old.r, o: old.o, v: old.v }), 1);
     h.eq[slot] = { id: it.id, r: it.r || 0, o: it.o || [], v: itemVar(it), cards: (old && old.cards) || [] };
   } else {
@@ -4532,8 +4546,9 @@ function equipGear(k) {
 }
 function unequipGear(slot) {
   const h = S.hero, old = h.eq[slot]; if (!old || !old.id) return;
-  if (!addItem(Object.assign(gearItem(old.id), { cards: slot === 'weapon' || slot === 'armor' ? [] : old.cards, r: old.r, o: old.o, v: old.v }), 1)) return;
-  h.eq[slot] = slot === 'weapon' || slot === 'armor' ? { cards: old.cards } : null; afterGear();
+  const keep = slot === 'weapon' || slot === 'armor' || slot === 'off';
+  if (!addItem(Object.assign(gearItem(old.id), { cards: keep ? [] : old.cards, r: old.r, o: old.o, v: old.v }), 1)) return;
+  h.eq[slot] = keep ? { cards: old.cards } : null; afterGear();
 }
 function sellItem(k, n) {
   const h = S.hero, it = h.inv.find((x) => x.k === k); if (!it) return;
@@ -4560,11 +4575,13 @@ function gotCard(c) {
 const EQ = { open: false, sel: 'weapon', invSel: null, pick: null, ang: 0.35, cv: null, drag: null };
 function slotInfo(h, key) {
   const w = weaponOf(h.job, h.wstyle), tier = JOBS[h.job].tier;
+  if (key === 'off' && h.eq.off && h.eq.off.id && dualNow(h)) { const s = h.eq.off, g = GEAR[s.id], b = itemBase(s), b2 = {}; for (const k2 in b) b2[k2] = Math.round(b[k2] * OFF_RATE);
+    return { ic: g.ic, nm: g.nm, ref: (h.ref && h.ref.off) || 0, r: s.r, b: b2, o: (s.o || []).map((op) => [op[0], Math.round(op[1] * OFF_RATE)]), item: true, note: 'มือซ้าย ได้ค่าพลัง 70% ใส่การ์ดอาวุธได้ 2 ใบ (ไม่นับเซ็ต)' }; }
   const it0 = (key === 'weapon' || key === 'armor') && h.eq[key] && h.eq[key].id ? h.eq[key] : null;
   if (it0) { const g = GEAR[it0.id]; return { ic: g.ic, nm: g.nm, ref: key === 'weapon' ? h.refineW : h.refineA, r: it0.r, b: itemBase(it0), o: it0.o, set: g.set, item: true, note: (key === 'weapon' ? 'ใส่การ์ดอาวุธได้ ' + sockets(h, 'weapon') + ' ใบ' : 'ใส่การ์ดเสื้อเกราะได้ 1 ใบ') + '  การ์ดอยู่กับช่อง ไม่หายเวลาเปลี่ยนอุปกรณ์' }; }
   if (key === 'weapon') return { ic: WICON[w], nm: (w === 'dual' ? WNAME.dual : WNAME[w]) + TIER_SFX[tier], ref: h.refineW, note: w === 'bow' || w === 'staff' || w === 'katar' || w === 'axe' ? 'อาวุธสองมือ ใส่การ์ดอาวุธได้ 2 ใบ' : w === 'dual' ? 'มีดมือขวา ใส่การ์ดอาวุธได้ 2 ใบ' : 'ใส่การ์ดอาวุธได้ 1 ใบ' };
   if (key === 'off') { const n = sockets(h, 'off'); if (!n) return { ic: '🚫', nm: 'ไม่ได้ใช้', empty: true, note: 'อาวุธสองมือ มือซ้ายจึงว่าง' };
-    return w === 'dual' ? { ic: '🗡️', nm: 'มีดมือซ้าย' + TIER_SFX[tier], note: 'มีดมือซ้าย ใส่การ์ดอาวุธได้ 2 ใบ' } : { ic: '🛡️', nm: 'โล่' + TIER_SFX[tier], note: 'ใส่การ์ดโล่ได้ 1 ใบ' }; }
+    return w === 'dual' ? { ic: '🗡️', nm: 'มีดมือซ้าย' + TIER_SFX[tier], ref: (h.ref && h.ref.off) || 0, note: 'มีดมือซ้าย ใส่การ์ดอาวุธได้ 2 ใบ ใส่มีดจากกระเป๋าได้ (ค่าพลัง 70%)' } : { ic: '🛡️', nm: 'โล่' + TIER_SFX[tier], note: 'ใส่การ์ดโล่ได้ 1 ใบ' }; }
   if (key === 'armor') return { ic: '👕', nm: 'ชุด' + jobName(h.job), ref: h.refineA, note: 'ใส่การ์ดเสื้อเกราะได้ 1 ใบ' };
   const s = h.eq[key];
   if (!s) return { ic: '', nm: 'ว่าง', empty: true, note: 'ซื้อได้ที่ร้าน แล้วกดสวมใส่จากกระเป๋า' };
@@ -4611,7 +4628,12 @@ function renderEquip() {
   right.append(el('button', { class: 'eqslot stat', onclick: () => { closeEquip(); openPanel('stats'); } }, el('span', { class: 'ei', text: '📊' }), el('small', { text: 'สถานะ' })));
   body.append(el('div', { class: 'eqmain' }, left,
     el('div', { class: 'eqcenter' }, EQ.cv, el('div', { class: 'eqname', text: h.name }), el('div', { class: 'eqjob', text: jobName(h.job) + '  Base ' + h.level + '  Job ' + h.jobLv }),
-      el('div', { class: 'eqmini' }, el('span', null, 'ATK ', el('b', { text: fmt(D.atk) })), el('span', null, 'MATK ', el('b', { text: fmt(D.matk) })), el('span', null, 'DEF ', el('b', { text: fmt(D.def) })))),
+      el('div', { class: 'eqmini' }, el('span', null, 'ATK ', el('b', { text: fmt(D.atk) })), el('span', null, 'MATK ', el('b', { text: fmt(D.matk) })), el('span', null, 'DEF ', el('b', { text: fmt(D.def) }))),
+      JOBS[h.job].weapon === 'dagger' ? (() => { const w = weaponOf(h.job, h.wstyle), setW = (ws) => { if (h.wstyle === ws) return; h.wstyle = ws; normalizeGear(h); P.D = derived(); S.dirty = true; drawAvatar(); renderEquip(); };
+        return el('div', { class: 'wstyle' }, el('div', { class: 'acts' },
+          el('button', { class: 'mini' + (w === 'dual' ? ' on' : ''), text: '🗡️ มีดสองข้าง', 'aria-pressed': String(w === 'dual'), onclick: () => setW('dual') }),
+          el('button', { class: 'mini' + (w === 'katar' ? ' on' : ''), text: '⚔️ คาตาร์', 'aria-pressed': String(w === 'katar'), onclick: () => setW('katar') })),
+          el('small', { text: w === 'dual' ? 'ตีสองครั้งต่อรอบ ใส่มีดได้ทั้งสองมือ การ์ดข้างละ 2 ใบ' : 'ตีครั้งเดียวแต่คริติคอลสูงกว่า ใส่การ์ดได้ 2 ใบ' })); })() : null),
     right));
   // selected slot detail
   const key = EQ.sel, inf = slotInfo(h, key), n = sockets(h, key), acc = accepts(h, key), det = el('div', { class: 'eqdet' });
@@ -4635,10 +4657,10 @@ function renderEquip() {
       }
     }
   }
-  const itemSlot = key === 'weapon' || key === 'armor';
-  if ((GEAR_SLOTS.includes(key) && h.eq[key]) || (itemSlot && h.eq[key].id)) det.append(el('div', { class: 'acts' }, el('button', { class: 'mini warn', text: itemSlot ? 'ถอด (กลับไปใช้ของอาชีพ)' : 'ถอดอุปกรณ์', onclick: () => unequipGear(key) })));
+  const itemSlot = key === 'weapon' || key === 'armor' || (key === 'off' && dualNow(h));
+  if ((GEAR_SLOTS.includes(key) && h.eq[key]) || (itemSlot && h.eq[key] && h.eq[key].id)) det.append(el('div', { class: 'acts' }, el('button', { class: 'mini warn', text: itemSlot ? 'ถอด (กลับไปใช้ของอาชีพ)' : 'ถอดอุปกรณ์', onclick: () => unequipGear(key) })));
   if (GEAR_SLOTS.includes(key) && !h.eq[key] || itemSlot) {
-    const owned = h.inv.filter((x) => x.kind === 'gear' && GEAR[x.id].slot === baseSlot(key) && canUse(h, x.id));
+    const owned = h.inv.filter((x) => x.kind === 'gear' && (key === 'off' ? isDagger(x.id) : GEAR[x.id].slot === baseSlot(key)) && canUse(h, x.id));
     if (owned.length) { const l = el('div', { class: 'picklist' }); for (const it of owned) l.append(el('button', { class: 'pickc', style: (it.r || 0) >= 1 ? 'border-color:' + rarCol(it.r) : null, onclick: () => { EQ.picking = true; equipGear(it.k); EQ.picking = false; } }, el('b', { style: (it.r || 0) >= 1 ? 'color:' + rarCol(it.r) : null, text: GEAR[it.id].ic + ' สวม' + it.nm + ((it.r || 0) >= 1 ? '  [' + RAR[it.r].nm + ']' : '') }), el('small', { text: bonusText(itemBase(it)) + (it.o && it.o.length ? '  ✦ ' + it.o.map((op) => bonusText({ [op[0]]: op[1] })).join('  ✦ ') : '') }))); det.append(l); }
   }
   body.append(det);
@@ -4677,12 +4699,13 @@ function renderEquip() {
       if (GEAR[it.id].gacha) idet.append(el('div', { class: 'meta', style: 'color:var(--bad);font-weight:700', text: (GEAR[it.id].uq ? '✦ Unique  ' : '') + 'ของจากตู้กาชา ไม่สามารถขายลงตลาดกลางได้' }));
     }
     else if (it.kind === 'ore') idet.append(el('div', { class: 'ds', text: 'วัสดุ' + ORE[it.id].use + ' ใช้ที่ช่างตีบวกในหมู่บ้าน' }));
-    else if (it.kind === 'key') { const dg = dgDef(it.dg); idet.append(el('div', { class: 'ds', text: 'ใช้เข้า ' + (dg ? dg.name + '  (Lv.' + dg.minLv + '+)' : 'ดันเจี้ยน') })); }
+    else if (it.kind === 'key') idet.append(el('div', { class: 'ds', text: 'ใช้เข้าดันเจี้ยนได้ทุกแห่ง 1 ดอกต่อการเข้า 1 ครั้ง ดรอปจากมอนทุกแผนที่' }));
     else idet.append(el('div', { class: 'ds', text: it.k === 'L:salt' ? 'ได้จากตู้กาชา ขายร้านค้าได้' : 'วัตถุดิบจากมอนสเตอร์ Lv ' + it.lv }));
     idet.append(el('div', { class: 'meta', text: 'ขายได้ ' + fmt(it.pr) + ' G' + (it.kind === 'gear' ? '' : ' ต่อชิ้น') }));
     idet.append(el('div', { class: 'acts' },
       it.kind === 'card' ? el('button', { class: 'mini pri', text: 'ใส่การ์ด', onclick: () => autoInsert(it.k) }) : null,
-      it.kind === 'gear' ? el('button', { class: 'mini pri', text: 'สวมใส่', disabled: !canUse(h, it.id), onclick: () => equipGear(it.k) }) : null,
+      it.kind === 'gear' ? el('button', { class: 'mini pri', text: isDagger(it.id) && dualNow(h) ? 'ใส่มือขวา' : 'สวมใส่', disabled: !canUse(h, it.id), onclick: () => equipGear(it.k) }) : null,
+      it.kind === 'gear' && isDagger(it.id) && dualNow(h) && canUse(h, it.id) ? el('button', { class: 'mini pri', text: 'ใส่มือซ้าย', onclick: () => equipGear(it.k, true) }) : null,
       mkSellable(it) ? el('button', { class: 'mini', text: '🏪 ลงขายตลาด', onclick: () => { closeEquip(); MK.tab = 'sell'; MK.pick = it.k; openPanel('market'); } }) : null,
       it.kind === 'key' ? el('button', { class: 'mini pri', text: 'ไปหน้าดันเจี้ยน', onclick: () => { closeEquip(); openPanel('dungeon'); } }) : null,
       el('button', { class: 'mini', text: 'ขาย 1', onclick: () => sellItem(it.k, 1) }),
@@ -5324,19 +5347,15 @@ function rollDgItem(dg, forceR) {
   const vs = varsOf(id);
   return Object.assign(gearItem(id), { r, o }, vs ? { v: vs[(Math.random() * vs.length) | 0] } : {});
 }
-function keyItem(dg) { return { k: 'K:' + dg.id, kind: 'key', nm: dg.keyName, dg: dg.id, ar: 'blob', pr: 40 * dg.diff, lv: dg.minLv, col: DIFF_COL[dg.diff] || '#ffd166' }; }
-function keyCount(id) { const it = S.hero.inv.find((x) => x.k === 'K:' + id); return it ? it.n : 0; }
+// one key opens every dungeon
+function keyItem() { return { k: 'K:any', kind: 'key', nm: 'กุญแจดันเจี้ยน', dg: 'any', ar: 'blob', pr: 200, lv: 1, col: '#ffd166' }; }
+function keyCount() { const it = S.hero.inv.find((x) => x.k === 'K:any'); return it ? it.n : 0; }
 function dropKeys(m, tpl) {
-  if (!W.map || W.map.dg) return;
-  for (const dg of CONFIG.dungeons) {
-    if (!dg.on || !dg.keyMaps.includes(W.map.id)) continue;
-    const n = tpl.boss ? 1 + (Math.random() < 0.5 ? 1 : 0) : (Math.random() * 100 < dg.keyChance * CONFIG.rates.drop ? 1 : 0);
-    if (!n) continue;
-    if (addItem(keyItem(dg), n)) {
-      addNum(m.x, m.y + 36, '+🗝️ ' + dg.keyName + (n > 1 ? ' x' + n : ''), '#ffe27a', 12, { font: 'th', dur: 1.8, pop: true });
-      toast('🗝️ ได้รับ' + dg.keyName + ' ใช้เข้า ' + dg.name); AU.sfx('card');
-    }
-  }
+  if (!W.map || W.map.dg || W.map.town || !CONFIG.dungeons.some((d) => d.on)) return;
+  const n = tpl.boss ? 1 + (Math.random() < 0.5 ? 1 : 0) : (Math.random() * 100 < CONFIG.keyChance * CONFIG.rates.drop ? 1 : 0);
+  if (!n || !addItem(keyItem(), n)) return;
+  addNum(m.x, m.y + 36, '+🗝️ กุญแจดันเจี้ยน' + (n > 1 ? ' x' + n : ''), '#ffe27a', 12, { font: 'th', dur: 1.8, pop: true });
+  toast('🗝️ ได้รับกุญแจดันเจี้ยน ใช้เข้าได้ทุกดันเจี้ยน'); AU.sfx('card');
 }
 
 /* ---------- instances ---------- */
@@ -5358,7 +5377,7 @@ function enterDungeon(id) {
     if (isDg()) { toast('ออกจากดันเจี้ยนปัจจุบันก่อน'); return; }
     if (!isLeader()) { toast('หัวหน้าปาร์ตี้ 👑 เป็นคนกดเข้าดันเจี้ยน รอหัวหน้าเรียก'); return; }
     if (h.level < dg.minLv) { toast('ต้องเลเวล ' + dg.minLv + ' ขึ้นไป'); return; }
-    if (keyCount(id) < 1) { toast('ต้องมี' + dg.keyName + ' 1 ดอก'); return; }
+    if (keyCount() < 1) { toast('ต้องมีกุญแจดันเจี้ยน 1 ดอก (ดรอปจากมอนทุกแผนที่)'); return; }
     const ps = partySize(), cp = CONFIG.party;
     if (ps < cp.min) { toast('ต้องมาเป็นปาร์ตี้ ' + cp.min + '–' + cp.max + ' คน (ตอนนี้ ' + ps + ' คนออนไลน์)'); return; }
     startReadyCheck(id); return;
@@ -5370,12 +5389,12 @@ function enterDungeonNow(id, fromCheck) {
   if (!dg || !dg.on) return;
   if (isDg()) { toast('ออกจากดันเจี้ยนปัจจุบันก่อน'); return; }
   if (h.level < dg.minLv) { toast('ต้องเลเวล ' + dg.minLv + ' ขึ้นไป'); return; }
-  if (keyCount(id) < 1) { toast('ต้องมี' + dg.keyName + ' 1 ดอก'); return; }
+  if (keyCount() < 1) { toast('ต้องมีกุญแจดันเจี้ยน 1 ดอก (ดรอปจากมอนทุกแผนที่)'); return; }
   const ps = partySize(), cp = CONFIG.party;
   if (ps < cp.min) { toast('ต้องมาเป็นปาร์ตี้ ' + cp.min + '–' + cp.max + ' คน (ตอนนี้ ' + ps + ' คนออนไลน์)'); return; }
   const inside = activeOthers().filter((o) => o.map === dgInstance(dg)).length;
   if (inside + 1 > cp.max) { toast('ห้องเต็มแล้ว สูงสุด ' + cp.max + ' คน'); return; }
-  takeItem('K:' + id, 1);
+  takeItem('K:any', 1);
   closeSheet(); setAuto(false);
   DG.ret = h.mapId;
   enterMap(null, true, dgMap(dg, dgInstance(dg)));
@@ -5586,7 +5605,7 @@ function panelDungeon(body) {
   body.append(el('p', { class: 'note', text: 'หัวหน้าปาร์ตี้ 👑 กดเข้า ระบบจะให้สมาชิกทุกคนกดยืนยัน ถ้ามีคนไม่มีกุญแจจะเข้าไม่ได้ ยืนยันครบแล้วทุกคนเข้าห้องพร้อมกัน แต่ละคนใช้กุญแจของตัวเอง 1 ดอก ทุกคนในปาร์ตี้เข้าห้องเดียวกัน บอสเลือดเพิ่มตามจำนวนคน ของดรอปสุ่มแยกให้ทุกคน อาวุธมี 6 แบบตามสายอาชีพ โอกาสเท่ากันทุกสาย ได้ไม่ตรงอาชีพก็ลงขายตลาดได้' }));
   for (const dg of CONFIG.dungeons) {
     if (!dg.on) continue;
-    const kc = keyCount(dg.id), low = h.level < dg.minLv, tot = dg.rar.reduce((a, b) => a + b, 0) || 1;
+    const kc = keyCount(), low = h.level < dg.minLv, tot = dg.rar.reduce((a, b) => a + b, 0) || 1;
     const chips = el('div', { class: 'rchips' });
     dg.rar.forEach((w, i) => { if (w > 0) chips.append(el('span', { class: 'rchip', style: '--rc:' + RAR[i + 1].col, text: RAR[i + 1].nm + ' ' + Math.round(w / tot * 100) + '%' })); });
     body.append(el('div', { class: 'dgcard', style: '--dc:' + DIFF_COL[dg.diff] },
@@ -5595,7 +5614,7 @@ function panelDungeon(body) {
       el('div', { class: 'meta', text: 'สกิลบอส: ' + dg.skills.map((s) => DG_SKILL_TH[s]).join(' · ') }),
       el('div', { class: 'meta', text: 'ดรอปชุด' + (DG_SETS[dg.id] ? DG_SETS[dg.id].nm : '') + ': อาวุธ 6 สายอาชีพ + คาตาร์ 35%  เกราะ 25%  รองเท้า 20%  แหวน 20%' }),
       chips,
-      el('div', { class: 'dgkey' }, el('span', { text: '🗝️ ' + dg.keyName + '  มี ' + kc + ' ดอก' }), el('small', { text: 'ดรอปที่: ' + dg.keyMaps.map(mapName).join(', ') + '  (มอน ' + dg.keyChance + '%, บอสแผนที่ 100%)' })),
+      el('div', { class: 'dgkey' }, el('span', { text: '🗝️ กุญแจดันเจี้ยน  มี ' + kc + ' ดอก' }), el('small', { text: 'ใช้ได้ทุกดันเจี้ยน ดรอปจากมอนทุกแผนที่ ' + CONFIG.keyChance + '% บอสแผนที่ 1–2 ดอก' })),
       el('button', { class: 'mini pri', text: low ? 'ต้อง Lv.' + dg.minLv : kc < 1 ? 'ไม่มีกุญแจ' : !okP ? 'ต้องมีปาร์ตี้ ' + cp.min + ' คนขึ้นไป' : hasMates() && !isLeader() ? 'รอหัวหน้าปาร์ตี้กดเข้า' : hasMates() ? '👑 เรียกปาร์ตี้เข้าดัน (ใช้กุญแจคนละ 1)' : 'เข้าดันเจี้ยน (ใช้กุญแจ 1)', disabled: low || kc < 1 || !okP || P.dead || (hasMates() && !isLeader()), onclick: () => enterDungeon(dg.id) })));
   }
 }
@@ -5615,7 +5634,7 @@ const mkStack = (it) => !!it && (it.kind === 'card' || it.kind === 'key' || it.k
 const mkSellable = (it) => !!it && ((it.kind === 'gear' && GEAR[it.id] && GEAR[it.id].dg) || mkStack(it));
 const mkN = (it) => (mkStack(it) ? Math.max(1, it.n | 0) : 1);
 const mkCol = (it) => (it.kind === 'card' ? '#d9a8ff' : it.kind === 'key' ? (it.col || '#ffd166') : it.kind === 'ore' ? (it.id === 'ori' ? '#5d8cff' : '#9fb3d8') : rarCol(it.r || 0));
-function mkUnit(it) { if (it.kind === 'ore') return 300; if (it.kind === 'key') { const dg = dgDef(it.dg); return 1000 * Math.pow((dg && dg.diff) || 1, 2); } if (it.kind === 'card') return Math.max(100, Math.round(it.pr * 5 / 100) * 100); return Math.max(100, Math.round(it.pr * 4 / 100) * 100); }
+function mkUnit(it) { if (it.kind === 'ore') return 300; if (it.kind === 'key') return 5000; if (it.kind === 'card') return Math.max(100, Math.round(it.pr * 5 / 100) * 100); return Math.max(100, Math.round(it.pr * 4 / 100) * 100); }
 function mkSanitize(d, id) {
   if (!d || typeof d !== 'object') return null;
   const it = sanitizeItem(d.it, true);
@@ -5713,9 +5732,9 @@ async function mkCancel(id) {
 /* ---------- panel ---------- */
 function mkItemInfo(h, it) {
   const xn = mkN(it) > 1 ? '  x' + mkN(it) : '';
-  if (it.kind === 'key') { const dg = dgDef(it.dg); return el('div', { class: 'grow' },
+  if (it.kind === 'key') return el('div', { class: 'grow' },
     el('div', { class: 'nm2', text: '🗝️ ' + it.nm + xn }), el('span', { class: 'rchip', style: '--rc:' + mkCol(it), text: 'กุญแจดันเจี้ยน' }),
-    el('div', { class: 'ds', text: 'ใช้เข้า ' + (dg ? dg.name + '  (Lv.' + dg.minLv + '+)' : 'ดันเจี้ยน') }), el('div', { class: 'meta', text: 'ใช้ 1 ดอกต่อการเข้า 1 ครั้ง' })); }
+    el('div', { class: 'ds', text: 'ใช้เข้าดันเจี้ยนได้ทุกแห่ง' }), el('div', { class: 'meta', text: 'ใช้ 1 ดอกต่อการเข้า 1 ครั้ง' }));
   if (it.kind === 'ore') return el('div', { class: 'grow' },
     el('div', { class: 'nm2', text: ORE[it.id].ic + ' ' + it.nm + xn }), el('span', { class: 'rchip', style: '--rc:' + mkCol(it), text: 'วัสดุตีบวก' }),
     el('div', { class: 'ds', text: ORE[it.id].use }), el('div', { class: 'meta', text: 'ใช้ที่ริว ช่างตีบวก กลางหมู่บ้าน' }));
@@ -5853,13 +5872,13 @@ function dropOres(m, tpl) {
 }
 
 /* ---------- refining at the young smith ---------- */
-const REF_SLOTS = ['weapon', 'ring1', 'ring2', 'armor', 'head', 'face', 'mouth', 'shoes', 'wings'];
-const oreOf = (slot) => (slot === 'weapon' || slot === 'ring1' || slot === 'ring2' ? 'ori' : 'elu');
+const REF_SLOTS = ['weapon', 'off', 'ring1', 'ring2', 'armor', 'head', 'face', 'mouth', 'shoes', 'wings'];
+const oreOf = (slot) => (slot === 'weapon' || slot === 'off' || slot === 'ring1' || slot === 'ring2' ? 'ori' : 'elu');
 const oreNeed = (target) => (target <= 3 ? 1 : target - 1);
-const REF_EFF = { weapon: 'ATK +5 ต่อขั้น', ring1: 'ATK/MATK +3 ต่อขั้น', ring2: 'ATK/MATK +3 ต่อขั้น', armor: 'DEF +3 และ HP +2% ต่อขั้น', head: 'DEF +1 ต่อขั้น', face: 'DEF +1 ต่อขั้น', mouth: 'DEF +1 ต่อขั้น', shoes: 'DEF +1 หลบ +1 ต่อขั้น', wings: 'DEF +1 HP +1% ต่อขั้น' };
+const REF_EFF = { off: 'ATK +4 ต่อขั้น (มือซ้าย)', weapon: 'ATK +5 ต่อขั้น', ring1: 'ATK/MATK +3 ต่อขั้น', ring2: 'ATK/MATK +3 ต่อขั้น', armor: 'DEF +3 และ HP +2% ต่อขั้น', head: 'DEF +1 ต่อขั้น', face: 'DEF +1 ต่อขั้น', mouth: 'DEF +1 ต่อขั้น', shoes: 'DEF +1 หลบ +1 ต่อขั้น', wings: 'DEF +1 HP +1% ต่อขั้น' };
 function getRef(h, slot) { return slot === 'weapon' ? h.refineW : slot === 'armor' ? h.refineA : (h.ref && h.ref[slot]) || 0; }
 function setRef(h, slot, v) { if (slot === 'weapon') h.refineW = v; else if (slot === 'armor') h.refineA = v; else { h.ref = h.ref || {}; h.ref[slot] = v; } }
-const canRefine = (h, slot) => slot === 'weapon' || slot === 'armor' || !!(h.eq && h.eq[slot]);
+const canRefine = (h, slot) => slot === 'weapon' || slot === 'armor' || (slot === 'off' ? dualNow(h) : !!(h.eq && h.eq[slot]));
 const refCost = (slot, r) => Math.max(1, Math.round(refineCost(oreOf(slot) === 'ori' ? 'w' : 'a', r) * (1 - ((P.D || derived()).discount || 0) / 100)));
 const REF = { busy: false };
 function refineSlot(slot) {
@@ -5888,6 +5907,7 @@ function panelSmith(body) {
   body.append(el('div', { class: 'npcsay' }, el('b', { text: 'ริว ช่างตีบวก' }), el('p', { text: 'อยากให้ตีบวกชิ้นไหนครับ อาวุธกับแหวนใช้ Oridecon ส่วนชุดเกราะ รองเท้า หมวก ปาก ใบหน้า และปีกใช้ Elunium ขั้น +1 ถึง +3 ใช้ก้อนเดียว ขั้นสูงขึ้นใช้มากขึ้น ถ้าพลาดของไม่หายนะครับ' })));
   body.append(el('div', { class: 'orebar' }, el('span', { text: '🔷 Oridecon x' + oreCount('ori') }), el('span', { text: '💎 Elunium x' + oreCount('elu') }), el('span', { text: '💰 ' + fmt(h.gold) + ' G' })));
   for (const slot of REF_SLOTS) {
+    if (slot === 'off' && !dualNow(h)) continue;
     const ok = canRefine(h, slot), r = getRef(h, slot), ore = oreOf(slot), need = oreNeed(r + 1), have = oreCount(ore), cost = refCost(slot, r);
     const inf = ok ? slotInfo(h, slot) : null, max = r >= 15;
     const enough = have >= need && h.gold >= cost;
@@ -6059,7 +6079,7 @@ function rcTick() {
   if (lr && lr[1]) {
     const [id, n, go, fail] = lr, dg = dgDef(id);
     if (!PARTY.myRc || PARTY.myRc.n !== n) {
-      const st = isDg() ? -4 : !dg ? -1 : S.hero.level < dg.minLv ? -3 : keyCount(id) < 1 ? -2 : 0;
+      const st = isDg() ? -4 : !dg ? -1 : S.hero.level < dg.minLv ? -3 : keyCount() < 1 ? -2 : 0;
       PARTY.myRc = { n, id, st, from: L.name }; AU.sfx('jobup');
     }
     const me = PARTY.myRc;
@@ -6852,13 +6872,7 @@ function panelShop(body) {
       el('div', { class: 'grow' }, el('div', { class: 'nm2', text: g.nm + '  (' + GEAR_TYPE_TH[g.slot] + ')' }), el('div', { class: 'ds', text: bonusText(g.b) })),
       el('button', { class: 'mini pri', text: fmt(price) + ' G', disabled: h.gold < price, onclick: () => { if (h.gold < price) return; if (!addItem(gearItem(id), 1)) return; h.gold -= price; AU.sfx('coin'); toast('ซื้อ' + g.nm + ' แล้ว ไปสวมที่หน้าตัวละคร'); renderSheet(); hudText(); } })));
   }
-  if (JOBS[h.job].weapon === 'dagger') {
-    body.append(el('div', { class: 'sub', text: 'อาวุธสายโจร' }));
-    body.append(el('p', { class: 'note', text: 'มีดสองข้างตีสองครั้งต่อรอบ ใส่การ์ดได้ข้างละ 2 ใบ ส่วนคาตาร์ตีครั้งเดียวแต่คริติคอลสูงกว่า ใส่การ์ดได้ 2 ใบ การ์ดที่เกินช่องจะกลับเข้ากระเป๋า' }));
-    body.append(el('div', { class: 'acts' },
-      el('button', { class: 'mini' + (w === 'dual' ? ' on' : ''), text: 'มีดสองข้าง', 'aria-pressed': String(w === 'dual'), onclick: () => { h.wstyle = 'dual'; normalizeGear(h); P.D = derived(); S.dirty = true; drawAvatar(); renderSheet(); } }),
-      el('button', { class: 'mini' + (w === 'katar' ? ' on' : ''), text: 'คาตาร์', 'aria-pressed': String(w === 'katar'), onclick: () => { h.wstyle = 'katar'; normalizeGear(h); P.D = derived(); S.dirty = true; drawAvatar(); renderSheet(); } })));
-  }
+
 }
 
 /* rank */
@@ -6929,7 +6943,7 @@ function panelGM(body) {
     el('div', { class: 'g3' },
       fNum('Base EXP', d.rates.bexp, (v) => { d.rates.bexp = v; }, 0.5), fNum('Job EXP', d.rates.jexp, (v) => { d.rates.jexp = v; }, 0.5),
       fNum('ทอง', d.rates.gold, (v) => { d.rates.gold = v; }, 0.5), fNum('ดรอปยา', d.rates.drop, (v) => { d.rates.drop = v; }, 0.5),
-      fNum('ตายเสีย EXP %', d.deathPenalty, (v) => { d.deathPenalty = v; }, 0.5), fNum('การ์ดดรอป %', d.cardChance, (v) => { d.cardChance = v; }, 0.1)),
+      fNum('ตายเสีย EXP %', d.deathPenalty, (v) => { d.deathPenalty = v; }, 0.5), fNum('การ์ดดรอป %', d.cardChance, (v) => { d.cardChance = v; }, 0.1), fNum('กุญแจดันเจี้ยนดรอป %', d.keyChance, (v) => { d.keyChance = Math.max(0, v); }, 0.1)),
     el('div', { class: 'acts' },
       el('button', { class: 'mini', text: 'อีเวนต์ EXP x2', onclick: () => { d.rates.bexp = 2; d.rates.jexp = 2; markDraft(); rebuildGM(); } }),
       el('button', { class: 'mini', text: 'คืนค่าปกติ', onclick: () => { d.rates = { bexp: 1, jexp: 1, gold: 1, drop: 1 }; markDraft(); rebuildGM(); } }))));
@@ -6959,7 +6973,6 @@ function panelGM(body) {
     dgSec.append(el('details', { class: 'box', 'data-k': 'dg_' + dg.id, open: !!gmOpen['dg_' + dg.id] }, el('summary', { text: '🏰 ' + dg.name + (dg.on ? '' : '  (ปิด)') }),
       el('div', { class: 'g2' }, fText('ชื่อดันเจี้ยน', dg.name, (v) => { dg.name = v; }, { max: 30 }), fText('ชื่อบอส', dg.boss, (v) => { dg.boss = v; }, { max: 30 })),
       el('div', { class: 'g3' }, fNum('เข้าได้ Lv', dg.minLv, (v) => { dg.minLv = Math.max(1, Math.round(v)); }), fNum('เลเวลบอส', dg.bossLv, (v) => { dg.bossLv = Math.max(1, Math.round(v)); }), fNum('คูณเลือดบอส', dg.hpMul, (v) => { dg.hpMul = Math.max(0.3, v); }, 0.5)),
-      el('div', { class: 'g2' }, fText('ชื่อกุญแจ', dg.keyName, (v) => { dg.keyName = v; }, { max: 30 }), fNum('กุญแจดรอปจากมอน %', dg.keyChance, (v) => { dg.keyChance = Math.max(0, v); }, 0.1)),
       el('div', { class: 'g2' }, ...['Epic', 'Legendary', 'Mythic', 'Ultimate'].map((nm, i) => fNum(nm, dg.rar[i], (v) => { dg.rar[i] = Math.max(0, v); }))),
       el('div', { class: 'acts' }, fCk('เปิดให้เข้า', dg.on, (v) => { dg.on = v; }))));
   }
