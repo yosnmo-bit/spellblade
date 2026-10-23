@@ -237,6 +237,11 @@ button:disabled{cursor:default}
 .lcol .bossrow{pointer-events:auto}
 .rcol{position:absolute;right:8px;top:8px;display:flex;flex-direction:column;align-items:flex-end;gap:4px;pointer-events:none;z-index:4}
 .rcol>*{pointer-events:auto}
+.buffbar{flex:1;min-width:0;display:flex;flex-wrap:wrap;gap:11px 5px;align-content:flex-start;margin-right:92px;padding:3px 0 0 2px;pointer-events:none}
+.bf{pointer-events:auto;position:relative;width:27px;height:27px;border-radius:50%;background:rgba(10,14,24,.78);border:2px solid var(--c,#fff);display:grid;place-items:center;font-size:.85rem;line-height:1;padding:0;box-shadow:0 0 6px color-mix(in srgb,var(--c,#fff) 55%,transparent)}
+.bf b{position:absolute;bottom:-9px;left:50%;transform:translateX(-50%);font:700 7px "Silkscreen",monospace;color:#fff;text-shadow:0 0 3px #000,0 0 2px #000;white-space:nowrap}
+.bf.low{animation:bfblink .8s steps(2) infinite}
+@keyframes bfblink{50%{opacity:.35}}
 .mmap{width:86px;border-radius:12px;overflow:hidden;border:1px solid rgba(255,255,255,.28);background:rgba(10,14,24,.72);box-shadow:0 2px 10px rgba(0,0,0,.35)}
 #mmCv{display:block;width:86px;height:132px;cursor:pointer;touch-action:none}
 .mmname{font-size:.58rem;line-height:1.3;color:#e7ecf5;text-align:center;padding:1px 4px 2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -447,6 +452,7 @@ details.box summary{font-weight:700;cursor:pointer}
           <div class="lv"><span id="bLv"></span><span class="thin bx"><i id="bxI"></i></span><span id="jLv"></span><span class="thin jx"><i id="jxI"></i></span></div>
         </div>
       </div>
+      <div class="buffbar" id="buffBar" aria-label="บัฟที่ทำงานอยู่"></div>
     </div>
     <div class="raidbar" id="raidBar" hidden><div class="rbtop"><b id="rbName"></b><span id="rbLv"></span><em id="rbSt"></em></div><div class="rbbar"><i class="rbtrail" id="rbTrail"></i><i class="rbfill" id="rbFill"></i><b id="rbPct"></b></div></div>
     <div class="lcol">
@@ -853,8 +859,8 @@ function MON(id, name, arch, color, lv, extra) {
 }
 
 const DEFAULT_CONFIG = {
-  version: '2.9.17',
-  patchNotes: 'อัปเดต 2.9.17: สายนักบวชช่วยปาร์ตี้ได้\n• แสงเยียวยา: ฮีลตัวเองหรือเพื่อนในปาร์ตี้ที่เลือดน้อยสุด\n• สกิลใหม่ Acolyte พรแห่งเทพ: ทุกสเตตัส +10 (Lv10) ทั้งปาร์ตี้ 120 วิ\n• พรวายุ: เพิ่มคริ +30 และบัฟให้ทั้งปาร์ตี้\n• มหาเยียวยา: ฮีลหมู่วงกว้าง 3 วิ เพื่อนที่ยืนในวงได้ฮีล\n• เกราะแห่งศรัทธา: บัฟให้ทั้งปาร์ตี้\n• สกิลใหม่ High Priest ชุบชีวิต: ฟื้นเพื่อนที่ล้มด้วย HP 60% คูลดาวน์ 3 วิ\n• ตายตอนมีเพื่อนในแผนที่ จะรอชุบชีวิต 12 วิ ก่อนกลับเมือง',
+  version: '2.9.18',
+  patchNotes: 'อัปเดต 2.9.18\n• แสดงบัฟที่ทำงานอยู่ด้านบนจอ ระหว่างกรอบตัวละครกับแผนที่ย่อ พร้อมเวลาที่เหลือ (กะพริบเมื่อเหลือไม่ถึง 10 วิ แตะเพื่อดูรายละเอียด)\n• (จาก 2.9.17) สายนักบวชฮีล บัฟ และชุบชีวิตเพื่อนในปาร์ตี้ได้',
   announcement: 'ยินดีต้อนรับสู่ช่วงทดสอบ! เจอบั๊กบอก GM ได้เลย',
   rates: { bexp: 1, jexp: 1, gold: 1, drop: 1 },
   deathPenalty: 1,
@@ -6216,7 +6222,7 @@ function hudText() {
   ds.hidden = h.statPts < 2; ds.textContent = h.statPts;
   dk.hidden = h.skillPts < 1; dk.textContent = h.skillPts;
   $('#btnJob').classList.toggle('glow', canJobChange(h));
-  renderPartyHud(); renderChatFeed(); renderChatDot(); renderBossBar(); renderOnlineDot();
+  renderPartyHud(); renderChatFeed(); renderChatDot(); renderBossBar(); renderOnlineDot(); renderBuffBar();
   $('#dotMenu').hidden = !(menuFolded() && (!$('#dotStat').hidden || !$('#dotSkill').hidden || !$('#dotOnline').hidden || $('#btnJob').classList.contains('glow')));
 }
 function hud() {
@@ -6279,6 +6285,25 @@ function setMenu(open, keep) {
 setMenu(lsGet('spellblade_menu') === '1', true);
 $('#menuTog').addEventListener('click', () => setMenu(menuFolded()));
 $('#sideMenu').addEventListener('click', (e) => { if (e.target.closest('.sbtn')) setTimeout(() => setMenu(false), 0); });
+// active buffs (own and from teammates), shown between the player plate and the minimap
+function renderBuffBar() {
+  const box = $('#buffBar'); if (!box) return;
+  const list = Object.keys(P.buffs).filter((id) => SKILLS[id] && P.buffs[id].until > W.t).sort((a, b) => P.buffs[a].until - P.buffs[b].until);
+  const sig = list.join(',');
+  if (sig !== box._sig) {
+    box._sig = sig; box.textContent = ''; box._t = {};
+    for (const id of list) {
+      const sk = SKILLS[id], t = el('b');
+      const b = el('button', { class: 'bf', 'aria-label': sk.name, onclick: () => {
+        const bf = P.buffs[id]; if (!bf) return;
+        const val = {}; for (const k in sk.b) val[k] = Math.round(sk.b[k] * bf.lv * 10) / 10;
+        toast(sk.icon + ' ' + sk.name + ' Lv' + bf.lv + ': ' + bonusText(val) + '  เหลือ ' + Math.ceil(bf.until - W.t) + ' วิ');
+      } }, el('span', { text: sk.icon }), t);
+      b.style.setProperty('--c', sk.color); box._t[id] = [t, b]; box.append(b);
+    }
+  }
+  for (const id of list) { const r = Math.max(0, Math.ceil(P.buffs[id].until - W.t)), [t, b] = box._t[id]; t.textContent = r >= 60 ? Math.floor(r / 60) + ':' + String(r % 60).padStart(2, '0') : r + 's'; b.classList.toggle('low', r <= 10); }
+}
 function hudLayout() {
   const g = $('#scrGame'), pl = g && g.querySelector('.plate'), rb = $('#raidBar'); if (!g || !pl || !pl.offsetHeight) return;
   const gt = g.getBoundingClientRect().top, pb = Math.ceil(pl.getBoundingClientRect().bottom - gt);
