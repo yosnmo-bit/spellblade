@@ -845,7 +845,7 @@ const DG_SETS = { slime: { nm: 'ราชาเมือก', t: 1 }, temple: { 
 const CS_TH = { weapon: 'อาวุธ', shield: 'โล่', armor: 'เสื้อเกราะ', head: 'หมวก', face: 'ใบหน้า', mouth: 'ปาก', shoes: 'รองเท้า', ring: 'แหวน' };
 const ARCH_CS = { blob: 'armor', shroom: 'head', beast: 'shoes', bat: 'face', plant: 'mouth', bones: 'weapon', ghost: 'shield', brute: 'weapon', drake: 'ring' };
 const THEME_LIST = ['grass', 'forest', 'sand', 'ruins', 'lava', 'beach'];
-const THEME_TH = { grass: 'ทุ่งหญ้า', forest: 'ป่า', sand: 'ทะเลทราย', ruins: 'ซากปรักหักพัง', lava: 'ลาวา' };
+const THEME_TH = { grass: 'ทุ่งหญ้า', forest: 'ป่า', sand: 'ทะเลทราย', ruins: 'ซากปรักหักพัง', lava: 'ลาวา', beach: 'ชายหาด (ทะเล เรือ)' };
 
 const monExp = (lv) => Math.round(4 * Math.pow(lv, 1.6) + 5);
 function monStats(lv, boss) {
@@ -865,8 +865,8 @@ function MON(id, name, arch, color, lv, extra) {
 }
 
 const DEFAULT_CONFIG = {
-  version: '2.9.25',
-  patchNotes: 'อัปเดต 2.9.25\n• ห้อง GM: แต่ละแผนที่มีปุ่มคูณ HP/ATK/DEF ของมอนปกติทั้งแผนที่ (ไม่รวมบอส) ใส่ตัวคูณได้\n• (จาก 2.9.24) ยาอัตโนมัติตั้ง % ได้ และคูลดาวน์ยาแยกชนิด',
+  version: '2.9.26',
+  patchNotes: 'อัปเดต 2.9.26\n• แก้อ่าวโจรสลัดที่ทะเลและเรือหายไป (กลับเป็นชายหาดแล้ว)\n• ห้อง GM: ช่องพื้นผิวมีตัวเลือก ชายหาด (ทะเล เรือ) แล้ว\n• (จาก 2.9.25) ปุ่มคูณค่าพลังมอนทั้งแผนที่ในห้อง GM',
   announcement: 'ยินดีต้อนรับสู่ช่วงทดสอบ! เจอบั๊กบอก GM ได้เลย',
   rates: { bexp: 1, jexp: 1, gold: 1, drop: 1 },
   deathPenalty: 1,
@@ -970,7 +970,7 @@ function sanitizeConfig(raw) {
     potion: { hp: int(raw.potion && raw.potion.hp, 30, 0, 1e9), sp: int(raw.potion && raw.potion.sp, 80, 0, 1e9), hpL: int(raw.potion && raw.potion.hpL, 1000, 0, 1e9), spL: int(raw.potion && raw.potion.spL, 1000, 0, 1e9), all: int(raw.potion && raw.potion.all, 10000, 0, 1e10) },
     jobNames: jn,
     ore: { ori: num((raw.ore || {}).ori, 1.2, 0, 100), elu: num((raw.ore || {}).elu, 1.5, 0, 100) },
-    jobMove: int(raw.jobMove, 250000, 0, 1e10), statReset: int(raw.statReset, 0, 0, 1e10),
+    jobMove: int(raw.jobMove, 250000, 0, 1e10), statReset: int(raw.statReset, 0, 0, 1e10), themeFix1: 1,
     mapSeen: [...new Set(mapSeen.concat(maps.map((m) => m && m.id).filter(Boolean)))].slice(0, 200),
     party: (() => { const p = raw.party || {}, mx = int(p.max, 6, 2, 12); return { min: Math.min(mx, int(p.min, 2, 1, 12)), max: mx }; })(),
     dungeons: DEFAULT_CONFIG.dungeons.map((d0) => {
@@ -996,7 +996,7 @@ function sanitizeConfig(raw) {
     maps: maps.slice(0, 20).map((m, i) => ({
       id: str(m && m.id, 'map' + i, 40),
       name: str(m && m.name, 'แผนที่ ' + (i + 1), 40),
-      theme: THEME_LIST.includes(m && m.theme) ? m.theme : 'grass',
+      theme: (m && m.id === 'cove' && !raw.themeFix1) ? 'beach' : THEME_LIST.includes(m && m.theme) ? m.theme : 'grass',
       min: int(m && m.min, 1, 1, 999), max: int(m && m.max, 99, 1, 999),
       count: int(m && m.count, 7, 1, 14),
       monsters: (m && Array.isArray(m.monsters) ? m.monsters : []).slice(0, 10).map((x, j) => ({
