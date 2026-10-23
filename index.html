@@ -891,8 +891,8 @@ function MON(id, name, arch, color, lv, extra) {
 }
 
 const DEFAULT_CONFIG = {
-  version: '2.9.30',
-  patchNotes: 'อัปเดต 2.9.30\n• กุญแจดันเจี้ยนเหลือแบบเดียว ใช้เข้าได้ทุกดัน ดรอปจากมอนทุกแผนที่ (กุญแจเก่ารวมเป็นกุญแจใหม่ให้อัตโนมัติ)\n• สายโจรมีดสองข้าง: ใส่มีดจากกระเป๋าที่มือซ้ายได้ (ค่าพลัง 70%) และตีบวกมือซ้ายได้ที่ริว\n• ปุ่มเลือกมีดสองข้าง/คาตาร์ ย้ายมาอยู่หน้าตัวละคร',
+  version: '2.9.31',
+  patchNotes: 'อัปเดต 2.9.31\n• การ์ดบอสแผนที่ดรอป 0.05%\n• การ์ดบอสดันเจี้ยน 0.1% ต่อการเคลียร์\n• (จาก 2.9.30) กุญแจดันเจี้ยนแบบเดียว มีดสองมือ',
   announcement: 'ยินดีต้อนรับสู่ช่วงทดสอบ! เจอบั๊กบอก GM ได้เลย',
   rates: { bexp: 1, jexp: 1, gold: 1, drop: 1 },
   deathPenalty: 1,
@@ -983,7 +983,7 @@ function sanitizeConfig(raw) {
   const c = {
     version: str(raw.version, DEFAULT_CONFIG.version, 20),
     patchNotes: txt(raw.patchNotes, 2000),
-    announcement: txt(raw.announcement, 300), keyChance: num(raw.keyChance, 0.6, 0, 100),
+    announcement: txt(raw.announcement, 300), keyChance: num(raw.keyChance, 0.6, 0, 100), bossCard: num(raw.bossCard, 0.05, 0, 100), dgBossCard: num(raw.dgBossCard, 0.1, 0, 100),
     announceAt: num(raw.announceAt, 0, 0, 1e15), reloadAt: num(raw.reloadAt, 0, 0, 1e15),
     rates: { bexp: num(r.bexp, 1, 0, 100), jexp: num(r.jexp, 1, 0, 100), gold: num(r.gold, 1, 0, 100), drop: num(r.drop, 1, 0, 100) },
     deathPenalty: num(raw.deathPenalty, 1, 0, 100),
@@ -1858,7 +1858,7 @@ function processKill(m, killer, ti) {
       else { h.potSp += tpl.boss ? 5 : 1; addNum(m.x, m.y + 8, '+ยาฟ้า', '#8fc0ff', 11, { font: 'th', dur: 1.2 }); }
     }
     if (Math.random() < Math.min(1, 0.35 * R.drop)) { const it = lootItem(tpl); if (addItem(it, 1)) addNum(m.x, m.y + 22, '+' + it.nm, '#d8e6ff', 10, { font: 'th', dur: 1.3 }); }
-    if (Math.random() * 100 < CONFIG.cardChance) { const c = cardItem(tpl); if (addItem(c, 1)) gotCard(c); }
+    if (!tpl.raid && Math.random() * 100 < (tpl.boss ? CONFIG.bossCard : CONFIG.cardChance)) { const c = cardItem(tpl); if (addItem(c, 1)) gotCard(c); }
     dropKeys(m, tpl); dropOres(m, tpl);
   } else addNum(P.x, P.y - 60, 'ปาร์ตี้ +' + fmt(b) + ' EXP', '#8dff9a', 10, { font: 'th', dur: 1.2 });
   gainExp(b, j);
@@ -5522,7 +5522,7 @@ function raidVictory(tpl) {
   const h = S.hero, got = [];
   const n = 1 + (Math.random() < 0.35 ? 1 : 0);
   for (let i = 0; i < n; i++) { const it = rollDgItem(dg); if (it && addItem(it, 1)) got.push(it); }
-  if (Math.random() * 100 < CONFIG.cardChance * 15) { const c = cardItem(tpl); if (addItem(c, 1)) got.push(c); }
+  if (Math.random() * 100 < CONFIG.dgBossCard) { const c = cardItem(tpl); if (addItem(c, 1)) got.push(c); }
   const g = Math.round(1500 * dg.diff * dg.diff * CONFIG.rates.gold); h.gold += g;
   const no = dg.diff + 1 + (Math.random() * 2 | 0); if (addItem(oreItem('ori'), no)) got.push(Object.assign(oreItem('ori'), { n: no })); if (addItem(oreItem('elu'), no)) got.push(Object.assign(oreItem('elu'), { n: no }));
   DG.loot = got;
@@ -6804,8 +6804,8 @@ function albumOwned(h) {
 function albumEntries() {
   const out = [], seen = new Set();
   const push = (tpl, where, how) => { const c = cardItem(tpl); if (seen.has(c.k)) return; seen.add(c.k); out.push({ c, tpl, where, how }); };
-  for (const m of CONFIG.maps) for (const t of m.monsters) push(t, m.name + '  (Lv ' + m.min + '–' + m.max + ')', t.boss ? 'บอสแผนที่ ดรอป ' + CONFIG.cardChance + '% ต่อการตีปิด' : 'ดรอป ' + CONFIG.cardChance + '% ต่อตัว');
-  for (const dg of CONFIG.dungeons) { if (!dg.on) continue; const dm = dgMap(dg, 'album'); for (const t of dm.monsters) push(t, '🏰 ' + dg.name + '  (Lv ' + dg.minLv + '+)', t.raid ? 'บอสดันเจี้ยน ได้ ' + Math.min(100, Math.round(CONFIG.cardChance * 15 * 10) / 10) + '% ต่อการเคลียร์' : 'ดรอป ' + CONFIG.cardChance + '% ต่อตัว'); }
+  for (const m of CONFIG.maps) for (const t of m.monsters) push(t, m.name + '  (Lv ' + m.min + '–' + m.max + ')', t.boss ? 'บอสแผนที่ ดรอป ' + CONFIG.bossCard + '% ต่อการตีปิด' : 'ดรอป ' + CONFIG.cardChance + '% ต่อตัว');
+  for (const dg of CONFIG.dungeons) { if (!dg.on) continue; const dm = dgMap(dg, 'album'); for (const t of dm.monsters) push(t, '🏰 ' + dg.name + '  (Lv ' + dg.minLv + '+)', t.raid ? 'บอสดันเจี้ยน ได้ ' + CONFIG.dgBossCard + '% ต่อการเคลียร์' : 'ดรอป ' + CONFIG.cardChance + '% ต่อตัว'); }
   return out;
 }
 function panelAlbum(body) {
@@ -6944,6 +6944,7 @@ function panelGM(body) {
       fNum('Base EXP', d.rates.bexp, (v) => { d.rates.bexp = v; }, 0.5), fNum('Job EXP', d.rates.jexp, (v) => { d.rates.jexp = v; }, 0.5),
       fNum('ทอง', d.rates.gold, (v) => { d.rates.gold = v; }, 0.5), fNum('ดรอปยา', d.rates.drop, (v) => { d.rates.drop = v; }, 0.5),
       fNum('ตายเสีย EXP %', d.deathPenalty, (v) => { d.deathPenalty = v; }, 0.5), fNum('การ์ดดรอป %', d.cardChance, (v) => { d.cardChance = v; }, 0.1), fNum('กุญแจดันเจี้ยนดรอป %', d.keyChance, (v) => { d.keyChance = Math.max(0, v); }, 0.1)),
+      el('div', { class: 'g2' }, fNum('การ์ดบอสแผนที่ %', d.bossCard, (v) => { d.bossCard = Math.max(0, v); }, 0.01), fNum('การ์ดบอสดันเจี้ยน % (ต่อการเคลียร์)', d.dgBossCard, (v) => { d.dgBossCard = Math.max(0, v); }, 0.01)),
     el('div', { class: 'acts' },
       el('button', { class: 'mini', text: 'อีเวนต์ EXP x2', onclick: () => { d.rates.bexp = 2; d.rates.jexp = 2; markDraft(); rebuildGM(); } }),
       el('button', { class: 'mini', text: 'คืนค่าปกติ', onclick: () => { d.rates = { bexp: 1, jexp: 1, gold: 1, drop: 1 }; markDraft(); rebuildGM(); } }))));
