@@ -110,8 +110,9 @@ button:disabled{cursor:default}
 .pots{display:flex;flex-direction:column;gap:6px}
 .pot{position:relative;width:44px;height:44px;border-radius:12px;border:1px solid rgba(255,255,255,.18);background:rgba(10,14,24,.66);font-size:1.2rem;padding:0}
 .pot b{position:absolute;right:3px;bottom:2px;font:700 8px "Silkscreen",monospace;color:#fff}
-.pot.blue{filter:hue-rotate(200deg)}
-.pot.blue b{filter:hue-rotate(-200deg)}
+.pot.blue span{display:inline-block;filter:hue-rotate(200deg)}
+.pot.big{border-color:color-mix(in srgb,var(--pc,#e2484f) 70%,transparent);background:color-mix(in srgb,var(--pc,#e2484f) 22%,rgba(10,14,24,.7))}
+.pot.empty span{opacity:.4}
 .skills{flex:1;display:grid;grid-template-columns:repeat(4,1fr);gap:5px}
 .sk.potk{background:color-mix(in srgb,var(--c) 26%,rgba(10,14,24,.72));border-color:color-mix(in srgb,var(--c) 70%,transparent)}
 .sk.potk.nosp{opacity:.45}
@@ -472,8 +473,8 @@ details.box summary{font-weight:700;cursor:pointer}
     <div class="hud-bottom">
       <div class="pots">
         <button class="pot" id="chatBtn" aria-label="แชท">💬<span class="dot" id="dotChat" hidden></span></button>
-        <button class="pot" id="potHp" aria-label="ยาแดง">🧪<b id="potHpN">0</b></button>
-        <button class="pot blue" id="potSp" aria-label="ยาฟ้า">🧪<b id="potSpN">0</b></button>
+        <button class="pot" id="potHp" aria-label="ปุ่มยา 1"><span id="potHpI">🧪</span><b id="potHpN">0</b></button>
+        <button class="pot blue" id="potSp" aria-label="ปุ่มยา 2"><span id="potSpI">🧪</span><b id="potSpN">0</b></button>
       </div>
       <div class="skills" id="hotbar"></div>
       <button class="auto" id="autoBtn" aria-pressed="false">AUTO<span class="dot" id="autoDot" hidden></span></button>
@@ -846,8 +847,8 @@ function MON(id, name, arch, color, lv, extra) {
 }
 
 const DEFAULT_CONFIG = {
-  version: '2.9.8',
-  patchNotes: 'อัปเดต 2.9.8\n• High Wizard: จิตอนันต์ เปลี่ยนจากความเร็วตี +2%/Lv เป็นลดคูลดาวน์สกิล 2%/Lv (Lv10 = 20%)\n• DEX: นอกจากความแม่นยำและพลังธนู ยังลดคูลดาวน์สกิล 0.15% ต่อแต้ม (DEX 99 ประมาณ 15%)\n• ลดคูลดาวน์รวมสูงสุด 60% ดูค่าได้ที่หน้าสถานะ\n• (จาก 2.9.7) ช่องสกิล 8 ช่อง ยาขวดใหญ่ ยาพิเศษ คาตาร์ดันเจี้ยน',
+  version: '2.9.9',
+  patchNotes: 'อัปเดต 2.9.9\n• ยาทุกชนิด (ขวดเล็ก ขวดใหญ่ ยาพิเศษ) แสดงในกระเป๋าแล้ว และไม่กินช่องกระเป๋า\n• แตะยาในกระเป๋า กด 📌 ตั้งเป็นปุ่มยาหลัก 1 (บน) หรือ 2 (ล่าง) ด้านซ้ายจอ แทนยาขวดเล็กได้\n• ขายยาคืนร้านได้ครึ่งราคา ต้องกดขายเอง (ปุ่มขายวัตถุดิบทั้งหมดไม่แตะยา)\n• (จาก 2.9.8) จิตอนันต์ลดคูลดาวน์ 20% และ DEX ลดคูลดาวน์สกิล',
   announcement: 'ยินดีต้อนรับสู่ช่วงทดสอบ! เจอบั๊กบอก GM ได้เลย',
   rates: { bexp: 1, jexp: 1, gold: 1, drop: 1 },
   deathPenalty: 1,
@@ -1517,7 +1518,7 @@ function canJobChange(h) {
 
 function newHero(name, look) {
   return { name, look, job: 'novice', level: 1, exp: 0, jobLv: 1, jobExp: 0, stats: { str: 1, agi: 1, vit: 1, int: 1, dex: 1, luk: 1 },
-    statPts: 48, skillPts: 0, skills: {}, hotbar: ['', '', '', '', '', '', '', ''], gold: 200, refineW: 0, refineA: 0, potHp: 10, potSp: 3, potHpL: 0, potSpL: 0, potAll: 0,
+    statPts: 48, skillPts: 0, skills: {}, hotbar: ['', '', '', '', '', '', '', ''], gold: 200, refineW: 0, refineA: 0, potHp: 10, potSp: 3, potHpL: 0, potSpL: 0, potAll: 0, potBtn: ['hp', 'sp'],
     mapId: 'village', kills: 0, wstyle: 'dual', gmStamp: 0, inv: [], eq: null, ref: {} };
 }
 function sanitizeHero(d) {
@@ -1531,6 +1532,7 @@ function sanitizeHero(d) {
     stats: {}, statPts: 0, skillPts: 0, skills: {}, hotbar: ['', '', '', '', '', '', '', ''],
     gold: int(d.gold, 0, 0, 1e13), refineW: int(d.refineW, 0, 0, 15), refineA: int(d.refineA, 0, 0, 15),
     potHp: int(d.potHp, 0, 0, 99999), potSp: int(d.potSp, 0, 0, 99999), potHpL: int(d.potHpL, 0, 0, 99999), potSpL: int(d.potSpL, 0, 0, 99999), potAll: int(d.potAll, 0, 0, 99999),
+    potBtn: [0, 1].map((i) => { const v = Array.isArray(d.potBtn) ? d.potBtn[i] : null; return typeof v === 'string' && ['hp', 'sp', 'hpL', 'spL', 'all'].includes(v) ? v : ['hp', 'sp'][i]; }),
     mapId: typeof d.mapId === 'string' ? d.mapId.slice(0, 40) : '', kills: int(d.kills, 0, 0, 1e12),
     wstyle: d.wstyle === 'katar' ? 'katar' : 'dual', gmStamp: num(d.gmStamp, 0, 0, 1e15),
     mkDone: (Array.isArray(d.mkDone) ? d.mkDone : []).filter((x) => typeof x === 'string').map((x) => x.slice(0, 40)).slice(-80),
@@ -1950,6 +1952,13 @@ const POT = {
   spL: { f: 'potSpL', nm: 'ยาฟ้าขวดใหญ่', sp: 0.75, ic: '🫙', col: '#2a6fd0', ds: 'ฟื้น SP 75%' },
   all: { f: 'potAll', nm: 'ยาพิเศษ', hp: 1, sp: 1, ic: '✨', col: '#e0a920', ds: 'ฟื้น HP และ SP เต็ม 100%' }
 };
+const potSell = (kind) => Math.max(1, Math.floor((CONFIG.potion[kind] || 0) / 2));
+function sellPot(kind, n) {
+  const h = S.hero, pt = POT[kind]; if (!pt) return;
+  n = Math.min(n, h[pt.f] || 0); if (n <= 0) return;
+  const g = potSell(kind) * n; h[pt.f] -= n; h.gold += g; S.dirty = true;
+  AU.sfx('coin'); toast('ขาย' + pt.nm + ' ' + n + ' ขวด ได้ ' + fmt(g) + ' G'); hudText(); renderHotbar(); renderEquip();
+}
 function usePot(kind, quiet) {
   const h = S.hero, D = P.D, pt = POT[kind];
   if (!pt || P.dead || W.t < P.potT) return false;
@@ -2253,7 +2262,7 @@ window.addEventListener('resize', resize);
 function heroDoc() {
   const h = S.hero;
   return { name: h.name, look: h.look, job: h.job, level: h.level, exp: h.exp, jobLv: h.jobLv, jobExp: h.jobExp, stats: h.stats,
-    skills: h.skills, hotbar: h.hotbar, gold: h.gold, refineW: h.refineW, refineA: h.refineA, potHp: h.potHp, potSp: h.potSp, potHpL: h.potHpL || 0, potSpL: h.potSpL || 0, potAll: h.potAll || 0,
+    skills: h.skills, hotbar: h.hotbar, gold: h.gold, refineW: h.refineW, refineA: h.refineA, potHp: h.potHp, potSp: h.potSp, potHpL: h.potHpL || 0, potSpL: h.potSpL || 0, potAll: h.potAll || 0, potBtn: h.potBtn || ['hp', 'sp'],
     mapId: h.mapId, kills: h.kills, wstyle: h.wstyle, gmStamp: h.gmStamp || 0, inv: h.inv, eq: h.eq, mkDone: h.mkDone || [], ref: h.ref || {}, updatedAt: Date.now() };
 }
 function saveLocal() { if (S.hero) lsSet(LS_SAVE + (S.uid || ''), JSON.stringify(heroDoc())); }
@@ -4483,13 +4492,26 @@ function renderEquip() {
   }
   body.append(det);
   // inventory
-  const tiles = [{ k: 'P:hp', icon: '🧪', n: h.potHp, nm: 'ยาแดง' }, { k: 'P:sp', icon: '🧪', n: h.potSp, nm: 'ยาฟ้า', blue: true }];
+  const tiles = Object.keys(POT).filter((kd) => kd === 'hp' || kd === 'sp' || (h[POT[kd].f] || 0) > 0).map((kd) => ({ k: 'P:' + kd, pot: kd, icon: POT[kd].ic, n: h[POT[kd].f] || 0, nm: POT[kd].nm, blue: kd === 'sp' }));
   for (const it of h.inv) tiles.push({ k: it.k, icon: it.kind === 'card' ? '🃏' : it.kind === 'gear' ? GEAR[it.id].ic : it.kind === 'key' ? '🗝️' : it.kind === 'ore' ? ORE[it.id].ic : (ARCH_ICON[it.ar] || '📦'), n: it.n, nm: it.nm, it });
   body.append(el('div', { class: 'sub', id: 'eqInv', text: 'กระเป๋า ' + h.inv.length + '/' + INV_MAX }));
   const sel = tiles.find((t) => t.k === EQ.invSel), idet = el('div', { class: 'invdet' });
   if (!sel) idet.append(el('p', { class: 'note', style: 'margin:0', text: 'แตะไอเทมเพื่อดูรายละเอียด การ์ดดรอปจากมอนทุกตัว ' + CONFIG.cardChance + '% และแต่ละใบใส่ได้เฉพาะช่องของมัน' }));
-  else if (!sel.it) idet.append(el('div', { class: 'nm2', text: sel.nm + '  x' + sel.n }), el('div', { class: 'ds', text: sel.k === 'P:hp' ? 'ฟื้น HP 30%' : 'ฟื้น SP 30%' }),
-    el('div', { class: 'acts' }, el('button', { class: 'mini pri', text: 'ใช้', disabled: !sel.n, onclick: () => { usePot(sel.k === 'P:hp' ? 'hp' : 'sp'); renderEquip(); } })));
+  else if (!sel.it) {
+    const kd = sel.pot, pt = POT[kd], btn = h.potBtn || ['hp', 'sp'];
+    const setBtn = (i) => { h.potBtn = btn.slice(); h.potBtn[i] = kd; S.dirty = true; save(); hudText(); renderEquip(); toast('ตั้ง' + pt.nm + 'เป็นปุ่มยาหลัก ' + (i + 1) + ' แล้ว'); };
+    idet.append(el('div', { class: 'nm2', text: sel.icon + ' ' + sel.nm + '  x' + sel.n }), el('div', { class: 'ds', text: pt.ds }),
+      el('div', { class: 'meta', text: 'ขายคืนได้ขวดละ ' + fmt(potSell(kd)) + ' G (ต้องกดขายเอง ปุ่มขายรวมไม่แตะยา)' + (btn.includes(kd) ? '  ✓ อยู่ที่ปุ่มยาหลัก ' + (btn.indexOf(kd) + 1) : '') }),
+      el('div', { class: 'acts' },
+        el('button', { class: 'mini pri', text: 'ใช้', disabled: !sel.n, onclick: () => { usePot(kd); hudText(); renderEquip(); } }),
+        el('button', { class: 'mini' + (btn[0] === kd ? ' on' : ''), text: '📌 ปุ่มยาหลัก 1 (บน)', disabled: btn[0] === kd, onclick: () => setBtn(0) }),
+        el('button', { class: 'mini' + (btn[1] === kd ? ' on' : ''), text: '📌 ปุ่มยาหลัก 2 (ล่าง)', disabled: btn[1] === kd, onclick: () => setBtn(1) })),
+      el('div', { class: 'acts' },
+        el('button', { class: 'mini', text: 'ขาย 1', disabled: !sel.n, onclick: () => sellPot(kd, 1) }),
+        el('button', { class: 'mini', text: 'ขาย 10', disabled: sel.n < 10, onclick: () => sellPot(kd, 10) }),
+        el('button', { class: 'mini warn', text: 'ขายทั้งหมด', disabled: !sel.n })));
+    const all = idet.lastChild.lastChild; twoStep(all, 'ขายทั้งหมด', 'แตะอีกครั้ง ขาย ' + sel.n + ' ขวด', () => sellPot(kd, sel.n));
+  }
   else {
     const it = sel.it;
     idet.append(el('div', { class: 'nm2', style: (it.r || 0) >= 1 ? 'color:' + rarCol(it.r) : null, text: sel.icon + ' ' + it.nm + (it.kind === 'gear' ? '' : '  x' + it.n) }));
@@ -6104,7 +6126,12 @@ function hudText() {
   $('#hpT').textContent = fmt(P.hp) + ' / ' + fmt(D.maxHp); $('#spT').textContent = fmt(P.sp) + ' / ' + fmt(D.maxSp);
   $('#bLv').textContent = 'BASE ' + h.level; $('#jLv').textContent = 'JOB ' + h.jobLv;
   $('#goldT').textContent = fmt(h.gold) + ' G';
-  $('#potHpN').textContent = h.potHp; $('#potSpN').textContent = h.potSp;
+  [['#potHp', 0], ['#potSp', 1]].forEach(([sel, i]) => {
+    const kind = (h.potBtn || ['hp', 'sp'])[i], pt = POT[kind], b = $(sel), n = h[pt.f] || 0;
+    $(sel + 'I').textContent = pt.ic; $(sel + 'N').textContent = n;
+    b.classList.toggle('blue', kind === 'sp'); b.classList.toggle('big', kind !== 'hp' && kind !== 'sp'); b.classList.toggle('empty', n <= 0);
+    b.style.setProperty('--pc', pt.col); b.setAttribute('aria-label', pt.nm + ' ' + n);
+  });
   for (const it of S.hb || []) if (it.pot) { const n = h[POT[it.pot].f] || 0; it.cnt.textContent = String(n); it.b.classList.toggle('nosp', n <= 0); }
   const ds = $('#dotStat'), dk = $('#dotSkill');
   ds.hidden = h.statPts < 2; ds.textContent = h.statPts;
@@ -6158,7 +6185,7 @@ function panelAuto(body) {
   body.append(el('div', { class: 'acts' }, el('button', { class: 'mini', text: 'ตีทุกตัว', onclick: () => start(null) }),
     el('button', { class: 'mini pri', text: n ? 'ตีเฉพาะที่เลือก (' + n + ')' : 'เลือกอย่างน้อย 1 ชนิด', disabled: !n, onclick: () => start([...autoPick.set]) })));
 }
-$('#potHp').addEventListener('click', () => usePot('hp'));
+$('#potHp').addEventListener('click', () => { usePot((S.hero.potBtn || ['hp'])[0]); hudText(); });
 $('#chatBtn').addEventListener('click', () => openPanel('chat'));
 $('#avatar').addEventListener('click', () => openEquip('eq'));
 function hudLayout() {
@@ -6174,7 +6201,7 @@ $('#dgExit').addEventListener('click', () => leaveDungeon());
 $('#rwExit').addEventListener('click', () => leaveDungeon());
 $('#rwBag').addEventListener('click', () => { $('#raidWin').hidden = true; openEquip('bag'); });
 $('#hName').addEventListener('click', () => openEquip('eq'));
-$('#potSp').addEventListener('click', () => usePot('sp'));
+$('#potSp').addEventListener('click', () => { usePot((S.hero.potBtn || ['hp', 'sp'])[1]); hudText(); });
 document.querySelectorAll('.sbtn').forEach((b) => b.addEventListener('click', () => openPanel(b.dataset.panel)));
 $('#world').addEventListener('pointerdown', (e) => {
   if (!S.hero || P.dead) return;
