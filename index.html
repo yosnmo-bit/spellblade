@@ -773,7 +773,7 @@ defSkill('ac_bless', 'acolyte', 'พรแห่งแสง', '🙏', 'buff', {
 defSkill('ac_divine', 'acolyte', 'พรแห่งเทพ', '👼', 'buff', { party: 1, b: { str: 1, agi: 1, vit: 1, int: 1, dex: 1, luk: 1 }, dur: 120, sp: [30, 2], cd: 120, color: '#fff3b0' });
 defSkill('pr_smite', 'priest', 'แสงพิพากษา', '☀️', 'aoe', { dmg: 'magic', m: [1.5, 0.25], r: 110, hits: 3, sp: [20, 1.5], cd: 4, color: '#fff6c2', fx: 'pillars' });
 defSkill('pr_grace', 'priest', 'พรวายุ', '🍃', 'buff', { party: 1, b: { aspd: 3, flee: 2, crit: 3 }, dur: 120, sp: [20, 1], cd: 120, color: '#c8f7ff' });
-defSkill('pr_mend', 'priest', 'มหาเยียวยา', '💖', 'heal', { zone: { r: 130, dur: 3 }, h: [0.2, 0.04], sp: [25, 2], cd: 6, color: '#9df5b5' });
+defSkill('pr_mend', 'priest', 'มหาเยียวยา', '💖', 'heal', { zone: { r: 130, dur: 3 }, h: [0.2, 0.05], sp: [25, 2], cd: 6, color: '#9df5b5' });
 defSkill('hp_nova', 'highpriest', 'ดาราศักดิ์สิทธิ์', '🌟', 'aoe', { dmg: 'magic', m: [3.0, 0.4], r: 140, hits: 4, sp: [35, 2.5], cd: 5, color: '#fffbe0', fx: 'pillars' });
 defSkill('hp_res', 'highpriest', 'ชุบชีวิต', '🕊️', 'res', { maxLv: 1, sp: [60, 0], cd: 3, color: '#fffbe6' });
 defSkill('hp_lance', 'highpriest', 'หอกแสงสวรรค์', '🔱', 'atk', { dmg: 'magic', m: [4.0, 0.6], hits: 3, sp: [25, 2], cd: 3, color: '#ffe9a0', fx: 'pillar' });
@@ -859,8 +859,8 @@ function MON(id, name, arch, color, lv, extra) {
 }
 
 const DEFAULT_CONFIG = {
-  version: '2.9.18',
-  patchNotes: 'อัปเดต 2.9.18\n• แสดงบัฟที่ทำงานอยู่ด้านบนจอ ระหว่างกรอบตัวละครกับแผนที่ย่อ พร้อมเวลาที่เหลือ (กะพริบเมื่อเหลือไม่ถึง 10 วิ แตะเพื่อดูรายละเอียด)\n• (จาก 2.9.17) สายนักบวชฮีล บัฟ และชุบชีวิตเพื่อนในปาร์ตี้ได้',
+  version: '2.9.19',
+  patchNotes: 'อัปเดต 2.9.19\n• แสงเยียวยา: ฮีลเพื่อนคิดจาก HP สูงสุดของผู้ใช้สกิล + พลังเวท\n• มหาเยียวยา: Lv10 ฟื้น 60% เป็น 70%\n• (จาก 2.9.18) แถบบัฟด้านบนจอ',
   announcement: 'ยินดีต้อนรับสู่ช่วงทดสอบ! เจอบั๊กบอก GM ได้เลย',
   rates: { bexp: 1, jexp: 1, gold: 1, drop: 1 },
   deathPenalty: 1,
@@ -1927,7 +1927,7 @@ function healZone(sk, pct, flat) {
 // a teammate's support arriving on this client
 function applySup(e, from) {
   const [, , type, a, b] = e, D = P.D || derived();
-  if (type === 'h') { if (!P.dead) { const amt = Math.round(D.maxHp * clamp(a, 0, 1) + clamp(b, 0, 1e5)); P.hp = Math.min(D.maxHp, P.hp + amt); addNum(P.x, P.y - 54, '+' + fmt(amt), '#7dff9a', 15); addFx({ kind: 'heal', x: P.x, y: P.y, color: '#8ff0a4', dur: 0.9 }); } }
+  if (type === 'h') { if (!P.dead) { const amt = Math.round(D.maxHp * clamp(a, 0, 1) + clamp(b, 0, 1e6)); P.hp = Math.min(D.maxHp, P.hp + amt); addNum(P.x, P.y - 54, '+' + fmt(amt), '#7dff9a', 15); addFx({ kind: 'heal', x: P.x, y: P.y, color: '#8ff0a4', dur: 0.9 }); } }
   else if (type === 'b') { const sk = SKILLS[a]; if (sk && sk.type === 'buff' && sk.party && !P.dead) { P.buffs[a] = { until: W.t + sk.dur, lv: clamp(b | 0, 1, sk.maxLv) }; addNum(P.x, P.y - 66, sk.icon + ' ' + sk.name, sk.color, 12, { font: 'th', dur: 1.4 }); addFx({ kind: 'ring', x: P.x, y: P.y, r: 40, color: sk.color, dur: 0.6 }); P.D = derived(); } }
   else if (type === 'r') { if (P.dead) reviveBy(clamp(a, 0.1, 1), from.name); }
   S.dirty = true;
@@ -1992,7 +1992,7 @@ function castSkill(id, fromQueue) {
     if (sk.zone) healZone(sk, pct, flat);
     else {
       const mate = sk.party ? healTarget() : null;
-      if (mate) { sendSup(mate, 'h', [pct, flat]); addFx({ kind: 'heal', x: mate.x, y: mate.y, color: sk.color, dur: 0.9 }); addNum(mate.x, mate.y - 54, 'ฮีล', '#7dff9a', 13, { font: 'th' }); }
+      if (mate) { const amt = Math.round(D.maxHp * pct + flat); sendSup(mate, 'h', [0, amt]); addFx({ kind: 'heal', x: mate.x, y: mate.y, color: sk.color, dur: 0.9 }); addNum(mate.x, mate.y - 54, '+' + fmt(amt), '#7dff9a', 14); }
       else healSelf(pct, flat, sk.color);
     }
   } else if (sk.type === 'buff') {
@@ -4679,7 +4679,7 @@ function readPresence(p) {
     rj: (Array.isArray(pr.rj) ? pr.rj : []).filter((x) => typeof x === 'string').slice(0, 8).map((x) => x.slice(0, 40)),
     rc: Array.isArray(pr.rc) ? [String(pr.rc[0] || '').slice(0, 20), String(pr.rc[1] || '').slice(0, 12), pr.rc[2] ? 1 : 0, String(pr.rc[3] || '').slice(0, 80)] : null,
     ra: Array.isArray(pr.ra) ? [String(pr.ra[0] || '').slice(0, 12), int(pr.ra[1], 0, -9, 9)] : null,
-    sup: (Array.isArray(pr.sup) ? pr.sup : []).slice(-12).filter((e) => Array.isArray(e) && typeof e[0] === 'string' && typeof e[1] === 'string' && ['h', 'b', 'r'].includes(e[2])).map((e) => [e[0].slice(0, 12), e[1].slice(0, 40), e[2], e[2] === 'b' ? String(e[3]).slice(0, 20) : num(e[3], 0, 0, 1), num(e[4], 0, 0, 1e5)]),
+    sup: (Array.isArray(pr.sup) ? pr.sup : []).slice(-12).filter((e) => Array.isArray(e) && typeof e[0] === 'string' && typeof e[1] === 'string' && ['h', 'b', 'r'].includes(e[2])).map((e) => [e[0].slice(0, 12), e[1].slice(0, 40), e[2], e[2] === 'b' ? String(e[3]).slice(0, 20) : num(e[3], 0, 0, 1), num(e[4], 0, 0, 1e6)]),
     eqv: (() => { const a = Array.isArray(pr.ev) ? pr.ev : [], g = (x, sl) => (typeof x === 'string' && GEAR[x] && GEAR[x].slot === sl ? x : null); return { head: g(a[0], 'head'), face: g(a[1], 'face'), mouth: g(a[2], 'mouth'), wings: g(a[3], 'wings') }; })()
   };
 }
@@ -6025,7 +6025,7 @@ function skillDesc(sk, lv) {
   switch (sk.type) {
     case 'atk': return (sk.dmg === 'magic' ? 'เวทโจมตี ' : 'โจมตี ') + pct(sk.m[0] + sk.m[1] * lv) + (sk.hits > 1 ? ' (' + sk.hits + ' ครั้ง)' : '') + (sk.crit ? ' คริติคอลแน่นอน' : '');
     case 'aoe': return (sk.dmg === 'magic' ? 'เวทวงกว้าง ' : 'โจมตีวงกว้าง ') + pct(sk.m[0] + sk.m[1] * lv) + (sk.self ? ' รอบตัว' : ' รอบเป้าหมาย');
-    case 'heal': return 'ฟื้น HP ' + pct(sk.h[0] + sk.h[1] * lv) + ' + ตามพลังเวท' + (sk.zone ? ' ฮีลหมู่วงกว้าง ' + sk.zone.dur + ' วิ (ตัวเองและเพื่อนที่ยืนในวง)' : sk.party ? ' (ตัวเองหรือเพื่อนในปาร์ตี้ที่เลือดน้อยสุด)' : '');
+    case 'heal': return 'ฟื้น HP ' + pct(sk.h[0] + sk.h[1] * lv) + ' + ตามพลังเวท' + (sk.zone ? ' ฮีลหมู่วงกว้าง ' + sk.zone.dur + ' วิ (ตัวเองและเพื่อนที่ยืนในวง)' : sk.party ? ' (ตัวเองหรือเพื่อนในปาร์ตี้ที่เลือดน้อยสุด คิดจาก HP สูงสุดของผู้ใช้สกิล)' : '');
     case 'buff': return bt(sk.b) + ' นาน ' + sk.dur + ' วิ' + (sk.party ? ' (ตัวเองและเพื่อนในปาร์ตี้)' : '');
     case 'res': return 'ชุบชีวิตเพื่อนในปาร์ตี้ที่ล้มอยู่ใกล้ๆ 1 คน ฟื้นด้วย HP 60%';
     case 'passive': return bt(sk.p);
