@@ -724,23 +724,47 @@ window.__NET_RATE = 250;
       me: async () => ({ id: uid, name: '', avatarUrl: '', color: '#888', email: null, isOwner: !!r.owner, canEdit: !!r.owner }),
       profiles: async (ids) => { const o = {}; for (const i of [].concat(ids)) o[i] = { id: i, name: '', avatarUrl: '', color: '#888', email: null, isMe: i === uid, guest: false }; return o; } };
     const sid = 's' + Math.random().toString(36).slice(2, 10);
+    // Two layers, so download stays small: a light roster everyone hears (who is online, where, party and PVP
+    // invites; rewritten every 10 s or when it changes) and a full room per map heard only by players on that map.
     const lobby = rtdb.ref('rooms/lobby'), mine = lobby.child(sid);
     mine.onDisconnect().remove();
-    let myP = {}, cache = {}, cbs = [], pending = false, swept = false;
-    // onDisconnect fires once: arm it again every time the connection comes back, and restore our entry
-    rtdb.ref('.info/connected').on('value', (s) => { if (s.val() === true) { mine.onDisconnect().remove(); if (Object.keys(myP).length) mine.set({ by: uid, p: JSON.stringify(myP), t: TS() }).catch(() => {}); } });
+    const LITE = ['v', 'n', 'l', 'jl', 'j', 'm', 'g', 'h', 'c', 'ws', 'pk', 'pl', 'pi', 'rq', 'rj', 'rc', 'ra', 'pvi', 'st', 'aw', 'hp', 'd', 'ev', 'wv', 'au'];
+    const mapKey = (m) => 'm_' + String(m || 'none').replace(/[.#$\[\]\/]/g, '_').slice(0, 60);
+    let myP = {}, roster = {}, local = {}, cbs = [], pending = false, swept = false, liteSig = '', liteT = 0, liteHb = 0, curKey = '', curRef = null, roomRef = null;
+    const schedule = () => { if (!pending) { pending = true; setTimeout(emit, 30); } };
+    const onRoom = (s) => { local = s.val() || {}; schedule(); };
+    function joinMap(key) {
+      if (key === curKey) return;
+      if (roomRef) roomRef.off('value', onRoom);
+      if (curRef) { curRef.onDisconnect().cancel(); curRef.remove().catch(() => {}); }
+      curKey = key; local = {};
+      curRef = rtdb.ref('rooms/' + key + '/' + sid); curRef.onDisconnect().remove();
+      roomRef = rtdb.ref('rooms/' + key); roomRef.on('value', onRoom);
+    }
+    function writeLite(force) {
+      const lite = {}; for (const k of LITE) if (myP[k] !== undefined) lite[k] = myP[k];
+      const sig = JSON.stringify(lite), now = Date.now();
+      if (!force && sig === liteSig && now - liteT < 10000) return;
+      liteSig = sig; liteT = now; lite.hb = ++liteHb; lite.lite = 1;
+      mine.set({ by: uid, p: JSON.stringify(lite), t: TS() }).catch(() => {});
+    }
+    // onDisconnect fires once: arm it again every time the connection comes back, and restore our entries
+    rtdb.ref('.info/connected').on('value', (s) => { if (s.val() === true) { mine.onDisconnect().remove(); if (curRef) curRef.onDisconnect().remove();
+      if (Object.keys(myP).length) { writeLite(true); if (curRef) curRef.set({ by: uid, p: JSON.stringify(myP), t: TS() }).catch(() => {}); } } });
+    const parse = (v) => { try { return JSON.parse((v && v.p) || '{}'); } catch (e) { return {}; } };
     const emit = () => {
       pending = false;
       const list = [{ peer: sid, by: uid, isMe: true, sameTab: true, kind: 'viewer', guest: false, presence: myP, updatedAt: Date.now() }];
-      for (const k in cache) { if (k === sid) continue; const v = cache[k] || {}; let p = {}; try { p = JSON.parse(v.p || '{}'); } catch (e) {} list.push({ peer: k, by: v.by || null, ts: typeof v.t === 'number' ? v.t : 0, isMe: false, sameTab: false, kind: 'viewer', guest: false, presence: Object.freeze(p), updatedAt: Date.now() }); }
+      const keys = new Set([...Object.keys(roster), ...Object.keys(local)]);
+      for (const k of keys) { if (k === sid) continue; const v = local[k] || roster[k] || {}; list.push({ peer: k, by: v.by || null, ts: typeof v.t === 'number' ? v.t : 0, isMe: false, sameTab: false, kind: 'viewer', guest: false, presence: Object.freeze(parse(v)), updatedAt: Date.now() }); }
       for (const cb of cbs) cb({ peers: list, joined: [], left: [], updated: [] });
     };
-    lobby.on('value', (s) => { cache = s.val() || {};
-      // remove this account's leftover entries from earlier visits (rules only let us delete our own)
-      if (!swept) { swept = true; for (const k in cache) if (k !== sid && cache[k] && cache[k].by === uid) lobby.child(k).remove().catch(() => {}); }
-      if (!pending) { pending = true; setTimeout(emit, 30); } });
+    lobby.on('value', (s) => { roster = s.val() || {};
+      // remove this account's leftover roster entries from earlier visits (rules only let us delete our own)
+      if (!swept) { swept = true; for (const k in roster) if (k !== sid && roster[k] && roster[k].by === uid) lobby.child(k).remove().catch(() => {}); }
+      schedule(); });
     const ROOM = { onPeers: (cb) => { cbs.push(cb); setTimeout(emit, 0); return () => { cbs = cbs.filter((x) => x !== cb); }; },
-      presence: (p) => { myP = Object.freeze(JSON.parse(JSON.stringify(p))); return mine.set({ by: uid, p: JSON.stringify(p), t: TS() }); },
+      presence: (p) => { myP = Object.freeze(JSON.parse(JSON.stringify(p))); joinMap(mapKey(p.m)); writeLite(false); return curRef.set({ by: uid, p: JSON.stringify(p), t: TS() }); },
       connected: () => true, peers: () => [], emit: async () => {}, on: () => () => {} };
     return { db: DB, user: USER, room: ROOM };
   }
@@ -754,7 +778,7 @@ window.__NET_RATE = 250;
 })();
 </script>
 
-<script>window.__WEB = 1;</script>
+<script>window.__WEB = 1; window.__NET_RATE = 300;</script>
 <script>
 (() => {
 'use strict';
@@ -913,8 +937,8 @@ function MON(id, name, arch, color, lv, extra) {
 }
 
 const DEFAULT_CONFIG = {
-  version: '2.9.47',
-  patchNotes: 'อัปเดต 2.9.47 (สำคัญ)\n• แก้การบันทึกตัวละครขึ้นเซิร์ฟเวอร์ไม่ผ่าน (ช่วงที่ขึ้นว่า บันทึกในเครื่อง) ความคืบหน้าที่เก็บในเครื่องจะถูกกู้ขึ้นเซิร์ฟเวอร์อัตโนมัติเมื่อเข้าเกม\n• ห้อง GM: ส่งของได้ทุกผู้เล่น และเลือกแหวน 1 รู หรือ 2 รู ได้',
+  version: '2.9.48',
+  patchNotes: 'อัปเดต 2.9.48\n• ลดการใช้เน็ตและโควตาเซิร์ฟเวอร์ลงมาก: อันดับโหลดเมื่อเปิดหน้า ผู้เล่นแต่ละแผนที่รับข้อมูลเฉพาะแผนที่ตัวเอง',
   announcement: 'ยินดีต้อนรับสู่ช่วงทดสอบ! เจอบั๊กบอก GM ได้เลย',
   rates: { bexp: 1, jexp: 1, gold: 1, drop: 1 },
   deathPenalty: 1,
@@ -5191,7 +5215,7 @@ function readPresence(p) {
     map: typeof pr.m === 'string' ? pr.m.slice(0, 40) : '', nx: num(pr.x, 0.5, 0, 1), ny: num(pr.y, 0.5, 0, 1),
     look: { g: pr.g === 'f' ? 'f' : 'm', hair: int(pr.h, 0, 0, HAIR_NAMES.length - 1), hc: color(pr.c, HAIR_COLORS[0]) },
     ws: pr.ws === 'katar' ? 'katar' : 'dual', sw: int(pr.sw, 0, 0, 1e9), dead: !!pr.d, hp: int(pr.hp, 100, 0, 100),
-    mt: num(pr.mt, 0, 0, 1e15), st: num(pr.st, 0, 0, 1e15), hb: int(pr.hb, 0, 0, 1e12), aw: !!pr.aw, pk: typeof pr.pk === 'string' ? pr.pk.slice(0, 24) : '',
+    mt: num(pr.mt, 0, 0, 1e15), st: num(pr.st, 0, 0, 1e15), lite: !!pr.lite, hb: int(pr.hb, 0, 0, 1e12), aw: !!pr.aw, pk: typeof pr.pk === 'string' ? pr.pk.slice(0, 24) : '',
     pi: (arr(pr.pi, 6) || []).filter((x) => typeof x === 'string'), hit: arr(pr.hit, 20), dg: arr(pr.dg, 40), kd: arr(pr.kd, 12),
     ms: Array.isArray(pr.ms) ? pr.ms : null, tp: (arr(pr.tp, 12) || []).filter((x) => typeof x === 'string'),
     bb: Array.isArray(pr.bb) && typeof pr.bb[0] === 'string' ? [pr.bb[0].slice(0, 40), int(pr.bb[1], 0, 0, 1e9)] : null,
@@ -5220,13 +5244,15 @@ function syncOthers() {
   for (const p of ONLINE.peers) {
     if (p.isMe || p.kind !== 'viewer') continue;
     const d = readPresence(p); if (!d) continue;
-    if (p.ts && Date.now() + (window.__srvOff || 0) - p.ts > 12000) continue;   // entry left behind by a closed session
+    const age = p.ts ? Date.now() + (window.__srvOff || 0) - p.ts : null;
+    if (age != null && age > (d.lite ? 25000 : 12000)) continue;   // entry left behind by a closed session
     seen.add(p.peer);
     let o = ONLINE.others.get(p.peer);
     const tx = d.nx * WORLD.w, ty = d.ny * WORLD.h;
     if (!o) { o = { key: p.peer, x: tx, y: ty, swingT: -9, sw: d.sw, bbT: -99 }; ONLINE.others.set(p.peer, o); }
     if (d.sw !== o.sw) { o.swingT = W.t; o.sw = d.sw; }
-    if (!o.seen) { o.seen = true; o.beat = performance.now() - 19000; o.ok = false; }   // not shown until its heartbeat moves
+    if (age != null) { o.seen = true; o.ok = true; o.beat = performance.now() - Math.max(0, age); }   // server-stamped: age is known
+    else if (!o.seen) { o.seen = true; o.beat = performance.now() - 19000; o.ok = false; }   // not shown until its heartbeat moves
     else if (d.hb !== o.hb) { o.beat = performance.now(); o.ok = true; }
     o.by = p.by || o.by;
     if (d.aw && !o.aw) o.awaySince = performance.now();
@@ -5254,7 +5280,7 @@ function syncOthers() {
 }
 const isGone = (o) => !o.ok || o.dupe || (o.aw && performance.now() - (o.awaySince || 0) > 20000) || performance.now() - (o.beat || 0) > 20000;
 const activeOthers = () => [...ONLINE.others.values()].filter((o) => !isGone(o));
-const isLive = (o) => !o.aw && performance.now() - (o.beat || 0) < 3500;
+const isLive = (o) => !o.aw && !o.lite && performance.now() - (o.beat || 0) < 6000;
 function othersLive() { return othersHere().filter(isLive); }
 function othersHere() { const out = []; if (!W.map) return out; for (const o of ONLINE.others.values()) if (o.map === W.map.id && !isGone(o)) out.push(o); return out; }
 function mapPlayers() {
@@ -5433,7 +5459,7 @@ function onlineTick(dt) {
   { const sp = (NET.sup || []).filter((e) => Date.now() - e[5] < 8000); NET.sup = sp; if (sp.length) pr.sup = sp.map((e) => e.slice(0, 5)); }
   if (S.blocked) return;   // a tab that stopped saving also stops showing itself
   const sig = JSON.stringify(pr);
-  if (sig === ONLINE.sig && now - ONLINE.lastSend < 1000) return;
+  if (sig === ONLINE.sig && now - ONLINE.lastSend < (window.__WEB ? 2500 : 1000)) return;
   ONLINE.sig = sig; ONLINE.lastSend = now;
   pr.hb = ++ONLINE.hb; pr.aw = 0; pr.st = S.sidT || 0; ONLINE.last = pr;
   room.presence(pr).catch(() => {});
@@ -6736,7 +6762,7 @@ function renderPvpBar() {
   const b = $('#pvpBar'); if (!b) return; b.hidden = !isPvp();
   if (isPvp()) $('#pvpBarT').textContent = '⚔️ PVP   K ' + PVP.k + ' / D ' + PVP.d;
 }
-function pvpRooms() { const rooms = {}; for (const o of activeOthers()) if (isLive(o) && String(o.map).startsWith('pvp:')) (rooms[o.map] = rooms[o.map] || []).push(o); return Object.entries(rooms).sort((a, b) => b[1].length - a[1].length); }
+function pvpRooms() { const rooms = {}; for (const o of activeOthers()) if (!o.aw && String(o.map).startsWith('pvp:')) (rooms[o.map] = rooms[o.map] || []).push(o); return Object.entries(rooms).sort((a, b) => b[1].length - a[1].length); }
 function panelPvp(body) {
   if (!isPvp()) {
     body.append(el('div', { class: 'npcsay' }, el('b', { text: '⚔️ ห้อง PVP' }), el('p', { text: 'สร้างห้องหรือเข้าร่วมห้องที่เปิดอยู่ ทุกคนจะวาปไปลานกว้างของเมืองหลัก ไม่มีสิ่งกีดขวาง ตายไม่เสีย EXP เพื่อนร่วมปาร์ตี้ตีกันเองไม่ได้ จึงจับทีมสู้ได้' })));
@@ -7180,6 +7206,7 @@ const PANELS = {
   npc_gacha: ['🎰 ตู้กาชา', panelGacha], pvp: ['⚔️ ห้อง PVP', panelPvp], dgresult: ['🏆 ผลงานในดันเจี้ยน', panelDgResult], album: ['📖 อัลบั้มการ์ด', panelAlbum], auto: ['โหมดออโต้', panelAuto], online: ['ผู้เล่นและปาร์ตี้', panelOnline], sound: ['ตั้งค่า', panelSound], chat: ['แชท', panelChat]
 };
 function openPanel(name) {
+  if (name === 'rank' || name === 'gm') loadPlayers();
   if (name === 'bag' || name === 'equip') { openEquip(name === 'bag' ? 'bag' : 'eq'); return; }
   if (!PANELS[name]) return;
   S.sheet = name; $('#sheetTitle').textContent = PANELS[name][0];
@@ -7697,9 +7724,21 @@ function blockSaves(why) {
   $('#bcModal').hidden = false;
 }
 setInterval(() => { if (S.hero && !S.blocked && S.hero.mail && S.hero.mail.length) claimMail(S.hero); }, 5000);
+// ranking / GM list: one fetch when needed, kept for a minute
+async function loadPlayers(force) {
+  if (!S.db || S.playersBusy) return;
+  if (!force && S.playersAt && Date.now() - S.playersAt < 60000) return;
+  S.playersBusy = true;
+  try { const snap = await S.db.collection('heroes').orderBy('level', 'desc').limit(50).get();
+    S.players = snap.docs.map((d) => Object.assign({ id: d.id }, sanitizeHero(d.data()))).sort((a, b) => b.level - a.level || b.jobLv - a.jobLv).slice(0, 50); S.playersAt = Date.now(); }
+  catch (e) {}
+  S.playersBusy = false; S.boardReady = true;
+  if (S.sheet === 'rank') renderSheet();
+  if (S.sheet === 'gm') renderGMPlayers();
+}
 async function gmWrite(id, fn) {
   const ref = S.db.doc('heroes/' + id), withSv = { update: (d) => ref.update(Object.assign({ sv: SCHEMA }, d)), set: (d) => ref.set(Object.assign({ sv: SCHEMA }, d)) };
-  try { await fn(withSv); toast('อัปเดตผู้เล่นแล้ว'); }
+  try { await fn(withSv); toast('อัปเดตผู้เล่นแล้ว'); loadPlayers(true); }
   catch (e) { toast('อัปเดตไม่สำเร็จ (' + ((e && e.code) || 'ไม่ทราบสาเหตุ') + ')'); }
 }
 function renderGMPlayers() {
@@ -7788,12 +7827,7 @@ async function init() {
   initRoom();
   if (S.db) {
     S.db.doc('world/config').onSnapshot((snap) => { CONFIG = sanitizeConfig(snap.exists ? snap.data() : DEFAULT_CONFIG); onConfigChanged(); }, () => {});
-    S.db.collection('heroes').orderBy('level', 'desc').limit(50).onSnapshot((snap) => {
-      S.players = snap.docs.map((d) => Object.assign({ id: d.id }, sanitizeHero(d.data())));
-      S.boardReady = true;
-      if (S.sheet === 'rank') renderSheet();
-      if (S.sheet === 'gm') renderGMPlayers();
-    }, () => { S.boardReady = true; });
+    // the player list is fetched when the ranking or GM panel opens (a live feed re-sent every save to everyone)
     chatInit(); bossInit(); marketInit();
   }
   let hero = null, fromServer = false;
