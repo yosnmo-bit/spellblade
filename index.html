@@ -908,8 +908,8 @@ function MON(id, name, arch, color, lv, extra) {
 }
 
 const DEFAULT_CONFIG = {
-  version: '2.9.44',
-  patchNotes: 'อัปเดต 2.9.44\n• ระเบิดใหญ่ (ทัณฑ์สวรรค์ และตอนบอสดันเจี้ยนล้ม) ใช้ภาพต้นฉบับเต็มลูก: ลูกไฟ วงคลื่น เมฆรูปเห็ด\n• (จาก 2.9.43) เอฟเฟกต์ต้นฉบับ Binbun3D ทั้งชุด',
+  version: '2.9.45',
+  patchNotes: 'อัปเดต 2.9.45: กันของหาย\n• เกมเวอร์ชันเก่าที่เปิดค้างไว้จะบันทึกทับตัวละครไม่ได้อีก (ขึ้นให้รีเฟรช)\n• เปิดบัญชีเดียวกันหลายเครื่อง เครื่องเดิมจะหยุดบันทึก\n• บันทึกทันทีเมื่อได้ของสำคัญ ตีบวก หรือเปลี่ยนอุปกรณ์\n• กระเป๋าเต็ม ของจะเข้ากล่องจดหมายแล้วเข้ากระเป๋าเองเมื่อมีที่ว่าง\n• GM ปรับข้อมูลโดยไม่ทับความคืบหน้าล่าสุด และส่งของคืนผู้เล่นได้',
   announcement: 'ยินดีต้อนรับสู่ช่วงทดสอบ! เจอบั๊กบอก GM ได้เลย',
   rates: { bexp: 1, jexp: 1, gold: 1, drop: 1 },
   deathPenalty: 1,
@@ -1597,7 +1597,7 @@ function canJobChange(h) {
 function newHero(name, look) {
   return { name, look, job: 'novice', level: 1, exp: 0, jobLv: 1, jobExp: 0, stats: { str: 1, agi: 1, vit: 1, int: 1, dex: 1, luk: 1 },
     statPts: 48, skillPts: 0, skills: {}, hotbar: ['', '', '', '', '', '', '', ''], gold: 200, refineW: 0, refineA: 0, potHp: 10, potSp: 3, potHpL: 0, potSpL: 0, potAll: 0, potBtn: ['hp', 'sp'], potAuto: { hp: 35, sp: 12, hpL: 0, spL: 0, all: 0 },
-    mapId: 'village', kills: 0, bossKills: 0, fbKills: 0, dgClears: 0, wstyle: 'dual', gmStamp: 0, inv: [], eq: null, ref: {} };
+    mapId: 'village', kills: 0, bossKills: 0, fbKills: 0, dgClears: 0, mail: [], mailDone: [], wstyle: 'dual', gmStamp: 0, inv: [], eq: null, ref: {} };
 }
 function sanitizeHero(d) {
   d = d || {};
@@ -1613,6 +1613,8 @@ function sanitizeHero(d) {
     potAuto: (() => { const a = d.potAuto || {}, o = {}; for (const k of ['hp', 'sp', 'hpL', 'spL', 'all']) o[k] = int(a[k], { hp: 35, sp: 12, hpL: 0, spL: 0, all: 0 }[k], 0, 95); return o; })(),
     potBtn: [0, 1].map((i) => { const v = Array.isArray(d.potBtn) ? d.potBtn[i] : null; return typeof v === 'string' && ['hp', 'sp', 'hpL', 'spL', 'all'].includes(v) ? v : ['hp', 'sp'][i]; }),
     mapId: typeof d.mapId === 'string' ? d.mapId.slice(0, 40) : '', kills: int(d.kills, 0, 0, 1e12), bossKills: int(d.bossKills, 0, 0, 1e9), fbKills: int(d.fbKills, 0, 0, 1e9), dgClears: int(d.dgClears, 0, 0, 1e9),
+    mail: (Array.isArray(d.mail) ? d.mail : []).slice(-30).map((m) => m && typeof m.id === 'string' ? { id: m.id.slice(0, 24), n: int(m.n, 1, 1, 999), it: sanitizeItem(m.it, false) } : null).filter((m) => m && m.it),
+    mailDone: (Array.isArray(d.mailDone) ? d.mailDone : []).filter((x) => typeof x === 'string').slice(-80),
     wstyle: d.wstyle === 'katar' ? 'katar' : 'dual', gmStamp: num(d.gmStamp, 0, 0, 1e15),
     mkDone: (Array.isArray(d.mkDone) ? d.mkDone : []).filter((x) => typeof x === 'string').map((x) => x.slice(0, 40)).slice(-80),
     ref: (() => { const r = d.ref || {}, o = {}; for (const k of ['off', 'ring1', 'ring2', 'head', 'face', 'mouth', 'shoes', 'wings']) o[k] = int(r[k], 0, 0, 15); return o; })()
@@ -2429,11 +2431,16 @@ function heroDoc() {
   const h = S.hero;
   return { name: h.name, look: h.look, job: h.job, level: h.level, exp: h.exp, jobLv: h.jobLv, jobExp: h.jobExp, stats: h.stats,
     skills: h.skills, hotbar: h.hotbar, gold: h.gold, refineW: h.refineW, refineA: h.refineA, potHp: h.potHp, potSp: h.potSp, potHpL: h.potHpL || 0, potSpL: h.potSpL || 0, potAll: h.potAll || 0, potBtn: h.potBtn || ['hp', 'sp'], potAuto: h.potAuto || { hp: 35, sp: 12, hpL: 0, spL: 0, all: 0 },
-    mapId: h.mapId, kills: h.kills, bossKills: h.bossKills || 0, fbKills: h.fbKills || 0, dgClears: h.dgClears || 0, wstyle: h.wstyle, gmStamp: h.gmStamp || 0, inv: h.inv, eq: h.eq, mkDone: h.mkDone || [], ref: h.ref || {}, updatedAt: Date.now() };
+    mapId: h.mapId, kills: h.kills, bossKills: h.bossKills || 0, fbKills: h.fbKills || 0, dgClears: h.dgClears || 0, mail: h.mail || [], mailDone: (h.mailDone || []).slice(-80), sv: SCHEMA, sid: S.sid, sidT: S.sidT || 0, wstyle: h.wstyle, gmStamp: h.gmStamp || 0, inv: h.inv, eq: h.eq, mkDone: h.mkDone || [], ref: h.ref || {}, updatedAt: Date.now() };
 }
 function saveLocal() { if (S.hero) lsSet(LS_SAVE + (S.uid || ''), JSON.stringify(heroDoc())); }
+// save guard: every save carries the game version (sv) and this tab's session id (sid);
+// an older game version or a second open session must never overwrite newer progress
+const SCHEMA = (() => { const v = String(DEFAULT_CONFIG.version).split('.').map((x) => parseInt(x, 10) || 0); return v[0] * 10000 + (v[1] || 0) * 100 + (v[2] || 0); })();
+S.sid = Date.now().toString(36) + Math.random().toString(36).slice(2, 8); S.sidT = 0;
+function saveSoon() { clearTimeout(S.ssT); S.ssT = setTimeout(() => { if (S.dirty) save(); }, 1500); }
 async function save() {
-  if (!S.hero) return;
+  if (!S.hero || S.blocked) return;
   saveLocal();
   if (S.mode !== 'online') { S.dirty = false; renderSaveTxt(); return; }
   if (S.saving) { S.dirty = true; return; }
@@ -4818,12 +4825,30 @@ function pushInv(h, it, n) {
   if (h.inv.length >= INV_MAX) return false;
   h.inv.push(Object.assign(sanitizeItem(it, false), { n: it.kind === 'gear' ? 1 : n })); return true;
 }
-function addItem(it, n) { const ok = pushInv(S.hero, it, n); if (!ok) toast('ช่องเก็บของเต็ม ขายของบางส่วนก่อน'); else S.dirty = true; return ok; }
+function addItem(it, n) {
+  const ok = pushInv(S.hero, it, n);
+  if (ok) { S.dirty = true; if (it.kind !== 'loot') saveSoon(); return true; }
+  if (it.kind !== 'loot' && mailPut(S.hero, it, n)) { toast('📬 กระเป๋าเต็ม ' + it.nm + ' ถูกเก็บในกล่องจดหมาย จะเข้ากระเป๋าเองเมื่อมีที่ว่าง'); S.dirty = true; saveSoon(); return true; }
+  toast('ช่องเก็บของเต็ม ขายของบางส่วนก่อน'); return false;
+}
+// mailbox: GM gifts and items that did not fit in the bag; claimed automatically when there is room
+function mailPut(h, it, n) { h.mail = h.mail || []; if (h.mail.length >= 30) return false; h.mail.push({ id: uid36().slice(-12), n: n || 1, it: sanitizeItem(it, false) }); return true; }
+function claimMail(h) {
+  if (!h || !h.mail || !h.mail.length) return 0;
+  h.mailDone = h.mailDone || []; let got = 0; const keep = [];
+  for (const m of h.mail) {
+    if (h.mailDone.includes(m.id)) continue;
+    if (m.it && pushInv(h, m.it, m.n || 1)) { h.mailDone.push(m.id); got++; toast('📬 ได้รับ ' + m.it.nm + ((m.n || 1) > 1 ? ' x' + m.n : '') + ' จากกล่องจดหมาย'); } else keep.push(m);
+  }
+  h.mail = keep; h.mailDone = h.mailDone.slice(-80);
+  if (got && h === S.hero) { S.dirty = true; saveSoon(); if (typeof renderEquip === 'function' && EQ.open) renderEquip(); }
+  return got;
+}
 function takeItem(k, n) {
   const h = S.hero, i = h.inv.findIndex((x) => x.k === k);
   if (i < 0) return false;
   h.inv[i].n -= n; if (h.inv[i].n <= 0) h.inv.splice(i, 1);
-  S.dirty = true; return true;
+  S.dirty = true; saveSoon(); return true;
 }
 
 /* ---------- equipment & sockets ---------- */
@@ -4895,7 +4920,7 @@ function gearSum(h) {
 function setInfo(h, sid) { let n = 0; for (const k of Object.keys(SLOT_TH)) { const s = h.eq && h.eq[k]; if (s && s.id && GEAR[s.id] && GEAR[s.id].set === sid) n++; } return n; }
 function eqVis(h) { const e = h.eq || {}; return { head: e.head && e.head.id, face: e.face && e.face.id, mouth: e.mouth && e.mouth.id, wings: e.wings && e.wings.id }; }
 function bonusText(b) { return Object.keys(b || {}).map((k) => (BUFF_TH[k] || k.toUpperCase()) + ' +' + b[k] + (PCT_KEYS[k] ? '%' : '')).join('  ') || 'ไม่มีค่าสถานะ'; }
-function afterGear() { P.D = derived(); P.hp = Math.min(P.hp, P.D.maxHp); S.dirty = true; drawAvatar(); hudText(); renderEquip(); }
+function afterGear() { P.D = derived(); P.hp = Math.min(P.hp, P.D.maxHp); S.dirty = true; saveSoon(); drawAvatar(); hudText(); renderEquip(); }
 function insertCard(key, idx, cardK) {
   const h = S.hero, it = h.inv.find((x) => x.k === cardK && x.kind === 'card'); if (!it) return;
   const s = h.eq[key]; if (!s || idx >= sockets(h, key) || s.cards[idx]) return;
@@ -5059,7 +5084,7 @@ function renderEquip() {
   // inventory
   const tiles = Object.keys(POT).filter((kd) => kd === 'hp' || kd === 'sp' || (h[POT[kd].f] || 0) > 0).map((kd) => ({ k: 'P:' + kd, pot: kd, icon: POT[kd].ic, n: h[POT[kd].f] || 0, nm: POT[kd].nm, blue: kd === 'sp' }));
   for (const it of h.inv) tiles.push({ k: it.k, icon: it.kind === 'card' ? '🃏' : it.kind === 'gear' ? GEAR[it.id].ic : it.kind === 'key' ? '🗝️' : it.kind === 'ore' ? ORE[it.id].ic : it.k === 'L:salt' ? '🧂' : (ARCH_ICON[it.ar] || '📦'), n: it.n, nm: it.nm, it });
-  body.append(el('div', { class: 'sub', id: 'eqInv', text: 'กระเป๋า ' + h.inv.length + '/' + INV_MAX }));
+  body.append(el('div', { class: 'sub', id: 'eqInv', text: 'กระเป๋า ' + h.inv.length + '/' + INV_MAX + ((h.mail || []).length ? '   📬 รอเข้ากระเป๋า ' + h.mail.length + ' ชิ้น' : '') }));
   const sel = tiles.find((t) => t.k === EQ.invSel), idet = el('div', { class: 'invdet' });
   if (!sel) idet.append(el('p', { class: 'note', style: 'margin:0', text: 'แตะไอเทมเพื่อดูรายละเอียด การ์ดดรอปจากมอนทุกตัว ' + CONFIG.cardChance + '% และแต่ละใบใส่ได้เฉพาะช่องของมัน' }));
   else if (!sel.it) {
@@ -6328,7 +6353,7 @@ const oreOf = (slot) => (slot === 'off' ? (dualNow(S.hero) ? 'ori' : 'elu') : sl
 const oreNeed = (target) => (target <= 3 ? 1 : target - 1);
 const REF_EFF = { off: 'ATK +4 ต่อขั้น (มือซ้าย)', weapon: 'ATK +5 ต่อขั้น', ring1: 'ATK/MATK +3 ต่อขั้น', ring2: 'ATK/MATK +3 ต่อขั้น', armor: 'DEF +3 และ HP +2% ต่อขั้น', head: 'DEF +1 ต่อขั้น', face: 'DEF +1 ต่อขั้น', mouth: 'DEF +1 ต่อขั้น', shoes: 'DEF +1 หลบ +1 ต่อขั้น', wings: 'DEF +1 HP +1% ต่อขั้น' };
 function getRef(h, slot) { return slot === 'weapon' ? h.refineW : slot === 'armor' ? h.refineA : (h.ref && h.ref[slot]) || 0; }
-function setRef(h, slot, v) { if (slot === 'weapon') h.refineW = v; else if (slot === 'armor') h.refineA = v; else { h.ref = h.ref || {}; h.ref[slot] = v; } }
+function setRef(h, slot, v) { if (slot === 'weapon') h.refineW = v; else if (slot === 'armor') h.refineA = v; else { h.ref = h.ref || {}; h.ref[slot] = v; } if (h === S.hero) { S.dirty = true; saveSoon(); } }
 const canRefine = (h, slot) => slot === 'weapon' || slot === 'armor' || (slot === 'off' ? dualNow(h) || shieldUser(h) : !!(h.eq && h.eq[slot]));
 const refCost = (slot, r) => Math.max(1, Math.round(refineCost(oreOf(slot) === 'ori' ? 'w' : 'a', r) * (1 - ((P.D || derived()).discount || 0) / 100)));
 const REF = { busy: false };
@@ -6888,7 +6913,7 @@ window.addEventListener('pageshow', (e) => { if (e.persisted && hiddenAt && Date
 
 /* ---------- game start & HUD ---------- */
 function startGame(hero, fromServer) {
-  S.hero = hero;
+  S.hero = hero; S.sidT = Date.now(); claimMail(hero);
   if (fromServer) S.savedOnline = true;
   show('game');
   WC = $('#world').getContext('2d');
@@ -7649,6 +7674,16 @@ async function gmSave() {
     toast('ส่งการเปลี่ยนแปลงถึงผู้เล่นแล้ว');
   } catch (e) { if (b) b.disabled = false; toast('บันทึกไม่สำเร็จ (' + ((e && e.code) || 'ไม่ทราบสาเหตุ') + ')'); }
 }
+// stop saving from this tab and explain why
+function blockSaves(why) {
+  if (S.blocked) return; S.blocked = why;
+  const ver = why === 'ver';
+  $('#bcTitle').textContent = ver ? '⚠️ มีเกมเวอร์ชันใหม่' : '⚠️ บัญชีนี้เปิดอยู่ที่อื่น';
+  $('#bcText').textContent = ver ? 'ตัวละครนี้ถูกบันทึกด้วยเกมเวอร์ชันใหม่กว่าหน้านี้ เพื่อไม่ให้ของหาย หน้านี้หยุดบันทึกแล้ว กรุณารีเฟรชเกม' : 'มีการเข้าเกมด้วยบัญชีนี้จากอุปกรณ์หรือแท็บอื่น หน้านี้หยุดบันทึกแล้วเพื่อไม่ให้บันทึกทับกัน';
+  $('#bcCount').hidden = true; const ok = $('#bcOk'); ok.textContent = ver ? 'รีเฟรชเกม' : 'เล่นที่นี่แทน (รีเฟรช)'; ok.onclick = doReload;
+  $('#bcModal').hidden = false;
+}
+setInterval(() => { if (S.hero && !S.blocked && S.hero.mail && S.hero.mail.length) claimMail(S.hero); }, 5000);
 async function gmWrite(id, fn) {
   try { await fn(S.db.doc('heroes/' + id)); toast('อัปเดตผู้เล่นแล้ว'); }
   catch (e) { toast('อัปเดตไม่สำเร็จ (' + ((e && e.code) || 'ไม่ทราบสาเหตุ') + ')'); }
@@ -7661,21 +7696,30 @@ function renderGMPlayers() {
     const bl = el('input', { type: 'number', min: 1, 'aria-label': 'Base Lv ใหม่' }); bl.value = p.level;
     const jl = el('input', { type: 'number', min: 1, 'aria-label': 'Job Lv ใหม่' }); jl.value = p.jobLv;
     const reset = twoStep(el('button', { class: 'mini warn', text: 'รีเซ็ต' }), 'รีเซ็ต', 'แตะอีกครั้งเพื่อยืนยัน',
-      () => gmWrite(p.id, (ref) => ref.set(Object.assign(newHero(p.name, p.look), { gmStamp: Date.now(), updatedAt: Date.now() }))));
+      () => gmWrite(p.id, (ref) => ref.set(Object.assign(newHero(p.name, p.look), { gmStamp: Date.now(), gmF: ['*'], sv: SCHEMA, updatedAt: Date.now() }))));
     box.append(el('div', { class: 'prow' },
       el('div', { class: 'hd' }, el('span', { text: p.name + (p.id === S.uid ? ' (คุณ)' : '') }), el('span', { class: 'muted', text: jobName(p.job) + '  B' + p.level + '/J' + p.jobLv + '  ' + fmt(p.gold) + 'G' })),
       el('div', { class: 'ct' },
-        el('button', { class: 'mini', text: '+100,000 G', onclick: () => gmWrite(p.id, (r) => r.update({ gold: p.gold + 100000, gmStamp: Date.now() })) }),
-        el('button', { class: 'mini', text: '+10 ยาแดง', onclick: () => gmWrite(p.id, (r) => r.update({ potHp: p.potHp + 10, gmStamp: Date.now() })) }),
+        el('button', { class: 'mini', text: '+100,000 G', onclick: () => gmWrite(p.id, (r) => r.update({ gold: p.gold + 100000, gmStamp: Date.now(), gmF: ['gold'] })) }),
+        el('button', { class: 'mini', text: '+10 ยาแดง', onclick: () => gmWrite(p.id, (r) => r.update({ potHp: p.potHp + 10, gmStamp: Date.now(), gmF: ['potHp'] })) }),
         reset),
-      el('div', { class: 'ct' }, 'Base', bl, el('button', { class: 'mini', text: 'ตั้ง', onclick: () => gmWrite(p.id, (r) => r.update({ level: int(bl.value, p.level, 1, 999), exp: 0, gmStamp: Date.now() })) }),
-        'Job', jl, el('button', { class: 'mini', text: 'ตั้ง', onclick: () => gmWrite(p.id, (r) => r.update({ jobLv: int(jl.value, p.jobLv, 1, 999), jobExp: 0, gmStamp: Date.now() })) })),
+      el('div', { class: 'ct' }, 'Base', bl, el('button', { class: 'mini', text: 'ตั้ง', onclick: () => gmWrite(p.id, (r) => r.update({ level: int(bl.value, p.level, 1, 999), exp: 0, gmStamp: Date.now(), gmF: ['level', 'exp'] })) }),
+        'Job', jl, el('button', { class: 'mini', text: 'ตั้ง', onclick: () => gmWrite(p.id, (r) => r.update({ jobLv: int(jl.value, p.jobLv, 1, 999), jobExp: 0, gmStamp: Date.now(), gmF: ['jobLv', 'jobExp'] })) })),
       (() => { const SL = { weapon: 'อาวุธ', off: 'มือซ้าย/โล่', armor: 'เกราะ', ring1: 'แหวนขวา', ring2: 'แหวนซ้าย', head: 'หมวก', face: 'ใบหน้า', mouth: 'ปาก', shoes: 'รองเท้า', wings: 'ปีก' };
         const cur = (k) => (k === 'weapon' ? p.refineW : k === 'armor' ? p.refineA : (p.ref && p.ref[k])) || 0;
         const sel = el('select', { 'aria-label': 'ช่องที่จะตั้งค่าตีบวก' }); for (const k in SL) sel.append(el('option', { value: k, text: SL[k] + ' +' + cur(k) }));
         const lv = el('input', { type: 'number', min: 0, max: 15, 'aria-label': 'ค่าตีบวก' }); lv.value = cur('weapon'); sel.addEventListener('change', () => { lv.value = cur(sel.value); });
         return el('div', { class: 'ct' }, 'ตีบวก', sel, lv, el('button', { class: 'mini', text: 'ตั้ง', onclick: () => { const k = sel.value, v = int(lv.value, 0, 0, 15);
-          gmWrite(p.id, (r) => r.update(k === 'weapon' ? { refineW: v, gmStamp: Date.now() } : k === 'armor' ? { refineA: v, gmStamp: Date.now() } : { ref: Object.assign({}, p.ref || {}, { [k]: v }), gmStamp: Date.now() })); } })); })()));
+          gmWrite(p.id, (r) => r.update(Object.assign(k === 'weapon' ? { refineW: v } : k === 'armor' ? { refineA: v } : { ref: Object.assign({}, p.ref || {}, { [k]: v }) }, { gmRef: [k, v], gmF: ['gmRef'], gmStamp: Date.now() }))); } })); })(),
+      (() => { const sel = el('select', { 'aria-label': 'ของที่จะส่ง' }); sel.append(el('option', { value: 'key', text: '🗝️ กุญแจดันเจี้ยน' }));
+        for (const sid of Object.keys(DG_SETS)) for (const id of Object.keys(GEAR)) if (GEAR[id].dg && (GEAR[id].set === sid || GEAR[id].dset === sid)) sel.append(el('option', { value: id, text: GEAR[id].nm }));
+        const rar = el('select', { 'aria-label': 'ความหายาก' }); for (const r of [1, 2, 3, 4]) rar.append(el('option', { value: String(r), text: RAR[r].nm }));
+        const qty = el('input', { type: 'number', min: 1, max: 99, 'aria-label': 'จำนวน' }); qty.value = 1;
+        return el('div', { class: 'ct' }, 'ส่งของ', sel, rar, qty, el('button', { class: 'mini', text: 'ส่ง', onclick: () => {
+          const id = sel.value, n = int(qty.value, 1, 1, 99), items = [];
+          if (id === 'key') items.push({ id: uid36().slice(-12), n, it: keyItem() });
+          else { const dg = dgDef(GEAR[id].set || GEAR[id].dset); for (let i = 0; i < Math.min(n, 10); i++) items.push({ id: uid36().slice(-12), n: 1, it: rollDgItem(dg, int(rar.value, 1, 1, 4), id) }); }
+          gmWrite(p.id, (r) => r.update({ mail: (p.mail || []).concat(items).slice(-30), gmF: ['mail'], gmStamp: Date.now() })); } })); })()));
   }
 }
 
@@ -7741,7 +7785,7 @@ async function init() {
   let hero = null, fromServer = false;
   if (S.db && S.uid) {
     S.mode = 'online';
-    try { const snap = await S.db.doc('heroes/' + S.uid).get(); if (snap.exists) { hero = sanitizeHero(snap.data()); fromServer = true; } } catch (e) {}
+    try { const snap = await S.db.doc('heroes/' + S.uid).get(); if (snap.exists) { const d = snap.data(); if (num(d.sv, 0, 0, 1e9) > SCHEMA) { blockSaves('ver'); return; } hero = sanitizeHero(d); fromServer = true; } } catch (e) {}
   }
   if (!hero) { try { const l = JSON.parse(lsGet(LS_SAVE + (S.uid || '')) || 'null'); if (l) hero = sanitizeHero(l); } catch (e) {} }
   if (!S.db) BOSS.loaded = true;
@@ -7750,10 +7794,23 @@ async function init() {
     S.db.doc('heroes/' + S.uid).onSnapshot((snap) => {
       if (!snap.exists || !S.hero) return;
       const d = snap.data();
+      if (num(d.sv, 0, 0, 1e9) > SCHEMA) { blockSaves('ver'); return; }
+      if (S.sidT && typeof d.sid === 'string' && d.sid !== S.sid && num(d.sidT, 0, 0, 1e15) > S.sidT) { blockSaves('dup'); return; }
       if (num(d.gmStamp, 0, 0, 1e15) > (S.hero.gmStamp || 0)) {
-        S.hero = sanitizeHero(d); P.D = derived();
+        // apply only what the GM changed, so progress made in the last seconds is kept
+        const fresh = sanitizeHero(d), F = Array.isArray(d.gmF) ? d.gmF.map(String) : ['*'];
+        if (F.includes('*')) S.hero = fresh;
+        else {
+          for (const k of F) {
+            if (k === 'gmRef' && Array.isArray(d.gmRef)) setRef(S.hero, String(d.gmRef[0]), int(d.gmRef[1], 0, 0, 15));
+            else if (k === 'mail') { const have = new Set((S.hero.mail || []).map((m) => m.id)); S.hero.mail = (S.hero.mail || []).concat(fresh.mail.filter((m) => !have.has(m.id))); }
+            else if (k in fresh && k !== 'inv' && k !== 'eq') S.hero[k] = fresh[k];
+          }
+          S.hero.gmStamp = fresh.gmStamp;
+        }
+        claimMail(S.hero); P.D = derived();
         P.hp = Math.min(Math.max(1, P.hp), P.D.maxHp); P.sp = Math.min(P.sp, P.D.maxSp);
-        saveLocal(); renderAll(); renderSheetIfOpen();
+        S.dirty = true; save(); renderAll(); renderSheetIfOpen();
         toast('GM ได้ปรับข้อมูลตัวละครของคุณ');
       }
     }, () => {});
