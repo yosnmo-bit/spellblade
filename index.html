@@ -691,9 +691,9 @@ window.__NET_RATE = 250;
     out.append(lo); body.append(out, el('div', { class: 'sub', text: 'เสียง' }));
   };
   const TS = () => firebase.database.ServerValue.TIMESTAMP;
-  const enc = (d) => ({ j: JSON.stringify(d), t: TS() });
+  const enc = (d) => { const o = { j: JSON.stringify(d), t: TS() }; if (d && typeof d.sv === 'number') o.sv = d.sv; return o; };
   const dec = (v) => { if (!v || typeof v.j !== 'string') return undefined; try { return JSON.parse(v.j); } catch (e) { return undefined; } };
-  const errOf = (e) => ({ code: /permission/i.test(String(e && (e.code || e.message))) ? 'invalid_argument' : 'unavailable', message: String(e && e.message || e) });
+  const errOf = (e) => ({ code: /permission/i.test(String(e && (e.code || e.message))) ? 'permission_denied' : 'unavailable', message: String(e && e.message || e) });
   const merge = (a, b) => { const o = Object.assign({}, a); for (const k in b) { const v = b[k]; o[k] = (v && typeof v === 'object' && !Array.isArray(v) && a && typeof a[k] === 'object' && !Array.isArray(a[k])) ? merge(a[k], v) : v; } return o; };
   function build(r) {
     const rtdb = r.rtdb, uid = r.uid;
@@ -913,8 +913,8 @@ function MON(id, name, arch, color, lv, extra) {
 }
 
 const DEFAULT_CONFIG = {
-  version: '2.9.46',
-  patchNotes: 'อัปเดต 2.9.46\n• แก้ตัวละครซ้ำ (ร่างเงา) ยืนเต็มหมู่บ้านตอนเข้าเกม: ไม่แสดงผู้เล่นที่ออกไปแล้ว และบัญชีเดียวกันแสดงตัวเดียว\n• (จาก 2.9.45) ระบบกันของหาย',
+  version: '2.9.47',
+  patchNotes: 'อัปเดต 2.9.47 (สำคัญ)\n• แก้การบันทึกตัวละครขึ้นเซิร์ฟเวอร์ไม่ผ่าน (ช่วงที่ขึ้นว่า บันทึกในเครื่อง) ความคืบหน้าที่เก็บในเครื่องจะถูกกู้ขึ้นเซิร์ฟเวอร์อัตโนมัติเมื่อเข้าเกม\n• ห้อง GM: ส่งของได้ทุกผู้เล่น และเลือกแหวน 1 รู หรือ 2 รู ได้',
   announcement: 'ยินดีต้อนรับสู่ช่วงทดสอบ! เจอบั๊กบอก GM ได้เลย',
   rates: { bexp: 1, jexp: 1, gold: 1, drop: 1 },
   deathPenalty: 1,
@@ -2438,14 +2438,15 @@ function heroDoc() {
     skills: h.skills, hotbar: h.hotbar, gold: h.gold, refineW: h.refineW, refineA: h.refineA, potHp: h.potHp, potSp: h.potSp, potHpL: h.potHpL || 0, potSpL: h.potSpL || 0, potAll: h.potAll || 0, potBtn: h.potBtn || ['hp', 'sp'], potAuto: h.potAuto || { hp: 35, sp: 12, hpL: 0, spL: 0, all: 0 },
     mapId: h.mapId, kills: h.kills, bossKills: h.bossKills || 0, fbKills: h.fbKills || 0, dgClears: h.dgClears || 0, mail: h.mail || [], mailDone: (h.mailDone || []).slice(-80), sv: SCHEMA, sid: S.sid, sidT: S.sidT || 0, wstyle: h.wstyle, gmStamp: h.gmStamp || 0, inv: h.inv, eq: h.eq, mkDone: h.mkDone || [], ref: h.ref || {}, updatedAt: Date.now() };
 }
-function saveLocal() { if (S.hero) lsSet(LS_SAVE + (S.uid || ''), JSON.stringify(heroDoc())); }
+function saveLocal() { if (S.hero) lsSet(LS_SAVE + (S.uid || ''), JSON.stringify(Object.assign(heroDoc(), { savedAt: Date.now() }))); }
 // save guard: every save carries the game version (sv) and this tab's session id (sid);
 // an older game version or a second open session must never overwrite newer progress
 const SCHEMA = (() => { const v = String(DEFAULT_CONFIG.version).split('.').map((x) => parseInt(x, 10) || 0); return v[0] * 10000 + (v[1] || 0) * 100 + (v[2] || 0); })();
 S.sid = Date.now().toString(36) + Math.random().toString(36).slice(2, 8); S.sidT = 0;
 function saveSoon() { clearTimeout(S.ssT); S.ssT = setTimeout(() => { if (S.dirty) save(); }, 1500); }
 async function save() {
-  if (!S.hero || S.blocked) return;
+  if (!S.hero) return;
+  if (S.blocked) { if (S.blocked === 'deny') saveLocal(); return; }
   saveLocal();
   if (S.mode !== 'online') { S.dirty = false; renderSaveTxt(); return; }
   if (S.saving) { S.dirty = true; return; }
@@ -2453,7 +2454,8 @@ async function save() {
   try { await S.db.doc('heroes/' + S.uid).set(heroDoc()); S.savedOnline = true; }
   catch (e) {
     const code = e && e.code;
-    if (['invalid_argument', 'revoked', 'not_granted', 'capability_disabled', 'capability_removed'].includes(code)) S.mode = 'local';
+    if (code === 'permission_denied') { S.dirty = true; blockSaves('deny'); }
+    else if (['invalid_argument', 'revoked', 'not_granted', 'capability_disabled', 'capability_removed'].includes(code)) S.mode = 'local';
     else if (code === 'quota_exceeded') { S.mode = 'local'; toast('พื้นที่เซิร์ฟเวอร์เต็ม บันทึกในเครื่องนี้แทน'); }
     else S.dirty = true;
   } finally { S.saving = false; renderSaveTxt(); }
@@ -7688,15 +7690,16 @@ async function gmSave() {
 // stop saving from this tab and explain why
 function blockSaves(why) {
   if (S.blocked) return; S.blocked = why;
-  const ver = why === 'ver';
+  const ver = why === 'ver' || why === 'deny';
   $('#bcTitle').textContent = ver ? '⚠️ มีเกมเวอร์ชันใหม่' : '⚠️ บัญชีนี้เปิดอยู่ที่อื่น';
-  $('#bcText').textContent = ver ? 'ตัวละครนี้ถูกบันทึกด้วยเกมเวอร์ชันใหม่กว่าหน้านี้ เพื่อไม่ให้ของหาย หน้านี้หยุดบันทึกแล้ว กรุณารีเฟรชเกม' : 'มีการเข้าเกมด้วยบัญชีนี้จากอุปกรณ์หรือแท็บอื่น หน้านี้หยุดบันทึกแล้วเพื่อไม่ให้บันทึกทับกัน';
+  $('#bcText').textContent = why === 'deny' ? 'เซิร์ฟเวอร์ไม่รับการบันทึกจากหน้านี้ (น่าจะเป็นเกมเวอร์ชันเก่า) ความคืบหน้าถูกเก็บสำรองในเครื่องแล้ว กรุณารีเฟรชเกม ระบบจะอัปขึ้นเซิร์ฟเวอร์ให้' : ver ? 'ตัวละครนี้ถูกบันทึกด้วยเกมเวอร์ชันใหม่กว่าหน้านี้ เพื่อไม่ให้ของหาย หน้านี้หยุดบันทึกแล้ว กรุณารีเฟรชเกม' : 'มีการเข้าเกมด้วยบัญชีนี้จากอุปกรณ์หรือแท็บอื่น หน้านี้หยุดบันทึกแล้วเพื่อไม่ให้บันทึกทับกัน';
   $('#bcCount').hidden = true; const ok = $('#bcOk'); ok.textContent = ver ? 'รีเฟรชเกม' : 'เล่นที่นี่แทน (รีเฟรช)'; ok.onclick = doReload;
   $('#bcModal').hidden = false;
 }
 setInterval(() => { if (S.hero && !S.blocked && S.hero.mail && S.hero.mail.length) claimMail(S.hero); }, 5000);
 async function gmWrite(id, fn) {
-  try { await fn(S.db.doc('heroes/' + id)); toast('อัปเดตผู้เล่นแล้ว'); }
+  const ref = S.db.doc('heroes/' + id), withSv = { update: (d) => ref.update(Object.assign({ sv: SCHEMA }, d)), set: (d) => ref.set(Object.assign({ sv: SCHEMA }, d)) };
+  try { await fn(withSv); toast('อัปเดตผู้เล่นแล้ว'); }
   catch (e) { toast('อัปเดตไม่สำเร็จ (' + ((e && e.code) || 'ไม่ทราบสาเหตุ') + ')'); }
 }
 function renderGMPlayers() {
@@ -7723,13 +7726,13 @@ function renderGMPlayers() {
         return el('div', { class: 'ct' }, 'ตีบวก', sel, lv, el('button', { class: 'mini', text: 'ตั้ง', onclick: () => { const k = sel.value, v = int(lv.value, 0, 0, 15);
           gmWrite(p.id, (r) => r.update(Object.assign(k === 'weapon' ? { refineW: v } : k === 'armor' ? { refineA: v } : { ref: Object.assign({}, p.ref || {}, { [k]: v }) }, { gmRef: [k, v], gmF: ['gmRef'], gmStamp: Date.now() }))); } })); })(),
       (() => { const sel = el('select', { 'aria-label': 'ของที่จะส่ง' }); sel.append(el('option', { value: 'key', text: '🗝️ กุญแจดันเจี้ยน' }));
-        for (const sid of Object.keys(DG_SETS)) for (const id of Object.keys(GEAR)) if (GEAR[id].dg && (GEAR[id].set === sid || GEAR[id].dset === sid)) sel.append(el('option', { value: id, text: GEAR[id].nm }));
+        for (const sid of Object.keys(DG_SETS)) for (const id of Object.keys(GEAR)) if (GEAR[id].dg && (GEAR[id].set === sid || GEAR[id].dset === sid)) { sel.append(el('option', { value: id, text: GEAR[id].nm + (GEAR[id].slot === 'ring' ? ' (1 รู)' : '') })); if (GEAR[id].slot === 'ring') sel.append(el('option', { value: id + '|2', text: GEAR[id].nm + ' (2 รู)' })); }
         const rar = el('select', { 'aria-label': 'ความหายาก' }); for (const r of [1, 2, 3, 4]) rar.append(el('option', { value: String(r), text: RAR[r].nm }));
         const qty = el('input', { type: 'number', min: 1, max: 99, 'aria-label': 'จำนวน' }); qty.value = 1;
         return el('div', { class: 'ct' }, 'ส่งของ', sel, rar, qty, el('button', { class: 'mini', text: 'ส่ง', onclick: () => {
           const id = sel.value, n = int(qty.value, 1, 1, 99), items = [];
           if (id === 'key') items.push({ id: uid36().slice(-12), n, it: keyItem() });
-          else { const dg = dgDef(GEAR[id].set || GEAR[id].dset); for (let i = 0; i < Math.min(n, 10); i++) items.push({ id: uid36().slice(-12), n: 1, it: rollDgItem(dg, int(rar.value, 1, 1, 4), id) }); }
+          else { const [gid, sk] = id.split('|'), dg = dgDef(GEAR[gid].set || GEAR[gid].dset); for (let i = 0; i < Math.min(n, 10); i++) items.push({ id: uid36().slice(-12), n: 1, it: rollDgItem(dg, int(rar.value, 1, 1, 4), gid, sk === '2' ? 2 : 1) }); }
           gmWrite(p.id, (r) => r.update({ mail: (p.mail || []).concat(items).slice(-30), gmF: ['mail'], gmStamp: Date.now() })); } })); })()));
   }
 }
@@ -7798,9 +7801,15 @@ async function init() {
     S.mode = 'online';
     try { const snap = await S.db.doc('heroes/' + S.uid).get(); if (snap.exists) { const d = snap.data(); if (num(d.sv, 0, 0, 1e9) > SCHEMA) { blockSaves('ver'); return; } hero = sanitizeHero(d); fromServer = true; } } catch (e) {}
   }
-  if (!hero) { try { const l = JSON.parse(lsGet(LS_SAVE + (S.uid || '')) || 'null'); if (l) hero = sanitizeHero(l); } catch (e) {} }
+  { let local = null; try { const l = JSON.parse(lsGet(LS_SAVE + (S.uid || '')) || 'null'); if (l) local = sanitizeHero(l); } catch (e) {}
+    if (!hero) hero = local;
+    else if (local && local.name === hero.name && (local.gmStamp || 0) >= (hero.gmStamp || 0) && ((local.kills || 0) > (hero.kills || 0) || ((local.kills || 0) === (hero.kills || 0) && (local.exp + local.level * 1e9) > (hero.exp + hero.level * 1e9)))) {
+      const have = new Set((local.mail || []).map((m) => m.id)), done = new Set(local.mailDone || []);
+      local.mail = (local.mail || []).concat((hero.mail || []).filter((m) => !have.has(m.id) && !done.has(m.id)));
+      hero = local; fromServer = false; S.restoredLocal = true;   // uploaded right away below
+    } }
   if (!S.db) BOSS.loaded = true;
-  if (hero) { S.hero = hero; S.savedOnline = fromServer; if (!fromServer) save(); showSelect(); } else setupCreate();
+  if (hero) { S.hero = hero; S.savedOnline = fromServer; if (!fromServer) save(); if (S.restoredLocal) toast('กู้ความคืบหน้าที่เก็บในเครื่องนี้ขึ้นเซิร์ฟเวอร์แล้ว'); showSelect(); } else setupCreate();
   if (S.db && S.uid) {
     S.db.doc('heroes/' + S.uid).onSnapshot((snap) => {
       if (!snap.exists || !S.hero) return;
