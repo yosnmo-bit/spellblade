@@ -997,8 +997,8 @@ function MON(id, name, arch, color, lv, extra) {
 }
 
 const DEFAULT_CONFIG = {
-  version: '2.9.52',
-  patchNotes: 'อัปเดต 2.9.52\n• ได้รับของจาก GM จะมีหน้าต่างแจ้งเตือนส่วนตัว บอกรายการของ ค่าสถานะ และออปชัน (ถ้าออฟไลน์จะเห็นตอนเข้าเกมครั้งหน้า)\n• (GM) ส่งของแบบเลือกเองได้ทุกอย่าง: อุปกรณ์ดันเจี้ยนพร้อมเลือกออปชัน ของกาชา การ์ด กุญแจ แร่ และตรวจว่าของเข้าจริง',
+  version: '2.9.53',
+  patchNotes: 'อัปเดต 2.9.53\n• (GM) ตั้งค่าบอสดันเจี้ยนได้ละเอียดขึ้น: คูณเลือดได้สูงสุด 100,000 เท่า และปรับ ATK / DEF ของบอสได้\n• (จาก 2.9.52) แจ้งเตือนเมื่อได้รับของจาก GM',
   announcement: 'ยินดีต้อนรับสู่ช่วงทดสอบ! เจอบั๊กบอก GM ได้เลย',
   rates: { bexp: 1, jexp: 1, gold: 1, drop: 1 },
   deathPenalty: 1,
@@ -1013,15 +1013,15 @@ const DEFAULT_CONFIG = {
   jobMove: 250000, statReset: 0,
   jobNames: {},
   dungeons: [
-    { id: 'slime', name: 'ถ้ำราชาเมือก', theme: 'forest', diff: 1, minLv: 15, boss: 'ราชาเมือกยักษ์', arch: 'blob', color: '#55d39a', bossLv: 30, hpMul: 4,
+    { id: 'slime', name: 'ถ้ำราชาเมือก', theme: 'forest', diff: 1, minLv: 15, boss: 'ราชาเมือกยักษ์', arch: 'blob', color: '#55d39a', bossLv: 30, hpMul: 4, atkMul: 1.15, defMul: 1,
       keyName: 'กุญแจถ้ำเมือก', keyMaps: ['meadow', 'darkwood'], keyChance: 0.8, rar: [85, 15, 0, 0], skills: ['slam', 'roar', 'summon'], minion: ['blob', 'สไลม์พิษ', '#7be08a'], on: true },
-    { id: 'temple', name: 'วิหารต้องสาป', theme: 'sand', diff: 2, minLv: 35, boss: 'ฟาโรห์อมตะ', arch: 'bones', color: '#e3c46a', bossLv: 52, hpMul: 4.5,
+    { id: 'temple', name: 'วิหารต้องสาป', theme: 'sand', diff: 2, minLv: 35, boss: 'ฟาโรห์อมตะ', arch: 'bones', color: '#e3c46a', bossLv: 52, hpMul: 4.5, atkMul: 1.15, defMul: 1,
       keyName: 'กุญแจวิหาร', keyMaps: ['desert'], keyChance: 0.7, rar: [60, 32, 8, 0], skills: ['slam', 'breath', 'roar', 'summon'], minion: ['ghost', 'วิญญาณทราย', '#e8d9a8'], on: true },
-    { id: 'demon', name: 'ป้อมปีศาจทมิฬ', theme: 'ruins', diff: 3, minLv: 55, boss: 'จอมมารทมิฬ', arch: 'brute', color: '#4b2d6e', bossLv: 78, hpMul: 5,
+    { id: 'demon', name: 'ป้อมปีศาจทมิฬ', theme: 'ruins', diff: 3, minLv: 55, boss: 'จอมมารทมิฬ', arch: 'brute', color: '#4b2d6e', bossLv: 78, hpMul: 5, atkMul: 1.15, defMul: 1,
       keyName: 'กุญแจป้อมปีศาจ', keyMaps: ['castle'], keyChance: 0.6, rar: [40, 38, 18, 4], skills: ['slam', 'breath', 'roar', 'meteor', 'summon'], minion: ['bat', 'ค้างคาวปีศาจ', '#7a2a5a'], on: true },
-    { id: 'dragon', name: 'รังมังกรนิรันดร์', theme: 'lava', diff: 4, minLv: 80, boss: 'ราชันมังกรนิรันดร์', arch: 'drake', color: '#3a1a5a', bossLv: 99, hpMul: 6,
+    { id: 'dragon', name: 'รังมังกรนิรันดร์', theme: 'lava', diff: 4, minLv: 80, boss: 'ราชันมังกรนิรันดร์', arch: 'drake', color: '#3a1a5a', bossLv: 99, hpMul: 6, atkMul: 1.15, defMul: 1,
       keyName: 'กุญแจรังมังกร', keyMaps: ['volcano'], keyChance: 0.5, rar: [20, 40, 28, 12], skills: ['slam', 'breath', 'roar', 'meteor', 'summon'], minion: ['drake', 'มังกรพิทักษ์', '#c2452c'], on: true },
-    { id: 'pirate', name: 'เรือผีโจรสลัด', theme: 'beach', diff: 5, minLv: 119, boss: 'หัวหน้าโจรสลัด', arch: 'brute', color: '#c0392b', bossLv: 145, hpMul: 7,
+    { id: 'pirate', name: 'เรือผีโจรสลัด', theme: 'beach', diff: 5, minLv: 119, boss: 'หัวหน้าโจรสลัด', arch: 'brute', color: '#c0392b', bossLv: 145, hpMul: 7, atkMul: 1.15, defMul: 1,
       keyName: 'กุญแจเรือผี', keyMaps: ['cove'], keyChance: 0.5, rar: [10, 40, 35, 15], skills: ['slam', 'roar', 'meteor', 'summon', 'breath'], minion: ['brute', 'ลูกเรือผีโจรสลัด', '#7fb8a8'], on: true }
   ],
   maps: [
@@ -1110,7 +1110,7 @@ function sanitizeConfig(raw) {
       const x = (Array.isArray(raw.dungeons) ? raw.dungeons : []).find((y) => y && y.id === d0.id) || {};
       return Object.assign({}, d0, {
         name: str(x.name, d0.name, 30), boss: str(x.boss, d0.boss, 30), keyName: str(x.keyName, d0.keyName, 30),
-        minLv: int(x.minLv, d0.minLv, 1, 999), bossLv: int(x.bossLv, d0.bossLv, 1, 999), hpMul: num(x.hpMul, d0.hpMul, 0.3, 50),
+        minLv: int(x.minLv, d0.minLv, 1, 999), bossLv: int(x.bossLv, d0.bossLv, 1, 999), hpMul: num(x.hpMul, d0.hpMul, 0.1, 100000), atkMul: num(x.atkMul, d0.atkMul, 0.1, 1000), defMul: num(x.defMul, d0.defMul, 0, 1000),
         keyChance: num(x.keyChance, d0.keyChance, 0, 100), rar: [0, 1, 2, 3].map((i) => num(Array.isArray(x.rar) ? x.rar[i] : undefined, d0.rar[i], 0, 1000)),
         on: x.on !== false
       });
@@ -5911,7 +5911,7 @@ function dropKeys(m, tpl) {
 function dgMap(dg, inst) {
   const mn = dg.minion || ['blob', 'สมุน', '#888888'];
   const boss = MON(dg.id + '_boss', dg.boss, dg.arch, dg.color, dg.bossLv, { boss: true, raid: true, aggro: true });
-  boss.hp = Math.round(boss.hp * dg.hpMul); boss.atk = Math.round(boss.atk * 1.15); boss.bexp *= 3; boss.jexp *= 3; boss.gold *= 2;
+  boss.hp = Math.round(boss.hp * dg.hpMul); boss.atk = Math.round(boss.atk * (Number.isFinite(dg.atkMul) ? dg.atkMul : 1.15)); boss.def = Math.round(boss.def * (Number.isFinite(dg.defMul) ? dg.defMul : 1)); boss.bexp *= 3; boss.jexp *= 3; boss.gold *= 2;
   boss.cs = ARCH_CS[dg.arch] || 'armor';
   const minion = MON(dg.id + '_min', mn[1], mn[0], mn[2], Math.max(1, dg.bossLv - 6), { aggro: true });
   minion.cs = ARCH_CS[mn[0]] || 'armor';
@@ -7730,7 +7730,7 @@ function panelGM(body) {
   for (const dg of d.dungeons) {
     dgSec.append(el('details', { class: 'box', 'data-k': 'dg_' + dg.id, open: !!gmOpen['dg_' + dg.id] }, el('summary', { text: '🏰 ' + dg.name + (dg.on ? '' : '  (ปิด)') }),
       el('div', { class: 'g2' }, fText('ชื่อดันเจี้ยน', dg.name, (v) => { dg.name = v; }, { max: 30 }), fText('ชื่อบอส', dg.boss, (v) => { dg.boss = v; }, { max: 30 })),
-      el('div', { class: 'g3' }, fNum('เข้าได้ Lv', dg.minLv, (v) => { dg.minLv = Math.max(1, Math.round(v)); }), fNum('เลเวลบอส', dg.bossLv, (v) => { dg.bossLv = Math.max(1, Math.round(v)); }), fNum('คูณเลือดบอส', dg.hpMul, (v) => { dg.hpMul = Math.max(0.3, v); }, 0.5)),
+      gmBossFields(dg),
       el('div', { class: 'g2' }, ...['Epic', 'Legendary', 'Mythic', 'Ultimate'].map((nm, i) => fNum(nm, dg.rar[i], (v) => { dg.rar[i] = Math.max(0, v); }))),
       el('div', { class: 'acts' }, fCk('เปิดให้เข้า', dg.on, (v) => { dg.on = v; }))));
   }
@@ -7825,6 +7825,16 @@ async function gmWrite(id, fn) {
   const ref = S.db.doc('heroes/' + id), withSv = { update: (d) => ref.update(Object.assign({ sv: SCHEMA }, d)), set: (d) => ref.set(Object.assign({ sv: SCHEMA }, d)) };
   try { await fn(withSv); toast('อัปเดตผู้เล่นแล้ว'); loadPlayers(true); }
   catch (e) { toast('อัปเดตไม่สำเร็จ (' + ((e && e.code) || 'ไม่ทราบสาเหตุ') + ')'); }
+}
+// dungeon boss numbers in the GM panel, with the real resulting HP / ATK / DEF shown as you type
+function gmBossFields(dg) {
+  const note = el('p', { class: 'note' });
+  const upd = () => { const b = monStats(dg.bossLv, true); note.textContent = 'บอสจริงที่ Lv.' + dg.bossLv + ':  HP ' + fmt(Math.round(b.hp * dg.hpMul)) + '  ·  ATK ' + fmt(Math.round(b.atk * dg.atkMul)) + '  ·  DEF ' + fmt(Math.round(b.def * dg.defMul)); };
+  upd();
+  return el('div', {},
+    el('div', { class: 'g3' }, fNum('เข้าได้ Lv', dg.minLv, (v) => { dg.minLv = Math.max(1, Math.round(v)); }), fNum('เลเวลบอส', dg.bossLv, (v) => { dg.bossLv = Math.max(1, Math.round(v)); upd(); }), fNum('คูณเลือดบอส', dg.hpMul, (v) => { dg.hpMul = Math.max(0.1, Math.min(100000, v)); upd(); }, 0.5)),
+    el('div', { class: 'g3' }, fNum('คูณ ATK บอส', dg.atkMul, (v) => { dg.atkMul = Math.max(0.1, Math.min(1000, v)); upd(); }, 0.1), fNum('คูณ DEF บอส', dg.defMul, (v) => { dg.defMul = Math.max(0, Math.min(1000, v)); upd(); }, 0.1)),
+    note);
 }
 function renderGMPlayers() {
   const box = $('#gmPlayers'); if (!box) return;
