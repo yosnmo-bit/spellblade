@@ -726,16 +726,21 @@ window.__NET_RATE = 250;
     const sid = 's' + Math.random().toString(36).slice(2, 10);
     const lobby = rtdb.ref('rooms/lobby'), mine = lobby.child(sid);
     mine.onDisconnect().remove();
-    let myP = {}, cache = {}, cbs = [], pending = false;
+    let myP = {}, cache = {}, cbs = [], pending = false, swept = false;
+    // onDisconnect fires once: arm it again every time the connection comes back, and restore our entry
+    rtdb.ref('.info/connected').on('value', (s) => { if (s.val() === true) { mine.onDisconnect().remove(); if (Object.keys(myP).length) mine.set({ by: uid, p: JSON.stringify(myP), t: TS() }).catch(() => {}); } });
     const emit = () => {
       pending = false;
       const list = [{ peer: sid, by: uid, isMe: true, sameTab: true, kind: 'viewer', guest: false, presence: myP, updatedAt: Date.now() }];
-      for (const k in cache) { if (k === sid) continue; const v = cache[k] || {}; let p = {}; try { p = JSON.parse(v.p || '{}'); } catch (e) {} list.push({ peer: k, by: v.by || null, isMe: false, sameTab: false, kind: 'viewer', guest: false, presence: Object.freeze(p), updatedAt: Date.now() }); }
+      for (const k in cache) { if (k === sid) continue; const v = cache[k] || {}; let p = {}; try { p = JSON.parse(v.p || '{}'); } catch (e) {} list.push({ peer: k, by: v.by || null, ts: typeof v.t === 'number' ? v.t : 0, isMe: false, sameTab: false, kind: 'viewer', guest: false, presence: Object.freeze(p), updatedAt: Date.now() }); }
       for (const cb of cbs) cb({ peers: list, joined: [], left: [], updated: [] });
     };
-    lobby.on('value', (s) => { cache = s.val() || {}; if (!pending) { pending = true; setTimeout(emit, 30); } });
+    lobby.on('value', (s) => { cache = s.val() || {};
+      // remove this account's leftover entries from earlier visits (rules only let us delete our own)
+      if (!swept) { swept = true; for (const k in cache) if (k !== sid && cache[k] && cache[k].by === uid) lobby.child(k).remove().catch(() => {}); }
+      if (!pending) { pending = true; setTimeout(emit, 30); } });
     const ROOM = { onPeers: (cb) => { cbs.push(cb); setTimeout(emit, 0); return () => { cbs = cbs.filter((x) => x !== cb); }; },
-      presence: (p) => { myP = Object.freeze(JSON.parse(JSON.stringify(p))); return mine.set({ by: uid, p: JSON.stringify(p) }); },
+      presence: (p) => { myP = Object.freeze(JSON.parse(JSON.stringify(p))); return mine.set({ by: uid, p: JSON.stringify(p), t: TS() }); },
       connected: () => true, peers: () => [], emit: async () => {}, on: () => () => {} };
     return { db: DB, user: USER, room: ROOM };
   }
@@ -908,8 +913,8 @@ function MON(id, name, arch, color, lv, extra) {
 }
 
 const DEFAULT_CONFIG = {
-  version: '2.9.45',
-  patchNotes: 'อัปเดต 2.9.45: กันของหาย\n• เกมเวอร์ชันเก่าที่เปิดค้างไว้จะบันทึกทับตัวละครไม่ได้อีก (ขึ้นให้รีเฟรช)\n• เปิดบัญชีเดียวกันหลายเครื่อง เครื่องเดิมจะหยุดบันทึก\n• บันทึกทันทีเมื่อได้ของสำคัญ ตีบวก หรือเปลี่ยนอุปกรณ์\n• กระเป๋าเต็ม ของจะเข้ากล่องจดหมายแล้วเข้ากระเป๋าเองเมื่อมีที่ว่าง\n• GM ปรับข้อมูลโดยไม่ทับความคืบหน้าล่าสุด และส่งของคืนผู้เล่นได้',
+  version: '2.9.46',
+  patchNotes: 'อัปเดต 2.9.46\n• แก้ตัวละครซ้ำ (ร่างเงา) ยืนเต็มหมู่บ้านตอนเข้าเกม: ไม่แสดงผู้เล่นที่ออกไปแล้ว และบัญชีเดียวกันแสดงตัวเดียว\n• (จาก 2.9.45) ระบบกันของหาย',
   announcement: 'ยินดีต้อนรับสู่ช่วงทดสอบ! เจอบั๊กบอก GM ได้เลย',
   rates: { bexp: 1, jexp: 1, gold: 1, drop: 1 },
   deathPenalty: 1,
@@ -5184,7 +5189,7 @@ function readPresence(p) {
     map: typeof pr.m === 'string' ? pr.m.slice(0, 40) : '', nx: num(pr.x, 0.5, 0, 1), ny: num(pr.y, 0.5, 0, 1),
     look: { g: pr.g === 'f' ? 'f' : 'm', hair: int(pr.h, 0, 0, HAIR_NAMES.length - 1), hc: color(pr.c, HAIR_COLORS[0]) },
     ws: pr.ws === 'katar' ? 'katar' : 'dual', sw: int(pr.sw, 0, 0, 1e9), dead: !!pr.d, hp: int(pr.hp, 100, 0, 100),
-    mt: num(pr.mt, 0, 0, 1e15), hb: int(pr.hb, 0, 0, 1e12), aw: !!pr.aw, pk: typeof pr.pk === 'string' ? pr.pk.slice(0, 24) : '',
+    mt: num(pr.mt, 0, 0, 1e15), st: num(pr.st, 0, 0, 1e15), hb: int(pr.hb, 0, 0, 1e12), aw: !!pr.aw, pk: typeof pr.pk === 'string' ? pr.pk.slice(0, 24) : '',
     pi: (arr(pr.pi, 6) || []).filter((x) => typeof x === 'string'), hit: arr(pr.hit, 20), dg: arr(pr.dg, 40), kd: arr(pr.kd, 12),
     ms: Array.isArray(pr.ms) ? pr.ms : null, tp: (arr(pr.tp, 12) || []).filter((x) => typeof x === 'string'),
     bb: Array.isArray(pr.bb) && typeof pr.bb[0] === 'string' ? [pr.bb[0].slice(0, 40), int(pr.bb[1], 0, 0, 1e9)] : null,
@@ -5213,12 +5218,15 @@ function syncOthers() {
   for (const p of ONLINE.peers) {
     if (p.isMe || p.kind !== 'viewer') continue;
     const d = readPresence(p); if (!d) continue;
+    if (p.ts && Date.now() + (window.__srvOff || 0) - p.ts > 12000) continue;   // entry left behind by a closed session
     seen.add(p.peer);
     let o = ONLINE.others.get(p.peer);
     const tx = d.nx * WORLD.w, ty = d.ny * WORLD.h;
     if (!o) { o = { key: p.peer, x: tx, y: ty, swingT: -9, sw: d.sw, bbT: -99 }; ONLINE.others.set(p.peer, o); }
     if (d.sw !== o.sw) { o.swingT = W.t; o.sw = d.sw; }
-    if (d.hb !== o.hb || !o.beat) o.beat = performance.now();
+    if (!o.seen) { o.seen = true; o.beat = performance.now() - 19000; o.ok = false; }   // not shown until its heartbeat moves
+    else if (d.hb !== o.hb) { o.beat = performance.now(); o.ok = true; }
+    o.by = p.by || o.by;
     if (d.aw && !o.aw) o.awaySince = performance.now();
     if (!d.aw) o.awaySince = 0;
     if (o.map !== d.map) { o.x = tx; o.y = ty; }
@@ -5230,6 +5238,8 @@ function syncOthers() {
     }
   }
   for (const k of [...ONLINE.others.keys()]) if (!seen.has(k)) ONLINE.others.delete(k);
+  // the same account seen twice (an old tab, a session that never closed): keep only the freshest
+  { const best = new Map(); for (const o of ONLINE.others.values()) { o.dupe = false; if (!o.by || !o.ok) continue; const b = best.get(o.by), newer = !b || (o.st || 0) > (b.st || 0) || ((o.st || 0) === (b.st || 0) && o.beat > b.beat); if (newer) { if (b) b.dupe = true; best.set(o.by, o); } else o.dupe = true; } }
   PARTY.invited = PARTY.invited.filter((k) => { const o = ONLINE.others.get(k); return o && o.pk !== PARTY.key; });
   // support from teammates (heal / buff / revive), each event applied once
   if (NET.me && PARTY.key) {
@@ -5240,7 +5250,7 @@ function syncOthers() {
   pvpIntake(); fxIntake(); ccIntake();
   partyIntake();
 }
-const isGone = (o) => (o.aw && performance.now() - (o.awaySince || 0) > 20000) || performance.now() - (o.beat || 0) > 20000;
+const isGone = (o) => !o.ok || o.dupe || (o.aw && performance.now() - (o.awaySince || 0) > 20000) || performance.now() - (o.beat || 0) > 20000;
 const activeOthers = () => [...ONLINE.others.values()].filter((o) => !isGone(o));
 const isLive = (o) => !o.aw && performance.now() - (o.beat || 0) < 3500;
 function othersLive() { return othersHere().filter(isLive); }
@@ -5419,10 +5429,11 @@ function onlineTick(dt) {
   { const mc = (NET.mcc || []).filter((e) => Date.now() - e[4] < 6000); NET.mcc = mc; if (mc.length) pr.mcc = mc.map((e) => e.slice(0, 4)); }
   if (isPvp()) { const pc = (NET.pvc || []).filter((e) => Date.now() - e[4] < 6000); NET.pvc = pc; if (pc.length) pr.pvc = pc.map((e) => e.slice(0, 4)); }
   { const sp = (NET.sup || []).filter((e) => Date.now() - e[5] < 8000); NET.sup = sp; if (sp.length) pr.sup = sp.map((e) => e.slice(0, 5)); }
+  if (S.blocked) return;   // a tab that stopped saving also stops showing itself
   const sig = JSON.stringify(pr);
   if (sig === ONLINE.sig && now - ONLINE.lastSend < 1000) return;
   ONLINE.sig = sig; ONLINE.lastSend = now;
-  pr.hb = ++ONLINE.hb; pr.aw = 0; ONLINE.last = pr;
+  pr.hb = ++ONLINE.hb; pr.aw = 0; pr.st = S.sidT || 0; ONLINE.last = pr;
   room.presence(pr).catch(() => {});
 }
 
