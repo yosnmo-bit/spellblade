@@ -833,12 +833,12 @@ window.__NET_RATE = 250;
 </script>
 
 <script>window.__WEB = 1; window.__NET_RATE = 300;</script>
-<script src="sb-kk.js?v=c51e07fd"></script>
-<script src="sb-world.js?v=d7c0bd7c"></script>
-<script src="sb-mobs.js?v=c9d10de7"></script>
-<script src="sb-fx.js?v=d0c35c6b"></script>
-<script src="sb-title.js?v=51006126"></script>
-<script>(function(){var m=[];if(typeof KK==="undefined")m.push("sb-kk.js");if(typeof KK==="undefined"||!KK.village)m.push("sb-world.js");if(typeof KK==="undefined"||!KK.mobs)m.push("sb-mobs.js");if(typeof GFX_SRC==="undefined"||typeof VFX_SRC==="undefined")m.push("sb-fx.js");if(typeof LG_ART==="undefined")m.push("sb-title.js");if(m.length){document.body.insertAdjacentHTML("afterbegin","<div style=\"position:fixed;inset:0;z-index:99999;background:#1b2232;color:#fff;padding:28px;font:16px/1.6 sans-serif\"><h2>ไฟล์เกมอัปโหลดไม่ครบ</h2><p>ยังขาดไฟล์: <b>"+m.join(", ")+"</b></p><p>อัปโหลดไฟล์ sb-*.js ทั้งหมดไว้ข้าง index.html (โฟลเดอร์เดียวกัน) แล้วรีเฟรชหน้านี้</p></div>");}})();</script>
+<script src="sb-kk.js?v=c51e07fd" onerror="(window.__miss=window.__miss||[]).push('sb-kk.js')"></script>
+<script src="sb-world.js?v=d7c0bd7c" onerror="(window.__miss=window.__miss||[]).push('sb-world.js')"></script>
+<script src="sb-mobs.js?v=c9d10de7" onerror="(window.__miss=window.__miss||[]).push('sb-mobs.js')"></script>
+<script src="sb-fx.js?v=d0c35c6b" onerror="(window.__miss=window.__miss||[]).push('sb-fx.js')"></script>
+<script src="sb-title.js?v=51006126" onerror="(window.__miss=window.__miss||[]).push('sb-title.js')"></script>
+<script>(function(){var m=(window.__miss||[]).slice();function add(f){if(m.indexOf(f)<0)m.push(f);}if(typeof KK==="undefined")add("sb-kk.js");if(typeof KK!=="undefined"&&!KK.village)add("sb-world.js");if(typeof KK!=="undefined"&&!KK.mobs)add("sb-mobs.js");if(typeof GFX_SRC==="undefined"||typeof VFX_SRC==="undefined")add("sb-fx.js");if(typeof LG_ART==="undefined")add("sb-title.js");if(m.length){var l=m.map(function(f){return '<a href="'+f+'" target="_blank" rel="noopener" style="color:#9fd0ff;font-weight:700">'+f+'</a>';}).join(' &nbsp;·&nbsp; ');document.body.insertAdjacentHTML('afterbegin','<div style="position:fixed;inset:0;z-index:99999;background:#1b2232;color:#fff;padding:24px;font:16px/1.75 sans-serif;overflow:auto"><h2 style="margin:0 0 10px">ไฟล์เกมอัปโหลดไม่ครบ</h2><p>ยังขาดไฟล์: '+l+'</p><ol style="padding-left:20px"><li>ตรวจว่าไฟล์เหล่านี้อยู่ใน<b>โฟลเดอร์เดียวกับ index.html</b> (โฟลเดอร์หลักของ repo)</li><li>กดลิงก์ชื่อไฟล์ด้านบนเพื่อเช็ก: ถ้าเห็นตัวหนังสือยาวๆ แปลว่าไฟล์อยู่ครบแล้ว ถ้าเห็นหน้า 404 แปลว่ายังไม่ได้อัปโหลดหรืออยู่ผิดที่</li><li>ถ้าเพิ่งอัปโหลด รอ 1–2 นาทีให้ GitHub Pages อัปเดต แล้วรีเฟรชแรงๆ (Ctrl+Shift+R)</li></ol></div>');}})();</script>
 <script>
 (() => {
 'use strict';
