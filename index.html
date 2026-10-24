@@ -1705,13 +1705,14 @@ function sanitizeHero(d) {
     mail: (Array.isArray(d.mail) ? d.mail : []).slice(-60).map((m) => m && typeof m.id === 'string' ? Object.assign({ id: m.id.slice(0, 24), n: int(m.n, 1, 1, 999), it: sanitizeItem(m.it, false) }, m.from === 'gm' ? { from: 'gm', msg: str(m.msg, '', 80) } : {}) : null).filter((m) => m && m.it),
     mailDone: (Array.isArray(d.mailDone) ? d.mailDone : []).filter((x) => typeof x === 'string').slice(-80),
     wstyle: d.wstyle === 'katar' ? 'katar' : 'dual', gmStamp: num(d.gmStamp, 0, 0, 1e15),
+    bagX: int(d.bagX, 0, 0, BAG_X_MAX),
     mkDone: (Array.isArray(d.mkDone) ? d.mkDone : []).filter((x) => typeof x === 'string').map((x) => x.slice(0, 40)).slice(-80),
     ref: (() => { const r = d.ref || {}, o = {}; for (const k of ['off', 'ring1', 'ring2', 'head', 'face', 'mouth', 'shoes', 'wings']) o[k] = int(r[k], 0, 0, 15); return o; })()
   };
   const st = d.stats || {}; for (const k of STATS) h.stats[k] = int(st[k], 1, 1, STAT_MAX);
   const seenK = new Set();
   h.inv = [];
-  for (const x of (Array.isArray(d.inv) ? d.inv : [])) { const it = sanitizeItem(x, true); if (!it) continue; const same = h.inv.find((y) => y.k === it.k); if (same) { if (it.kind !== 'gear') same.n = Math.min(999, (same.n || 1) + (it.n || 1)); } else if (h.inv.length < INV_MAX) h.inv.push(it); }
+  for (const x of (Array.isArray(d.inv) ? d.inv : [])) { const it = sanitizeItem(x, true); if (!it) continue; const same = h.inv.find((y) => y.k === it.k); if (same) { if (it.kind !== 'gear') same.n = Math.min(999, (same.n || 1) + (it.n || 1)); } else if (h.inv.length < invMax(h)) h.inv.push(it); }
   sanitizeEq(d, h);
   const sk = d.skills || {};
   for (const s of skillsFor(h.job)) { const v = int(sk[s.id], 0, 0, s.maxLv); if (v > 0) h.skills[s.id] = v; }
@@ -1817,24 +1818,51 @@ function spawnMon() {
 /* ---------- fx helpers ---------- */
 /* ---------- critical hit popups ---------- */
 const CRIT = { hsT: 0 };
+/* ---------- damage numbers: live NUM_LIFE seconds, float up, fade out, never overlap ---------- */
+const NUM_LIFE = 2.0, NUM_RISE = 60, NUM_MAX = 160, NUM_STACK = 14;
+const numAlpha = (p) => (p < 0.5 ? 1 : Math.max(0, 1 - (p - 0.5) / 0.5));   // solid for the first half, then fades out
+// room a number needs above / below its centre (a burst crit also carries the echo copy above and the CRITICAL! label below)
+const numUp = (n) => { const s = n.size || 12; return n.crit ? (n.burst ? s * 1.3 + 26 : s * 0.65) : s * 0.62; };
+const numDown = (n) => { const s = n.size || 12; return n.crit ? (n.burst ? s * 1.05 : s * 0.6) : s * 0.62; };
+function layoutNums(t) {
+  const groups = new Map();
+  for (const n of W.nums) {
+    if (!n.dmg || t - n.t0 > n.dur) continue;
+    const key = n.tk != null ? 'k' + n.tk : 'p' + Math.round(n.x / 48) + ':' + Math.round(n.y / 48);
+    const a = groups.get(key); if (a) a.push(n); else groups.set(key, [n]);
+  }
+  for (const a of groups.values()) {
+    a.sort((x, y) => y.t0 - x.t0);   // newest first: it stays lowest, every older number is lifted clear above it
+    let low = null;
+    a.forEach((n, i) => {
+      const p = clamp((t - n.t0) / n.dur, 0, 1), nat = NUM_RISE * easeOut(p);
+      n.h = Math.max(nat, low ? low.h + numUp(low) + numDown(n) + 3 : 0);
+      n.so = n.h - nat;
+      if (i >= NUM_STACK && !n.fade) { n.fade = 1; n.dur = Math.min(n.dur, t - n.t0 + 0.2); }   // only under extreme spam
+      low = n;
+    });
+  }
+}
+const CRIT_GOLD = { ray: ['#fff6c8', '#ffd84a'], star: ['#fffbe0', '#ffd13a', '#ff5a1a', '#a3100a'], glow: '#ff6a00', edge: 'rgba(60,6,0,.85)', spark: '#fff3b0', num: ['#fffde8', '#ffd84a', '#ff8c00'], o1: '#1e0c00', o2: '#7a2a00', echo: '#2a1200', lab: '#4a0000' };
+const CRIT_BLUE = { ray: ['#e6f9ff', '#5ad2ff'], star: ['#f2fcff', '#7fdcff', '#2a6bff', '#0a1f8a'], glow: '#2a8bff', edge: 'rgba(0,10,60,.85)', spark: '#d6f4ff', num: ['#f4fdff', '#8fe0ff', '#2a86ff'], o1: '#00122a', o2: '#0b3a7a', echo: '#00152e', lab: '#00184a' };
 function critPop(x, y, text, o) {
   const spk = []; for (let i = 0; i < 14; i++) spk.push(0.72 + Math.random() * 0.5);
   const sparks = []; for (let i = 0; i < 9; i++) sparks.push([Math.random() * TAU, 0.6 + Math.random() * 0.8]);
-  W.nums.push(Object.assign({ x, y, text, col: '#ffd84a', size: 30, t0: W.t, dur: 1.15, crit: true, burst: true, rot: Math.random() * TAU, spk, sparks }, o || {}));
-  if (W.nums.length > 100) W.nums.shift();
+  W.nums.push(Object.assign({ x, y, text, col: '#ffd84a', size: 30, t0: W.t, dur: NUM_LIFE, dmg: true, crit: true, burst: true, rot: Math.random() * TAU, spk, sparks }, o || {}));
+  if (W.nums.length > NUM_MAX) W.nums.shift();
 }
 const CRIT_SFX = { knife: 'dagger', dual: 'dagger', sword: 'sword', mace: 'mace', staff: 'rod', bow: 'bow', katar: 'katar', axe: 'axe' };
-function myCrit(tg, per, i) {
+function myCrit(tg, per, i, magic) {
   const s = tg.size || 1, h = S.hero;
-  critPop(tg.x, tg.y - 34 * s, fmt(per), { burst: i === 0, size: i === 0 ? 31 : 22, tk: tg.uid, tg, oy: -34 * s });
+  critPop(tg.x, tg.y - 34 * s, fmt(per), { burst: i === 0, size: i === 0 ? 31 : 22, tk: tg.uid, tg, oy: -34 * s, magic: !!magic });
   AU.sfx('crit', { w: CRIT_SFX[weaponOf(h.job, h.wstyle)] || 'dagger', sub: i });
   if (i === 0) {
-    addFx({ kind: 'ring', x: tg.x, y: tg.y, r: 38 * s, color: '#ffcf3a', dur: 0.32 });
+    addFx({ kind: 'ring', x: tg.x, y: tg.y, r: 38 * s, color: magic ? '#5ad2ff' : '#ffcf3a', dur: 0.32 });
     if (performance.now() - CRIT.hsT > 140) { CRIT.hsT = performance.now(); W.hitstop = performance.now() + 65; }
   }
 }
 function drawCrit(ctx, n, x, baseY, t) {
-  const ts = t - n.t0, p = ts / n.dur, size = n.size;
+  const ts = t - n.t0, p = ts / n.dur, size = n.size, C = n.magic ? CRIT_BLUE : CRIT_GOLD;
   ctx.save();
   // starburst
   if (n.burst && ts < 0.62) {
@@ -1844,7 +1872,7 @@ function drawCrit(ctx, n, x, baseY, t) {
     ctx.globalAlpha = a * 0.9;
     for (let i = 0; i < 10; i++) {
       const ang = i / 10 * TAU + n.rot * 0.7, r0 = R * (0.75 + bp * 0.6), r1 = R * (1.15 + bp * 1.1);
-      ctx.strokeStyle = i % 2 ? '#fff6c8' : '#ffd84a'; ctx.lineWidth = Math.max(1, 3 * (1 - bp)); ctx.beginPath();
+      ctx.strokeStyle = i % 2 ? C.ray[0] : C.ray[1]; ctx.lineWidth = Math.max(1, 3 * (1 - bp)); ctx.beginPath();
       ctx.moveTo(Math.cos(ang) * r0, Math.sin(ang) * r0 * 0.8); ctx.lineTo(Math.cos(ang) * r1, Math.sin(ang) * r1 * 0.8); ctx.stroke();
     }
     ctx.globalAlpha = a;
@@ -1857,11 +1885,11 @@ function drawCrit(ctx, n, x, baseY, t) {
     }
     ctx.closePath();
     const g = ctx.createRadialGradient(0, 0, R * 0.05, 0, 0, R * 1.1);
-    g.addColorStop(0, '#fffbe0'); g.addColorStop(0.28, '#ffd13a'); g.addColorStop(0.6, '#ff5a1a'); g.addColorStop(1, '#a3100a');
-    ctx.fillStyle = g; ctx.shadowColor = '#ff6a00'; ctx.shadowBlur = 18 * (1 - bp); ctx.fill();
-    ctx.shadowBlur = 0; ctx.lineWidth = 2; ctx.strokeStyle = 'rgba(60,6,0,.85)'; ctx.stroke();
+    g.addColorStop(0, C.star[0]); g.addColorStop(0.28, C.star[1]); g.addColorStop(0.6, C.star[2]); g.addColorStop(1, C.star[3]);
+    ctx.fillStyle = g; ctx.shadowColor = C.glow; ctx.shadowBlur = 18 * (1 - bp); ctx.fill();
+    ctx.shadowBlur = 0; ctx.lineWidth = 2; ctx.strokeStyle = C.edge; ctx.stroke();
     for (const [ang, sp] of n.sparks) {
-      const d = R * (0.6 + bp * 1.6 * sp); ctx.fillStyle = '#fff3b0';
+      const d = R * (0.6 + bp * 1.6 * sp); ctx.fillStyle = C.spark;
       ctx.beginPath(); ctx.arc(Math.cos(ang) * d, Math.sin(ang) * d * 0.8, Math.max(0.5, 2.6 * (1 - bp)), 0, TAU); ctx.fill();
     }
     ctx.restore(); ctx.save();
@@ -1869,35 +1897,35 @@ function drawCrit(ctx, n, x, baseY, t) {
   // number: punch-in, shake, then float
   const sc = ts < 0.07 ? 2.5 - ts / 0.07 * 1.6 : ts < 0.14 ? 0.9 + (ts - 0.07) / 0.07 * 0.2 : ts < 0.2 ? 1.1 - (ts - 0.14) / 0.06 * 0.1 : 1;
   const sh = ts < 0.16 ? (1 - ts / 0.16) * 3.5 : 0;
-  const nx = x + (Math.random() - 0.5) * sh, ny = baseY - 22 * easeOut(Math.max(0, (p - 0.4) / 0.6)) + (Math.random() - 0.5) * sh;
-  const fs = size * sc, alpha = p > 0.72 ? 1 - (p - 0.72) / 0.28 : 1;
+  const nx = x + (Math.random() - 0.5) * sh, ny = baseY + (Math.random() - 0.5) * sh;
+  const fs = size * sc, alpha = numAlpha(p);
   ctx.globalAlpha = alpha; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.lineJoin = 'round';
-  const gold = (y, h) => { const g = ctx.createLinearGradient(0, y - h / 2, 0, y + h / 2); g.addColorStop(0, '#fffde8'); g.addColorStop(0.45, '#ffd84a'); g.addColorStop(1, '#ff8c00'); return g; };
+  const gold = (y, h) => { const g = ctx.createLinearGradient(0, y - h / 2, 0, y + h / 2); g.addColorStop(0, C.num[0]); g.addColorStop(0.45, C.num[1]); g.addColorStop(1, C.num[2]); return g; };
   // echo copy above (like the classic double number)
   if (n.burst && ts < 0.75) {
     const ep = ts / 0.75, es = fs * 0.6, ey = ny - fs * 0.95 - ep * 26;
     ctx.globalAlpha = alpha * (1 - ep) * 0.9;
     ctx.font = '700 ' + es + 'px Silkscreen,"Courier New",monospace';
-    ctx.lineWidth = Math.max(2, es * 0.28); ctx.strokeStyle = '#2a1200'; ctx.strokeText(n.text, nx, ey);
+    ctx.lineWidth = Math.max(2, es * 0.28); ctx.strokeStyle = C.echo; ctx.strokeText(n.text, nx, ey);
     ctx.fillStyle = gold(ey, es); ctx.fillText(n.text, nx, ey);
     ctx.globalAlpha = alpha;
   }
   ctx.font = '700 ' + fs + 'px Silkscreen,"Courier New",monospace';
-  ctx.lineWidth = Math.max(4, fs * 0.36); ctx.strokeStyle = '#1e0c00'; ctx.strokeText(n.text, nx, ny);
-  ctx.lineWidth = Math.max(2, fs * 0.14); ctx.strokeStyle = '#7a2a00'; ctx.strokeText(n.text, nx, ny);
+  ctx.lineWidth = Math.max(4, fs * 0.36); ctx.strokeStyle = C.o1; ctx.strokeText(n.text, nx, ny);
+  ctx.lineWidth = Math.max(2, fs * 0.14); ctx.strokeStyle = C.o2; ctx.strokeText(n.text, nx, ny);
   ctx.fillStyle = gold(ny, fs); ctx.fillText(n.text, nx, ny);
   if (ts < 0.1) { ctx.globalAlpha = alpha * (1 - ts / 0.1); ctx.fillStyle = '#ffffff'; ctx.fillText(n.text, nx, ny); ctx.globalAlpha = alpha; }
   // label
   if (n.burst && ts > 0.04) {
     const ls = Math.max(9, size * 0.36), lb = 'CRITICAL!';
     ctx.font = '700 ' + ls + 'px Silkscreen,"Courier New",monospace';
-    ctx.lineWidth = Math.max(3, ls * 0.4); ctx.strokeStyle = '#4a0000'; ctx.strokeText(lb, nx, ny + fs * 0.78);
+    ctx.lineWidth = Math.max(3, ls * 0.4); ctx.strokeStyle = C.lab; ctx.strokeText(lb, nx, ny + fs * 0.78);
     ctx.fillStyle = '#ffffff'; ctx.fillText(lb, nx, ny + fs * 0.78);
   }
   ctx.restore();
 }
 function addFx(o) { o.t0 = W.t; W.fx.push(o); if (W.fx.length > 140) W.fx.shift(); }
-function addNum(x, y, text, col, size, o) { W.nums.push(Object.assign({ x, y, text, col, size, t0: W.t, dur: 0.9, font: 'px' }, o || {})); if (W.nums.length > 100) W.nums.shift(); }
+function addNum(x, y, text, col, size, o) { W.nums.push(Object.assign({ x, y, text, col, size, t0: W.t, dur: 0.9, font: 'px' }, o || {})); if (W.nums.length > NUM_MAX) W.nums.shift(); }
 function later(d, fn) { W.pend.push({ at: W.t + d, fn }); }
 function projectile(x, y, tg, speed, sub, col, w) {
   const d = Math.hypot(tg.x - x, tg.y - 14 - y), dur = Math.max(0.06, d / speed);
@@ -1914,14 +1942,18 @@ function rollPhys(mult, tg, forceCrit) {
   dmg *= 1 + (D.pdmg || 0) / 100;
   return { dmg: Math.max(1, Math.round(dmg)), crit };
 }
-function rollMagic(mult, tg) {
-  const dmg = P.D.matk * mult * (0.92 + Math.random() * 0.16) * 100 / (100 + tg.def * 0.6) * (1 + (P.D.mdmg || 0) / 100);
-  return { dmg: Math.max(1, Math.round(dmg)), crit: false };
+function rollMagic(mult, tg, forceCrit) {
+  // magic now rolls crit from the character's CRIT stat, like physical hits (a crit ignores DEF, same as rollPhys)
+  const D = P.D, crit = !!forceCrit || Math.random() * 100 < D.crit;
+  let dmg = D.matk * mult * (0.92 + Math.random() * 0.16);
+  dmg = crit ? dmg * (1.5 + (D.critDmg || 0) / 100) : dmg * 100 / (100 + tg.def * 0.6);
+  dmg *= 1 + (D.mdmg || 0) / 100;
+  return { dmg: Math.max(1, Math.round(dmg)), crit, magic: true };
 }
 function applyHit(tg, res, hits) {
   if (!tg || tg.state === 'dead') return;
   const s = tg.size || 1;
-  if (res.miss) { addNum(tg.x, tg.y - 34 * s, 'MISS', '#c8d0dc', 12); AU.sfx('miss'); return; }
+  if (res.miss) { addNum(tg.x, tg.y - 34 * s, 'MISS', '#c8d0dc', 12, { dmg: true, tk: tg.uid, tg, oy: -34 * s, dur: 1.2 }); AU.sfx('miss'); return; }
   hits = Math.max(1, hits | 0);
   if (tg.pvp) { pvpHit(tg, res, hits); return; }
   const per = Math.max(1, Math.round(res.dmg / hits));
@@ -1930,9 +1962,9 @@ function applyHit(tg, res, hits) {
       if (tg.state === 'dead' || tg.hp <= 0) return;
       const dealt = Math.min(per, Math.max(0, tg.hp));
       tg.hp -= per; tg.hitT = 0.12; tg.angry = true; tg.state = 'chase'; tg.tgt = myKey(); tg.predT = W.t; dgStat('dmg', dealt);
-      if (!NET.isHost) netPushHit(tg.uid, per, res.crit);
-      if (res.crit) myCrit(tg, per, i);
-      else { AU.sfx('hit'); addNum(tg.x, tg.y - 32 * s, fmt(per), '#ffffff', 15, { pop: true, tk: tg.uid, dur: 1.15, tg, oy: -32 * s }); }
+      if (!NET.isHost) netPushHit(tg.uid, per, res.crit ? (res.magic ? 2 : 1) : 0);
+      if (res.crit) myCrit(tg, per, i, res.magic);
+      else { AU.sfx('hit'); addNum(tg.x, tg.y - 32 * s, fmt(per), '#ffffff', 15, { pop: true, tk: tg.uid, dur: NUM_LIFE, dmg: true, tg, oy: -32 * s }); }
       if (tg.hp <= 0) { if (NET.isHost) killMon(tg, myKey()); else tg.hp = 0; }
     });
   }
@@ -2023,10 +2055,10 @@ function gainExp(b, j) {
 }
 function monHit(m) {
   const D = P.D, miss = clamp((D.flee - (m.lv + 25)) / 100, 0, 0.8);
-  if (Math.random() < miss) { addNum(P.x, P.y - 54, 'MISS', '#c8d0dc', 11); return; }
+  if (Math.random() < miss) { addNum(P.x, P.y - 54, 'MISS', '#c8d0dc', 11, { dmg: true, tk: 'me', tg: P, oy: -54, dur: 1.2 }); return; }
   const dmg = Math.max(1, Math.round(m.atk * (0.85 + Math.random() * 0.3) * 100 / (100 + D.def)));
   dgStat('taken', Math.min(dmg, Math.max(0, P.hp))); P.hp -= dmg; P.hurtT = W.t; AU.sfx('hurt');
-  addNum(P.x + (Math.random() * 14 - 7), P.y - 52, fmt(dmg), '#ff5a4a', 13);
+  addNum(P.x, P.y - 52, fmt(dmg), '#ff5a4a', 13, { dmg: true, tk: 'me', tg: P, oy: -52, dur: NUM_LIFE });
   if (P.hp <= 0) playerDie();
 }
 function playerDie() {
@@ -2132,7 +2164,7 @@ function castSkill(id, fromQueue) {
   if (sk.type === 'atk') {
     const s = tg.size || 1;
     P.dir = tg.x >= P.x ? 1 : -1;
-    const res = sk.dmg === 'magic' ? rollMagic(mult, tg) : rollPhys(mult, tg, sk.crit);
+    const res = sk.dmg === 'magic' ? rollMagic(mult, tg, sk.crit) : rollPhys(mult, tg, sk.crit);
     let delay = 0.14;
     if (sk.fx === 'arrow') delay = projectile(P.x + P.dir * 10, P.y - 22, tg, 820, 'arrow', sk.color, 3);
     else if (sk.fx === 'bolt') delay = projectile(P.x + P.dir * 10, P.y - 30, tg, 600, sk.fire ? 'fire' : 'orb', sk.color, 7);
@@ -2493,14 +2525,17 @@ function draw() {
   for (const f of W.fx) { const p = (t - f.t0) / f.dur; if (p >= 0 && p <= 1 && !GROUND_FX[f.kind]) drawFx(ctx, f, p, t); }
   W.fx = W.fx.filter((f) => t - f.t0 <= f.dur);
   ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.lineJoin = 'round';
+  layoutNums(t);
   for (const n of W.nums) {
     const p = (t - n.t0) / n.dur; if (p < 0 || p > 1) continue;
-    if (n.crit) { drawCrit(ctx, n, n.x, n.y, t); continue; }
-    const yy = n.y - 26 * easeOut(p), sc = n.pop && p < 0.12 ? 1 + (0.12 - p) * 4 : 1, size = n.size * sc;
-    ctx.globalAlpha = p > 0.7 ? 1 - (p - 0.7) / 0.3 : 1;
+    const ax = n.tg ? n.tg.x : n.x, ay = n.tg ? n.tg.y + n.oy : n.y;
+    const rise = n.dmg ? (n.h || 0) : 26 * easeOut(p), nx = ax + (n.dmg ? (n.so || 0) * 0.14 : 0);
+    if (n.crit) { drawCrit(ctx, n, nx, ay - rise, t); continue; }
+    const yy = ay - rise, sc = n.pop && p < 0.12 ? 1 + (0.12 - p) * 4 : 1, size = n.size * sc;
+    ctx.globalAlpha = n.dmg ? numAlpha(p) : (p > 0.7 ? 1 - (p - 0.7) / 0.3 : 1);
     ctx.font = n.font === 'th' ? '700 ' + size + 'px "Bai Jamjuree","Noto Sans Thai",sans-serif' : '700 ' + size + 'px Silkscreen,"Courier New",monospace';
-    ctx.lineWidth = Math.max(3, size * 0.24); ctx.strokeStyle = '#000'; ctx.strokeText(n.text, n.x, yy);
-    ctx.fillStyle = n.col; ctx.fillText(n.text, n.x, yy);
+    ctx.lineWidth = Math.max(3, size * 0.24); ctx.strokeStyle = '#000'; ctx.strokeText(n.text, nx, yy);
+    ctx.fillStyle = n.col; ctx.fillText(n.text, nx, yy);
   }
   ctx.globalAlpha = 1;
   W.nums = W.nums.filter((n) => t - n.t0 <= n.dur);
@@ -2521,7 +2556,7 @@ function heroDoc() {
   const h = S.hero;
   return { name: h.name, look: h.look, job: h.job, level: h.level, exp: h.exp, jobLv: h.jobLv, jobExp: h.jobExp, stats: h.stats,
     skills: h.skills, hotbar: h.hotbar, gold: h.gold, refineW: h.refineW, refineA: h.refineA, potHp: h.potHp, potSp: h.potSp, potHpL: h.potHpL || 0, potSpL: h.potSpL || 0, potAll: h.potAll || 0, potBtn: h.potBtn || ['hp', 'sp'], potAuto: h.potAuto || { hp: 35, sp: 12, hpL: 0, spL: 0, all: 0 },
-    mapId: h.mapId, kills: h.kills, bossKills: h.bossKills || 0, fbKills: h.fbKills || 0, dgClears: h.dgClears || 0, off: h.off || null, mail: h.mail || [], mailDone: (h.mailDone || []).slice(-80), sv: SCHEMA, sid: S.sid, sidT: S.sidT || 0, wstyle: h.wstyle, gmStamp: h.gmStamp || 0, inv: h.inv, eq: h.eq, mkDone: h.mkDone || [], ref: h.ref || {}, updatedAt: Date.now() };
+    mapId: h.mapId, kills: h.kills, bossKills: h.bossKills || 0, fbKills: h.fbKills || 0, dgClears: h.dgClears || 0, off: h.off || null, mail: h.mail || [], mailDone: (h.mailDone || []).slice(-80), sv: SCHEMA, sid: S.sid, sidT: S.sidT || 0, wstyle: h.wstyle, gmStamp: h.gmStamp || 0, inv: h.inv, eq: h.eq, mkDone: h.mkDone || [], ref: h.ref || {}, bagX: h.bagX || 0, updatedAt: Date.now() };
 }
 function saveLocal() { if (S.hero) lsSet(LS_SAVE + (S.uid || ''), JSON.stringify(Object.assign(heroDoc(), { savedAt: Date.now() }))); }
 // save guard: every save carries the game version (sv) and this tab's session id (sid);
@@ -4113,19 +4148,16 @@ void main(){
       label(ctx, '💬', a.x, a.y - 12 + bob, '#ffffff', 13); label(ctx, n.name, a.x, a.y + 6, '#ffe27a', 11); label(ctx, n.role, a.x, a.y + 20, '#d8f0ff', 9);
     }
     drawBubbles(ctx, proj);
-    // numbers: hits on the same target form one stream (newest at the bottom, older pushed up)
-    { const ndt = Math.max(0, Math.min(0.1, t - (R3.numT == null ? t : R3.numT))); R3.numT = t; const st = {};
-      for (const n of W.nums) if (n.tk != null && t - n.t0 <= n.dur) (st[n.tk] || (st[n.tk] = [])).push(n);
-      for (const k in st) { const a = st[k].sort((x, y) => y.t0 - x.t0); let acc = 0;
-        a.forEach((n, i) => { n.sy = n.sy == null ? acc : n.sy + (acc - n.sy) * Math.min(1, ndt * 14); acc += n.crit ? (n.size || 30) * 1.75 : n.size * 1.2; if (i >= 9 && !n.fade) { n.fade = 1; n.dur = Math.min(n.dur, t - n.t0 + 0.18); } }); } }
+    // numbers: shared layout (2 s life, float up, stacked so they never overlap)
+    layoutNums(t);
     ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.lineJoin = 'round';
     for (const n of W.nums) {
       const p = (t - n.t0) / n.dur; if (p < 0 || p > 1) continue;
-      const so = n.sy || 0, sx = so * 0.14;
+      const so = n.dmg ? (n.so || 0) : 0, sx = so * 0.14, rise = n.dmg ? (n.h || 0) : 26 * easeOut(p);
       const ax = n.tg ? n.tg.x : n.x, ay = n.tg ? n.tg.y + n.oy : n.y;
-      if (n.crit) { const qc = proj(ax, ay); drawCrit(ctx, n, qc.x + sx, qc.y - 22 - so - (n.tk != null ? 14 * easeOut(p) : 0), t); continue; }
-      const q = proj(ax, ay); q.x += sx; const yy = q.y - 22 - so - (n.tk != null ? 18 : 26) * easeOut(p), sc = n.pop && p < 0.12 ? 1 + (0.12 - p) * 4 : 1, size = n.size * sc * 1.1;
-      ctx.globalAlpha = p > 0.7 ? 1 - (p - 0.7) / 0.3 : 1;
+      if (n.crit) { const qc = proj(ax, ay); drawCrit(ctx, n, qc.x + sx, qc.y - 22 - rise, t); continue; }
+      const q = proj(ax, ay); q.x += sx; const yy = q.y - 22 - rise, sc = n.pop && p < 0.12 ? 1 + (0.12 - p) * 4 : 1, size = n.size * sc * 1.1;
+      ctx.globalAlpha = n.dmg ? numAlpha(p) : (p > 0.7 ? 1 - (p - 0.7) / 0.3 : 1);
       ctx.font = n.font === 'th' ? '700 ' + size + 'px "Bai Jamjuree","Noto Sans Thai",sans-serif' : '700 ' + size + 'px Silkscreen,"Courier New",monospace';
       ctx.lineWidth = Math.max(3, size * 0.26); ctx.strokeStyle = '#000'; ctx.strokeText(n.text, q.x, yy);
       ctx.fillStyle = n.col; ctx.fillText(n.text, q.x, yy);
@@ -4750,7 +4782,10 @@ const AU = (() => {
   return A;
 })();
 /* =================== ITEMS, EQUIPMENT & CARDS =================== */
-const INV_MAX = 40;
+const INV_MAX = 40;   // base bag size
+const BAG_X_MAX = 200;   // most extra slots the expansion tickets can add
+const invMax = (h) => INV_MAX + (((h || S.hero || {}).bagX) | 0);
+const bagPass = () => ({ k: 'B:x5', kind: 'pass', nm: 'บัตรขยายช่องกระเป๋า +5', ar: 'blob', pr: 0, lv: 1, col: '#7dd3ff' });
 const LOOT_PRE = { blob: 'เมือก', shroom: 'สปอร์', beast: 'ขน', bat: 'ปีก', plant: 'กลีบ', bones: 'กระดูก', ghost: 'ผงวิญญาณ', brute: 'เขี้ยว', drake: 'เกล็ด' };
 const ARCH_ICON = { blob: '💧', shroom: '🍄', beast: '🐾', bat: '🦇', plant: '🌸', bones: '🦴', ghost: '👻', brute: '🦷', drake: '🐉' };
 const CARD_B = { blob: ['vit', 'hpPct'], shroom: ['int', 'matkPct'], beast: ['agi', 'aspdPct'], bat: ['luk', 'flee'], plant: ['int', 'dex'],
@@ -4867,8 +4902,9 @@ function gearItem(id) { const g = GEAR[id]; return { k: 'G:' + id + ':' + Math.r
 function sanitizeCard(x) { const c = sanitizeItem(x, false); return c && c.kind === 'card' ? c : null; }
 function sanitizeItem(x, withN) {
   if (!x || typeof x !== 'object' || typeof x.k !== 'string') return null;
-  const kind = ['card', 'loot', 'gear', 'key', 'ore'].includes(x.kind) ? x.kind : null;
+  const kind = ['card', 'loot', 'gear', 'key', 'ore', 'pass'].includes(x.kind) ? x.kind : null;
   if (!kind) return null;
+  if (kind === 'pass') { const it = bagPass(); if (withN) it.n = int(x.n, 1, 1, 999); return it; }
   if (kind === 'ore') { if (!ORE[x.id]) return null; const it = oreItem(x.id); if (withN) it.n = int(x.n, 1, 1, 999); return it; }
   if (kind === 'key') {
     const it = keyItem(); if (withN) it.n = int(x.n, 1, 1, 999);
@@ -4897,7 +4933,7 @@ function sanitizeItem(x, withN) {
 function pushInv(h, it, n) {
   const ex = it.kind !== 'gear' && h.inv.find((x) => x.k === it.k);
   if (ex) { ex.n = Math.min(999, ex.n + n); return true; }
-  if (h.inv.length >= INV_MAX) return false;
+  if (h.inv.length >= invMax(h)) return false;
   h.inv.push(Object.assign(sanitizeItem(it, false), { n: it.kind === 'gear' ? 1 : n })); return true;
 }
 function addItem(it, n) {
@@ -4960,6 +4996,16 @@ function claimMail(h) {
     if (claimed.length) { S.dirty = true; saveSoon(); if (typeof renderEquip === 'function' && EQ.open) renderEquip(); }
   }
   return claimed.length;
+}
+function useBagPass(k) {
+  const h = S.hero, it = h.inv.find((x) => x.k === k && x.kind === 'pass'); if (!it) return;
+  if ((h.bagX | 0) >= BAG_X_MAX) { toast('กระเป๋าขยายสูงสุดแล้ว (' + (INV_MAX + BAG_X_MAX) + ' ช่อง)'); return; }
+  takeItem(k, 1);
+  h.bagX = Math.min(BAG_X_MAX, (h.bagX | 0) + 5);
+  if (!h.inv.some((x) => x.k === k)) EQ.invSel = null;
+  S.dirty = true; save(); AU.sfx('legend'); claimMail(h);
+  toast('🎫 ขยายกระเป๋า +5 ช่อง ตอนนี้มี ' + invMax(h) + ' ช่อง');
+  renderEquip();
 }
 function takeItem(k, n) {
   const h = S.hero, i = h.inv.findIndex((x) => x.k === k);
@@ -5200,8 +5246,8 @@ function renderEquip() {
   body.append(det);
   // inventory
   const tiles = Object.keys(POT).filter((kd) => kd === 'hp' || kd === 'sp' || (h[POT[kd].f] || 0) > 0).map((kd) => ({ k: 'P:' + kd, pot: kd, icon: POT[kd].ic, n: h[POT[kd].f] || 0, nm: POT[kd].nm, blue: kd === 'sp' }));
-  for (const it of h.inv) tiles.push({ k: it.k, icon: it.kind === 'card' ? '🃏' : it.kind === 'gear' ? GEAR[it.id].ic : it.kind === 'key' ? '🗝️' : it.kind === 'ore' ? ORE[it.id].ic : it.k === 'L:salt' ? '🧂' : (ARCH_ICON[it.ar] || '📦'), n: it.n, nm: it.nm, it });
-  body.append(el('div', { class: 'sub', id: 'eqInv', text: 'กระเป๋า ' + h.inv.length + '/' + INV_MAX + ((h.mail || []).length ? '   📬 รอเข้ากระเป๋า ' + h.mail.length + ' ชิ้น' : '') }));
+  for (const it of h.inv) tiles.push({ k: it.k, icon: it.kind === 'card' ? '🃏' : it.kind === 'gear' ? GEAR[it.id].ic : it.kind === 'key' ? '🗝️' : it.kind === 'ore' ? ORE[it.id].ic : it.kind === 'pass' ? '🎫' : it.k === 'L:salt' ? '🧂' : (ARCH_ICON[it.ar] || '📦'), n: it.n, nm: it.nm, it });
+  body.append(el('div', { class: 'sub', id: 'eqInv', text: 'กระเป๋า ' + h.inv.length + '/' + invMax(h) + ((h.mail || []).length ? '   📬 รอเข้ากระเป๋า ' + h.mail.length + ' ชิ้น' : '') }));
   const sel = tiles.find((t) => t.k === EQ.invSel), idet = el('div', { class: 'invdet' });
   if (!sel) idet.append(el('p', { class: 'note', style: 'margin:0', text: 'แตะไอเทมเพื่อดูรายละเอียด การ์ดดรอปจากมอนทุกตัว ' + CONFIG.cardChance + '% และแต่ละใบใส่ได้เฉพาะช่องของมัน' }));
   else if (!sel.it) {
@@ -5234,16 +5280,18 @@ function renderEquip() {
     }
     else if (it.kind === 'ore') idet.append(el('div', { class: 'ds', text: 'วัสดุ' + ORE[it.id].use + ' ใช้ที่ช่างตีบวกในหมู่บ้าน' }));
     else if (it.kind === 'key') idet.append(el('div', { class: 'ds', text: 'ใช้เข้าดันเจี้ยนได้ทุกแห่ง 1 ดอกต่อการเข้า 1 ครั้ง ดรอปจากมอนทุกแผนที่' }));
+    else if (it.kind === 'pass') idet.append(el('div', { class: 'ds', text: 'ใช้แล้วเพิ่มช่องกระเป๋า +5 ถาวร (ตอนนี้ ' + invMax(h) + ' ช่อง สูงสุด ' + (INV_MAX + BAG_X_MAX) + ' ช่อง) ได้จากตู้กาชา ขายไม่ได้' }));
     else idet.append(el('div', { class: 'ds', text: it.k === 'L:salt' ? 'ได้จากตู้กาชา ขายร้านค้าได้' : 'วัตถุดิบจากมอนสเตอร์ Lv ' + it.lv }));
-    idet.append(el('div', { class: 'meta', text: 'ขายได้ ' + fmt(it.pr) + ' G' + (it.kind === 'gear' ? '' : ' ต่อชิ้น') }));
+    if (it.kind !== 'pass') idet.append(el('div', { class: 'meta', text: 'ขายได้ ' + fmt(it.pr) + ' G' + (it.kind === 'gear' ? '' : ' ต่อชิ้น') }));
     idet.append(el('div', { class: 'acts' },
       it.kind === 'card' ? el('button', { class: 'mini pri', text: 'ใส่การ์ด', onclick: () => autoInsert(it.k) }) : null,
       it.kind === 'gear' ? el('button', { class: 'mini pri', text: isDagger(it.id) && dualNow(h) ? 'ใส่มือขวา' : 'สวมใส่', disabled: !canUse(h, it.id) || (isShield(it.id) && !shieldUser(h)), onclick: () => equipGear(it.k) }) : null,
       it.kind === 'gear' && isDagger(it.id) && dualNow(h) && canUse(h, it.id) ? el('button', { class: 'mini pri', text: 'ใส่มือซ้าย', onclick: () => equipGear(it.k, true) }) : null,
       mkSellable(it) ? el('button', { class: 'mini', text: '🏪 ลงขายตลาด', onclick: () => { closeEquip(); MK.tab = 'sell'; MK.pick = it.k; openPanel('market'); } }) : null,
       it.kind === 'key' ? el('button', { class: 'mini pri', text: 'ไปหน้าดันเจี้ยน', onclick: () => { closeEquip(); openPanel('dungeon'); } }) : null,
-      el('button', { class: 'mini', text: 'ขาย 1', onclick: () => sellItem(it.k, 1) }),
-      it.n > 1 ? el('button', { class: 'mini', text: 'ขายทั้งหมด', onclick: () => sellItem(it.k, it.n) }) : null));
+      it.kind === 'pass' ? el('button', { class: 'mini pri', text: 'ใช้บัตร (+5 ช่อง)', disabled: (h.bagX | 0) >= BAG_X_MAX, onclick: () => useBagPass(it.k) }) : null,
+      it.kind === 'pass' ? null : el('button', { class: 'mini', text: 'ขาย 1', onclick: () => sellItem(it.k, 1) }),
+      it.n > 1 && it.kind !== 'pass' ? el('button', { class: 'mini', text: 'ขายทั้งหมด', onclick: () => sellItem(it.k, it.n) }) : null));
   }
   body.append(idet);
   const g = el('div', { class: 'grid5' });
@@ -5256,7 +5304,7 @@ function renderEquip() {
     b.addEventListener('click', () => { EQ.invSel = t.k; renderEquip(); });
     g.append(b);
   }
-  for (let i = tiles.length; i < INV_MAX + 2; i++) g.append(el('div', { class: 'tile empty' }));
+  for (let i = tiles.length; i < invMax(h) + 2; i++) g.append(el('div', { class: 'tile empty' }));
   body.append(g, el('div', { class: 'acts' }, el('button', { class: 'mini', text: 'ขายวัตถุดิบทั้งหมด', onclick: sellAllLoot })));
   body.scrollTop = st;
 }
@@ -5436,7 +5484,7 @@ function mirrorMons(dt) {
   }
 }
 function netPushHit(uid, dmg, crit) {
-  NET.hitSeq++; NET.hits.push([NET.hitSeq, uid, dmg, crit ? 1 : 0]);
+  NET.hitSeq++; NET.hits.push([NET.hitSeq, uid, dmg, crit ? (crit === 2 ? 2 : 1) : 0]);
   if (NET.hits.length > 16) NET.hits.shift();
   NET.dmg.set(uid, (NET.dmg.get(uid) || 0) + dmg); NET.dmgT.set(uid, performance.now());
 }
@@ -5475,9 +5523,9 @@ function processOthersHits() {
       const seq = int(hh[0], 0, 0, 1e9); if (seq <= seen) continue;
       const m = W.mons.find((x) => x.uid === int(hh[1], -1, -1, 1e9) && x.state !== 'dead');
       if (!m) continue;
-      const dmg = int(hh[2], 0, 0, 1e9), cr = !!hh[3], s = m.size || 1;
-      if (cr) critPop(m.x + (Math.random() * 18 - 9), m.y - 30 * s, fmt(dmg), { size: 20, burst: true });
-      else addNum(m.x + (Math.random() * 18 - 9), m.y - 30 * s, fmt(dmg), '#cfe3ff', 12, { pop: false });
+      const dmg = int(hh[2], 0, 0, 1e9), cr = hh[3] ? (int(hh[3], 1, 0, 2) === 2 ? 2 : 1) : 0, s = m.size || 1;
+      if (cr) critPop(m.x, m.y - 30 * s, fmt(dmg), { size: 20, burst: true, magic: cr === 2, tk: m.uid, tg: m, oy: -30 * s });
+      else addNum(m.x, m.y - 30 * s, fmt(dmg), '#cfe3ff', 12, { pop: false, dur: NUM_LIFE, dmg: true, tk: m.uid, tg: m, oy: -30 * s });
       m.hitT = 0.1;
     }
     NET.seenHit.set(o.key, mx);
@@ -6060,7 +6108,7 @@ function teleTick() {
     const s = TELE_FX[tl.type];
     const dmg = Math.max(1, Math.round(tl.atk * s[0] * (tl.enr ? 1.25 : 1) * (0.9 + Math.random() * 0.2) * 100 / (100 + P.D.def)));
     dgStat('taken', Math.min(dmg, Math.max(0, P.hp))); P.hp -= dmg; P.hurtT = W.t; AU.sfx('hurt');
-    addNum(P.x, P.y - 64, fmt(dmg), '#ff3b2f', 18, { pop: true, dur: 1.1 });
+    addNum(P.x, P.y - 64, fmt(dmg), '#ff3b2f', 18, { pop: true, dmg: true, tk: 'me', tg: P, oy: -64, dur: NUM_LIFE });
     if (s[1]) applyCC(s[1], s[2]);
     if (P.hp <= 0) playerDie();
   }
@@ -6232,8 +6280,8 @@ function auraArgs(top, wr, refW, lv) {
 }
 const myAura = () => auraArgs(topRar(S.hero), weaponRar(S.hero), S.hero.refineW, S.hero.level);
 /* =================== MARKETPLACE =================== */
-const MK = { all: [], sub: false, tab: 'buy', filter: 'all', sort: 'new', busy: false, pick: null, collecting: false };
-const MK_TAX = 5, MK_MAX = 8;
+const MK = { all: [], sub: false, tab: 'buy', filter: 'all', sort: 'new', busy: false, pick: null, collecting: false, exp: false, timer: 0 };
+const MK_TAX = 5, MK_MAX = 8, MK_LIFE = 60 * 60 * 1000;   // a listing nobody buys within MK_LIFE goes back to its owner
 
 const mkStack = (it) => !!it && (it.kind === 'card' || it.kind === 'key' || it.kind === 'ore');
 const mkSellable = (it) => !!it && ((it.kind === 'gear' && GEAR[it.id] && GEAR[it.id].dg) || mkStack(it));
@@ -6250,9 +6298,10 @@ function mkSanitize(d, id) {
 function marketInit() {
   if (!S.db || MK.sub) return;
   MK.sub = true;
+  if (!MK.timer) MK.timer = setInterval(mkTick, 30000);
   S.db.collection('market').onSnapshot((snap) => {
     MK.all = snap.docs.map((d) => mkSanitize(d.data(), d.id)).filter(Boolean);
-    mkCollect();
+    mkCollect(); mkExpire();
     if (S.sheet === 'market' && !MK.busy && !(document.activeElement && document.activeElement.classList.contains('mkprice'))) renderSheet();
   }, () => { MK.sub = false; });
 }
@@ -6273,6 +6322,40 @@ async function mkCollect() {
   MK.collecting = false;
 }
 const mkMine = () => MK.all.filter((L) => L.s === S.uid && L.st === 'open');
+const mkExpired = (L) => Date.now() - L.t >= MK_LIFE;
+function mkLeft(L) { const ms = L.t + MK_LIFE - Date.now(); return ms <= 0 ? '⏰ หมดเวลา กำลังคืนของ' : '⏳ เหลือ ' + Math.max(1, Math.ceil(ms / 60000)) + ' นาที'; }
+// unsold listings go back to their owner (bag first, mailbox if the bag is full); runs on every market update and every 30 s
+async function mkExpire() {
+  const h = S.hero; if (!h || !S.uid || !S.db || MK.exp) return;
+  const due = MK.all.filter((L) => L.s === S.uid && L.st === 'open' && mkExpired(L));
+  if (!due.length) return;
+  MK.exp = true;
+  let back = 0, mailed = 0;
+  try {
+    for (const L of due) {
+      const n = mkN(L.it);
+      const room = (L.it.kind !== 'gear' && h.inv.some((x) => x.k === L.it.k)) || h.inv.length < invMax(h) || (h.mail || []).length < MAIL_MAX;
+      if (!room) continue;
+      try {
+        const c = await mkClaim(L.id, true);
+        if (c.err) continue;
+        await c.ref.update({ st: 'cancel' });
+        if (pushInv(h, c.cur.it, n)) back++; else { mailPut(h, c.cur.it, n); mailed++; }
+        S.dirty = true; save();
+        c.ref.delete().catch(() => {});
+      } catch (e) { /* retried on the next sweep */ }
+    }
+  } finally { MK.exp = false; }
+  if (back || mailed) {
+    toast('⏰ ลงขายครบ 1 ชั่วโมงไม่มีคนซื้อ ' + (back ? 'ของกลับเข้ากระเป๋า ' + back + ' ชิ้น' : '') + (mailed ? (back ? ' · ' : '') + 'ส่งเข้ากล่องจดหมาย ' + mailed + ' ชิ้น (กระเป๋าเต็ม)' : ''));
+    AU.sfx('coin'); if (S.screen === 'game') hudText(); renderSheetIfOpen();
+  }
+}
+function mkTick() {
+  mkExpire();
+  const ae = document.activeElement;
+  if (S.sheet === 'market' && !MK.busy && MK.tab !== 'sell' && !(ae && (ae.classList.contains('mkprice') || ae.classList.contains('mkqty')))) renderSheet();
+}
 async function mkList(k, price, qty) {
   const h = S.hero, it = h.inv.find((x) => x.k === k);
   if (!S.db || !S.uid) { toast('ตลาดใช้ได้เมื่อเชื่อมต่อออนไลน์'); return; }
@@ -6300,14 +6383,16 @@ async function mkClaim(id, wantSeller) {
   if (!lk || !lk.acquired) return { err: 'มีคนกำลังทำรายการชิ้นนี้อยู่ ลองใหม่ในไม่กี่วินาที' };
   const snap = await ref.get(), cur = snap.exists ? mkSanitize(snap.data(), id) : null;
   if (!cur || cur.st !== 'open') return { err: 'ชิ้นนี้ขายไปแล้ว' };
+  if (!wantSeller && mkExpired(cur)) return { err: 'ชิ้นนี้หมดเวลาลงขายแล้ว' };
   if (wantSeller !== (cur.s === S.uid)) return { err: wantSeller ? 'ไม่ใช่ของคุณ' : 'ซื้อของตัวเองไม่ได้' };
   return { ref, cur };
 }
 async function mkBuy(id) {
   const h = S.hero, L = MK.all.find((x) => x.id === id);
   if (!L || L.st !== 'open' || MK.busy) return;
+  if (mkExpired(L)) { toast('ชิ้นนี้หมดเวลาลงขายแล้ว'); return; }
   if (h.gold < L.p) { toast('ทองไม่พอ'); return; }
-  if (h.inv.length >= INV_MAX) { toast('กระเป๋าเต็ม'); return; }
+  if (h.inv.length >= invMax(h)) { toast('กระเป๋าเต็ม'); return; }
   MK.busy = true; renderSheetIfOpen();
   try {
     const c = await mkClaim(id, false);
@@ -6321,7 +6406,7 @@ async function mkBuy(id) {
 }
 async function mkCancel(id) {
   if (MK.busy) return;
-  if (S.hero.inv.length >= INV_MAX) { toast('กระเป๋าเต็ม'); return; }
+  if (S.hero.inv.length >= invMax()) { toast('กระเป๋าเต็ม'); return; }
   MK.busy = true; renderSheetIfOpen();
   try {
     const c = await mkClaim(id, true);
@@ -6360,7 +6445,7 @@ function panelMarket(body) {
   const tabs = el('div', { class: 'mktabs', role: 'tablist' });
   for (const [id, lb] of [['buy', '🛒 ซื้อ'], ['sell', '💰 ขาย'], ['mine', '📋 ของฉัน (' + mkMine().length + ')']])
     tabs.append(el('button', { class: 'mkt' + (MK.tab === id ? ' on' : ''), role: 'tab', 'aria-selected': MK.tab === id ? 'true' : 'false', text: lb, onclick: () => { MK.tab = id; renderSheet(); } }));
-  body.append(tabs, el('p', { class: 'note', text: 'ซื้อขายอุปกรณ์จากดันเจี้ยน การ์ด กุญแจ และแร่ระหว่างผู้เล่น ผู้ขายเสียภาษี ' + MK_TAX + '% และได้เงินอัตโนมัติเมื่อขายได้ ลงขายพร้อมกันได้คนละ ' + MK_MAX + ' ชิ้น' }));
+  body.append(tabs, el('p', { class: 'note', text: 'ซื้อขายอุปกรณ์จากดันเจี้ยน การ์ด กุญแจ และแร่ระหว่างผู้เล่น ผู้ขายเสียภาษี ' + MK_TAX + '% และได้เงินอัตโนมัติเมื่อขายได้ ลงขายพร้อมกันได้คนละ ' + MK_MAX + ' ชิ้น  ถ้าไม่มีคนซื้อภายใน 1 ชั่วโมง ของจะเด้งกลับเข้ากระเป๋าอัตโนมัติ' }));
   if (MK.tab === 'buy') {
     const fl = el('div', { class: 'mkf' });
     for (const [id, lb] of [['all', 'ทั้งหมด'], ['mine', 'ตรงอาชีพฉัน'], ['weapon', 'อาวุธ'], ['armor', 'เกราะ'], ['shoes', 'รองเท้า'], ['ring', '💍 แหวน'], ['shield', '🛡️ โล่'], ['card', '🃏 การ์ด'], ['key', '🗝️ กุญแจ'], ['ore', '🔷 แร่']])
@@ -6368,7 +6453,7 @@ function panelMarket(body) {
     const so = el('select', { 'aria-label': 'เรียงตาม', onchange: (e) => { MK.sort = e.target.value; renderSheet(); } });
     for (const [v, lb] of [['new', 'ล่าสุด'], ['low', 'ราคาต่ำสุด'], ['high', 'ราคาสูงสุด'], ['rar', 'หายากสุด']]) so.append(el('option', { value: v, text: lb, selected: MK.sort === v }));
     fl.append(so); body.append(fl);
-    let list = MK.all.filter((L) => L.st === 'open');
+    let list = MK.all.filter((L) => L.st === 'open' && !mkExpired(L));
     if (MK.filter === 'mine') list = list.filter((L) => L.it.kind !== 'gear' || (GEAR[L.it.id].line ? canUse(h, L.it.id) : true));
     else if (MK.filter === 'card' || MK.filter === 'key' || MK.filter === 'ore') list = list.filter((L) => L.it.kind === MK.filter);
     else if (MK.filter !== 'all') list = list.filter((L) => L.it.kind === 'gear' && GEAR[L.it.id].slot === MK.filter);
@@ -6377,7 +6462,7 @@ function panelMarket(body) {
     for (const L of list.slice(0, 60)) {
       const own = L.s === S.uid;
       body.append(el('div', { class: 'mkrow', style: '--rc:' + mkCol(L.it) }, mkItemInfo(h, L.it),
-        el('div', { class: 'mkbuy' }, el('b', { text: fmt(L.p) + ' G' }), mkN(L.it) > 1 ? el('small', { text: 'ชิ้นละ ' + fmt(Math.round(L.p / mkN(L.it))) + ' G' }) : null, el('small', { text: 'โดย ' + L.sn }),
+        el('div', { class: 'mkbuy' }, el('b', { text: fmt(L.p) + ' G' }), mkN(L.it) > 1 ? el('small', { text: 'ชิ้นละ ' + fmt(Math.round(L.p / mkN(L.it))) + ' G' }) : null, el('small', { text: 'โดย ' + L.sn }), el('small', { text: mkLeft(L) }),
           el('button', { class: 'mini pri', text: own ? 'ของคุณ' : 'ซื้อ', disabled: own || MK.busy || h.gold < L.p, onclick: () => mkBuy(L.id) }))));
     }
   } else if (MK.tab === 'sell') {
@@ -6397,7 +6482,7 @@ function panelMarket(body) {
     const mine = mkMine();
     if (!mine.length) body.append(el('p', { class: 'note', text: 'ยังไม่มีของที่ลงขายอยู่' }));
     for (const L of mine) body.append(el('div', { class: 'mkrow', style: '--rc:' + mkCol(L.it) }, mkItemInfo(h, L.it),
-      el('div', { class: 'mkbuy' }, el('b', { text: fmt(L.p) + ' G' }), el('small', { text: 'ได้จริง ' + fmt(Math.floor(L.p * (100 - MK_TAX) / 100)) + ' G' }),
+      el('div', { class: 'mkbuy' }, el('b', { text: fmt(L.p) + ' G' }), el('small', { text: 'ได้จริง ' + fmt(Math.floor(L.p * (100 - MK_TAX) / 100)) + ' G' }), el('small', { text: mkLeft(L) }),
         el('button', { class: 'mini warn', text: 'ยกเลิก', disabled: MK.busy, onclick: () => mkCancel(L.id) }))));
   }
 }
@@ -6529,7 +6614,9 @@ function panelSmith(body) {
 
 /* ---------- gacha machine: a gold sink, prizes cannot go to the marketplace ---------- */
 const GACHA_PRICE = 200000, GACHA_N = 10;
-const GACHA_TBL = [['g_crown', 0.1], ['g_candy', 0.1], ['g_mask', 0.5], ['g_mask_u', 0.01], ['g_wing', 0.5], ['g_wing_u', 0.01]];
+const GACHA_BAG = 'bagpass';   // pseudo prize id: the bag expansion ticket
+const GACHA_TBL = [['g_crown', 0.1], ['g_candy', 0.1], ['g_mask', 0.5], ['g_mask_u', 0.01], ['g_wing', 0.5], ['g_wing_u', 0.01], [GACHA_BAG, 20]];
+const gachaInfo = (id) => (id === GACHA_BAG ? { ic: '🎫', nm: bagPass().nm, uq: 0, type: 'ไอเทม' } : { ic: GEAR[id].ic, nm: GEAR[id].nm, uq: GEAR[id].uq, type: GEAR_TYPE_TH[GEAR[id].slot] });
 const saltItem = () => ({ k: 'L:salt', kind: 'loot', nm: 'ผงเกลือ', ar: 'blob', pr: 100, lv: 1, col: '#e8e8e8' });
 const GA = { last: null, t: 0 };
 function gachaRoll() { const r = Math.random() * 100; let acc = 0; for (const [id, p] of GACHA_TBL) { acc += p; if (r < acc) return id; } return null; }
@@ -6538,33 +6625,35 @@ function gachaSpin() {
   if (h.gold < GACHA_PRICE) { toast('ทองไม่พอ ต้องใช้ ' + fmt(GACHA_PRICE) + ' G'); return; }
   const res = []; for (let i = 0; i < GACHA_N; i++) res.push(gachaRoll());
   const wins = res.filter(Boolean), salt = res.length - wins.length;
-  const free = INV_MAX - h.inv.length - (salt && !h.inv.some((x) => x.k === 'L:salt') ? 1 : 0);
-  if (free < wins.length || free < 0) { toast('กระเป๋าใกล้เต็ม เคลียร์ช่องว่างก่อนหมุน'); return; }
+  const gear = wins.filter((id) => id !== GACHA_BAG), tix = wins.length - gear.length;
+  const free = invMax(h) - h.inv.length - (salt && !h.inv.some((x) => x.k === 'L:salt') ? 1 : 0) - (tix && !h.inv.some((x) => x.k === bagPass().k) ? 1 : 0);
+  if (free < gear.length || free < 0) { toast('กระเป๋าใกล้เต็ม เคลียร์ช่องว่างก่อนหมุน'); return; }
   h.gold -= GACHA_PRICE;
-  { const gm = NPCS.find((n) => n.id === 'gacha'); wins.forEach((id, i) => later(0.3 + i * 0.4, () => lootBeam(gm.x + (i - (wins.length - 1) / 2) * 30, gm.y + 30, GEAR[id].uq ? 'mythic' : 'legendary', true))); }
-  for (const id of wins) { addItem(gearItem(id), 1); chatSend('🎰 ' + h.name + ' ได้ ' + GEAR[id].ic + ' ' + GEAR[id].nm + ' จากตู้กาชา!', 'w', true, true); }
+  { const gm = NPCS.find((n) => n.id === 'gacha'); gear.forEach((id, i) => later(0.3 + i * 0.4, () => lootBeam(gm.x + (i - (gear.length - 1) / 2) * 30, gm.y + 30, gachaInfo(id).uq ? 'mythic' : 'legendary', true))); }
+  if (tix) { addItem(bagPass(), tix); toast('🎫 ได้บัตรขยายช่องกระเป๋า x' + tix + ' (กดใช้ได้ที่กระเป๋า)'); }
+  for (const id of gear) { addItem(gearItem(id), 1); chatSend('🎰 ' + h.name + ' ได้ ' + GEAR[id].ic + ' ' + GEAR[id].nm + ' จากตู้กาชา!', 'w', true, true); }
   if (salt) addItem(saltItem(), salt);
   GA.last = res; GA.t = W.t; npcAct('gacha', 'spin');
-  AU.sfx(wins.some((id) => GEAR[id].uq) ? 'legend' : wins.length ? 'jobup' : 'coin');
+  AU.sfx(gear.some((id) => GEAR[id].uq) ? 'legend' : wins.length ? 'jobup' : 'coin');
   if (wins.length) addFx({ kind: 'pillar', x: P.x, y: P.y, color: '#ffd166', dur: 1.2, w: 40 });
   S.dirty = true; save(); hudText(); renderSheet();
 }
 function panelGacha(body) {
   const h = S.hero;
-  body.append(el('div', { class: 'npcsay' }, el('b', { text: '🎰 ตู้กาชานำโชค' }), el('p', { text: 'หมุนครั้งละ ' + GACHA_N + ' ลูก ' + fmt(GACHA_PRICE) + ' G ลุ้นหมวก ปาก ใบหน้า และปีกสุดหายาก ลูกที่ไม่ถูกรางวัลจะได้ผงเกลือ (ขายร้านได้ 100 G)' })));
+  body.append(el('div', { class: 'npcsay' }, el('b', { text: '🎰 ตู้กาชานำโชค' }), el('p', { text: 'หมุนครั้งละ ' + GACHA_N + ' ลูก ' + fmt(GACHA_PRICE) + ' G ลุ้นหมวก ปาก ใบหน้า ปีกสุดหายาก และบัตรขยายช่องกระเป๋า +5 ลูกที่ไม่ถูกรางวัลจะได้ผงเกลือ (ขายร้านได้ 100 G)' })));
   body.append(el('div', { class: 'orebar' }, el('span', { text: '💰 ' + fmt(h.gold) + ' G' })));
   body.append(el('button', { class: 'btn-main', text: '🎰 หมุน ' + GACHA_N + ' ลูก (' + fmt(GACHA_PRICE) + ' G)', disabled: h.gold < GACHA_PRICE, onclick: gachaSpin }));
   if (GA.last) {
     const g = el('div', { class: 'gres' });
-    GA.last.forEach((id, i) => { const b = el('div', { class: 'gball' + (id ? (GEAR[id].uq ? ' uq' : ' win') : ''), title: id ? GEAR[id].nm : 'ผงเกลือ', text: id ? GEAR[id].ic : '🧂' }); b.style.animationDelay = (i * 0.08) + 's'; g.append(b); });
+    GA.last.forEach((id, i) => { const b = el('div', { class: 'gball' + (id ? (gachaInfo(id).uq ? ' uq' : ' win') : ''), title: id ? gachaInfo(id).nm : 'ผงเกลือ', text: id ? gachaInfo(id).ic : '🧂' }); b.style.animationDelay = (i * 0.08) + 's'; g.append(b); });
     body.append(el('div', { class: 'sub', text: 'ผลการหมุนล่าสุด' }), g);
     const wins = GA.last.filter(Boolean);
-    body.append(el('p', { class: 'note', text: wins.length ? '🎉 ได้ ' + wins.map((id) => GEAR[id].nm).join(', ') : 'ครั้งนี้ได้ผงเกลือ ' + GA.last.length + ' ลูก ลองใหม่นะ!' }));
+    body.append(el('p', { class: 'note', text: wins.length ? '🎉 ได้ ' + wins.map((id) => gachaInfo(id).nm).join(', ') : 'ครั้งนี้ได้ผงเกลือ ' + GA.last.length + ' ลูก ลองใหม่นะ!' }));
   }
   body.append(el('div', { class: 'sub', text: 'อัตราออกต่อลูก' }));
-  for (const [id, p] of GACHA_TBL) body.append(el('div', { class: 'grate' }, el('span', { text: GEAR[id].ic + ' ' + GEAR[id].nm + '  (' + GEAR_TYPE_TH[GEAR[id].slot] + ')' }), el('b', { text: p + '%' })));
+  for (const [id, p] of GACHA_TBL) body.append(el('div', { class: 'grate' }, el('span', { text: gachaInfo(id).ic + ' ' + gachaInfo(id).nm + '  (' + gachaInfo(id).type + ')' }), el('b', { text: p + '%' })));
   body.append(el('div', { class: 'grate' }, el('span', { text: '🧂 ผงเกลือ' }), el('b', { text: (100 - GACHA_TBL.reduce((a, x) => a + x[1], 0)).toFixed(2) + '%' })));
-  body.append(el('p', { class: 'note', text: 'หมวกและปาก: ทุกสเตตัส +5  ใบหน้าและปีก: ดาเมจกายภาพและดาเมจเวท +5% (Unique +12%)' }));
+  body.append(el('p', { class: 'note', text: 'หมวกและปาก: ทุกสเตตัส +5  ใบหน้าและปีก: ดาเมจกายภาพและดาเมจเวท +5% (Unique +12%)  บัตรขยายช่องกระเป๋า: กดใช้ในกระเป๋าเพื่อเพิ่ม +5 ช่องถาวร' }));
   body.append(el('p', { class: 'note', style: 'color:var(--bad);font-weight:700', text: 'ของจากตู้กาชาไม่สามารถขายลงตลาดกลางได้' }));
 }
 /* =================== PARTY: leader, follow, join requests, dungeon ready check =================== */
@@ -6810,14 +6899,14 @@ function pvpHit(tg, res, hits) {
     if (tg.state === 'dead') return;
     NET.pvh = (NET.pvh || []).filter((e) => Date.now() - e[4] < 6000).slice(-19);
     NET.pvh.push([uid36().slice(-9), tg.pk2, per, res.crit ? 1 : 0, Date.now()]);
-    if (res.crit) myCrit(tg, per, i); else { AU.sfx('hit'); addNum(tg.x, tg.y - 32 * s, fmt(per), '#ffffff', 15, { pop: true, tk: tg.uid, dur: 1.15, tg, oy: -32 * s }); }
+    if (res.crit) myCrit(tg, per, i, res.magic); else { AU.sfx('hit'); addNum(tg.x, tg.y - 32 * s, fmt(per), '#ffffff', 15, { pop: true, tk: tg.uid, dur: NUM_LIFE, dmg: true, tg, oy: -32 * s }); }
   });
 }
 function pvpTakeHit(dmg, crit, o) {
   if (P.dead || !isPvp()) return;
   const D = P.D || derived(), f = Math.max(1, Math.round(dmg * 100 / (100 + D.def) * PVP_SCALE));
   P.hp -= f; P.hurtT = W.t; AU.sfx('hurt');
-  addNum(P.x + (Math.random() * 14 - 7), P.y - 52, fmt(f), '#ff5a4a', crit ? 17 : 13, crit ? { pop: true } : undefined);
+  addNum(P.x, P.y - 52, fmt(f), '#ff5a4a', crit ? 17 : 13, Object.assign({ dmg: true, tk: 'me', tg: P, oy: -52, dur: NUM_LIFE }, crit ? { pop: true } : null));
   if (P.hp <= 0) pvpDie(o);
 }
 function pvpDie(o) {
@@ -6904,7 +6993,7 @@ function offModel(h, map) {
   for (const id of h.hotbar || []) { const sk = SKILLS[id], lv = (h.skills || {})[id] | 0; if (sk && lv > 0 && (sk.type === 'atk' || sk.type === 'aoe') && sk.m) skills.push({ sk, lv }); }
   const magic = D.atkType === 'magic', swing = Math.max(0.26, D.aspdMs / 1000), critP = clamp(D.crit, 0, 100) / 100, cdm = 1.5 + (D.critDmg || 0) / 100;
   const phys = (mult, t) => { const miss = clamp((t.lv * 1.1 + 12 - D.hit) / 100, 0, 0.6); return D.atk * mult * (critP * cdm + (1 - critP) * (1 - miss) * 100 / (100 + t.def)) * (1 + (D.pdmg || 0) / 100); };
-  const mag = (mult, t) => D.matk * mult * 100 / (100 + t.def * 0.6) * (1 + (D.mdmg || 0) / 100);
+  const mag = (mult, t) => D.matk * mult * (critP * cdm + (1 - critP) * 100 / (100 + t.def * 0.6)) * (1 + (D.mdmg || 0) / 100);
   const spIn = D.maxSp * 0.012 + D.st.int * 0.05, hpReg = D.maxHp * 0.006 + D.st.vit * 0.08;
   const dpsOf = (t) => {
     let dps = (magic ? mag(0.75, t) : phys(D.w === 'dual' && D.atkType === 'melee' ? 1.24 : 1, t)) / swing;
