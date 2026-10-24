@@ -475,6 +475,16 @@ body.lg-on .selwrap .btn-main{max-width:260px}
 .bkrow{border:1px solid var(--line);border-radius:12px;padding:8px 10px;margin:6px 0;font-size:.82rem;line-height:1.45;background:var(--panel-2)}
 .bkrow b{display:block}
 #bootRetry{margin-top:10px;max-width:260px}
+
+/* GM gifts and composer */
+.gfrow{display:flex;gap:8px;align-items:flex-start;border:1px solid var(--line);border-radius:12px;padding:8px 10px;margin:6px 0;background:var(--panel-2);font-size:.86rem;line-height:1.45}
+.gfrow b{display:block}
+.gfn{margin-left:auto;font-weight:700;white-space:nowrap}
+.gmbox{border:1px solid var(--line);border-radius:12px;padding:10px;margin:8px 0;background:var(--panel-2)}
+.gmrow{display:flex;gap:6px;align-items:center;margin:6px 0}
+.gmrow select{flex:1;min-width:0}
+.gmrow input[type=number]{width:84px}
+.gmrng{font-size:.74rem;color:var(--ink-soft)}
 </style>
 </head>
 <body>
@@ -600,6 +610,7 @@ body.lg-on .selwrap .btn-main{max-width:260px}
 <button id="pvpBar" class="pvpbar" hidden aria-label="สนาม PVP"><span id="pvpBarT">⚔️ PVP</span><small>แตะเพื่อดูอันดับ / ออก</small></button>
 <div class="modal" id="pvpInvite" hidden role="alertdialog" aria-modal="true" aria-labelledby="pvpInvText"><div class="mcard"><div class="mb"><p id="pvpInvText" class="bctext"></p><div class="acts" style="justify-content:center"><button class="btn-main" id="pvpInvYes">เข้าร่วม</button><button class="mini" id="pvpInvNo">ไม่เข้า</button></div></div></div></div>
 <div class="modal" id="bcModal" hidden role="alertdialog" aria-modal="true" aria-labelledby="bcTitle"><div class="mcard"><div class="sheet-title"><b id="bcTitle">📢 ประกาศจาก GM</b></div><div class="mb"><p id="bcText" class="bctext"></p><p id="bcCount" class="bccount" hidden></p><button class="btn-main" id="bcOk">ตกลง</button></div></div></div>
+<div class="modal" id="giftModal" hidden role="alertdialog" aria-modal="true" aria-labelledby="gfTitle"><div class="mcard"><div class="sheet-title"><b id="gfTitle">🎁 ได้รับของจาก GM</b></div><div class="mb" id="gfBody"></div></div></div>
 <div class="modal" id="rsModal" hidden role="alertdialog" aria-modal="true" aria-labelledby="rsTitle"><div class="mcard"><div class="sheet-title"><b id="rsTitle">พบข้อมูลตัวละครในเครื่องนี้ที่ต่างจากเซิร์ฟเวอร์</b></div><div class="mb" id="rsBody"></div></div></div>
 <div class="modal" id="rcModal" hidden role="dialog" aria-modal="true" aria-labelledby="rcTitle"><div class="mcard"><div class="sheet-title"><b id="rcTitle"></b></div><div class="mb" id="rcBody"></div></div></div>
 <div class="modal" id="patchModal" hidden role="dialog" aria-modal="true" aria-labelledby="patchTitle">
@@ -986,8 +997,8 @@ function MON(id, name, arch, color, lv, extra) {
 }
 
 const DEFAULT_CONFIG = {
-  version: '2.9.51',
-  patchNotes: 'อัปเดต 2.9.51 (กันตัวละครหาย)\n• อ่านตัวละครไม่สำเร็จจะไม่พาไปสร้างตัวละครใหม่อีก (ลองใหม่อัตโนมัติ) และสร้างตัวละครใหม่จะเช็กเซิร์ฟเวอร์ก่อนเสมอ\n• ถ้าเครื่องนี้มีความคืบหน้ามากกว่าเซิร์ฟเวอร์ จะถามให้เลือกว่าจะใช้ข้อมูลชุดไหน\n• สำรองข้อมูลตัวละครในเครื่องอัตโนมัติ กู้ได้ที่เมนูตั้งค่า',
+  version: '2.9.52',
+  patchNotes: 'อัปเดต 2.9.52\n• ได้รับของจาก GM จะมีหน้าต่างแจ้งเตือนส่วนตัว บอกรายการของ ค่าสถานะ และออปชัน (ถ้าออฟไลน์จะเห็นตอนเข้าเกมครั้งหน้า)\n• (GM) ส่งของแบบเลือกเองได้ทุกอย่าง: อุปกรณ์ดันเจี้ยนพร้อมเลือกออปชัน ของกาชา การ์ด กุญแจ แร่ และตรวจว่าของเข้าจริง',
   announcement: 'ยินดีต้อนรับสู่ช่วงทดสอบ! เจอบั๊กบอก GM ได้เลย',
   rates: { bexp: 1, jexp: 1, gold: 1, drop: 1 },
   deathPenalty: 1,
@@ -1675,7 +1686,7 @@ function sanitizeHero(d) {
     potAuto: (() => { const a = d.potAuto || {}, o = {}; for (const k of ['hp', 'sp', 'hpL', 'spL', 'all']) o[k] = int(a[k], { hp: 35, sp: 12, hpL: 0, spL: 0, all: 0 }[k], 0, 95); return o; })(),
     potBtn: [0, 1].map((i) => { const v = Array.isArray(d.potBtn) ? d.potBtn[i] : null; return typeof v === 'string' && ['hp', 'sp', 'hpL', 'spL', 'all'].includes(v) ? v : ['hp', 'sp'][i]; }),
     mapId: typeof d.mapId === 'string' ? d.mapId.slice(0, 40) : '', kills: int(d.kills, 0, 0, 1e12), bossKills: int(d.bossKills, 0, 0, 1e9), fbKills: int(d.fbKills, 0, 0, 1e9), dgClears: int(d.dgClears, 0, 0, 1e9),
-    mail: (Array.isArray(d.mail) ? d.mail : []).slice(-30).map((m) => m && typeof m.id === 'string' ? { id: m.id.slice(0, 24), n: int(m.n, 1, 1, 999), it: sanitizeItem(m.it, false) } : null).filter((m) => m && m.it),
+    mail: (Array.isArray(d.mail) ? d.mail : []).slice(-60).map((m) => m && typeof m.id === 'string' ? Object.assign({ id: m.id.slice(0, 24), n: int(m.n, 1, 1, 999), it: sanitizeItem(m.it, false) }, m.from === 'gm' ? { from: 'gm', msg: str(m.msg, '', 80) } : {}) : null).filter((m) => m && m.it),
     mailDone: (Array.isArray(d.mailDone) ? d.mailDone : []).filter((x) => typeof x === 'string').slice(-80),
     wstyle: d.wstyle === 'katar' ? 'katar' : 'dual', gmStamp: num(d.gmStamp, 0, 0, 1e15),
     mkDone: (Array.isArray(d.mkDone) ? d.mkDone : []).filter((x) => typeof x === 'string').map((x) => x.slice(0, 40)).slice(-80),
@@ -4878,17 +4889,59 @@ function addItem(it, n) {
   toast('ช่องเก็บของเต็ม ขายของบางส่วนก่อน'); return false;
 }
 // mailbox: GM gifts and items that did not fit in the bag; claimed automatically when there is room
-function mailPut(h, it, n) { h.mail = h.mail || []; if (h.mail.length >= 30) return false; h.mail.push({ id: uid36().slice(-12), n: n || 1, it: sanitizeItem(it, false) }); return true; }
+const MAIL_MAX = 60;
+function mailPut(h, it, n) { h.mail = h.mail || []; if (h.mail.length >= MAIL_MAX) return false; h.mail.push({ id: uid36().slice(-12), n: n || 1, it: sanitizeItem(it, false) }); return true; }
+// a short description of an item (used by gift notices and the GM composer)
+function itemDesc(it) {
+  if (!it) return { name: '?', col: '', tag: '', lines: [] };
+  if (it.kind === 'gear' && GEAR[it.id]) {
+    const r = it.r || 0, opts = (it.o || []).map((e) => (BUFF_TH[e[0]] || String(e[0]).toUpperCase()) + ' +' + e[1] + (PCT_KEYS[e[0]] ? '%' : ''));
+    const lines = [bonusText(itemBase(it))]; if (opts.length) lines.push('ออปชัน: ' + opts.join(' · '));
+    return { name: it.nm, col: r >= 1 ? rarCol(r) : '', tag: r >= 1 ? RAR[r].nm : '', lines };
+  }
+  if (it.kind === 'card') return { name: it.nm, col: it.col || '', tag: 'การ์ด' + (CS_TH[it.cs] ? ' ' + CS_TH[it.cs] : ''), lines: [bonusText(it.b)] };
+  return { name: it.nm, col: it.col || '', tag: it.kind === 'ore' ? 'แร่ตีบวก' : it.kind === 'key' ? 'กุญแจ' : '', lines: [] };
+}
+const GIFT = { q: [], w: 0, msg: '', t: 0, seen: new Set() };
+function giftNotify(claimed, waiting) {
+  GIFT.q.push(...claimed); GIFT.w += waiting.length;
+  for (const m of claimed.concat(waiting)) if (m.msg && !GIFT.msg) GIFT.msg = m.msg;
+  clearTimeout(GIFT.t); GIFT.t = setTimeout(giftShow, 700);
+}
+function giftShow() {
+  if (S.screen !== 'game') { GIFT.t = setTimeout(giftShow, 1000); return; }
+  const q = GIFT.q, w = GIFT.w, msg = GIFT.msg; GIFT.q = []; GIFT.w = 0; GIFT.msg = '';
+  if (!q.length && !w) return;
+  const body = $('#gfBody'); body.textContent = '';
+  if (msg) body.append(el('p', { class: 'bctext', text: '💬 ' + msg }));
+  const groups = new Map();
+  for (const m of q) { const d = itemDesc(m.it), key = m.it.kind === 'gear' ? m.it.k : d.name + '|' + d.lines.join('|'); const g = groups.get(key) || { d, n: 0 }; g.n += m.n || 1; groups.set(key, g); }
+  for (const { d, n } of groups.values()) {
+    const row = el('div', { class: 'gfrow' }), info = el('div');
+    const nm = el('b', { text: d.name + (d.tag ? '  [' + d.tag + ']' : '') }); if (d.col) nm.style.color = d.col;
+    info.append(nm); for (const l of d.lines) info.append(el('div', { text: l }));
+    row.append(info, el('span', { class: 'gfn', text: n > 1 ? 'x' + n : '' })); body.append(row);
+  }
+  if (q.length) body.append(el('p', { class: 'note', text: 'ของเหล่านี้ใส่เข้ากระเป๋าให้แล้ว' }));
+  if (w) body.append(el('p', { class: 'note', text: '📬 มีของอีก ' + w + ' ชิ้นรอในกล่องจดหมาย (กระเป๋าเต็ม) จะเข้ากระเป๋าเองเมื่อมีที่ว่าง' }));
+  body.append(el('button', { class: 'btn-main', text: 'รับทราบ', onclick: () => { $('#giftModal').hidden = true; } }));
+  $('#giftModal').hidden = false; AU.sfx('card');
+}
 function claimMail(h) {
   if (!h || !h.mail || !h.mail.length) return 0;
-  h.mailDone = h.mailDone || []; let got = 0; const keep = [];
+  h.mailDone = h.mailDone || []; const claimed = [], keep = [];
   for (const m of h.mail) {
     if (h.mailDone.includes(m.id)) continue;
-    if (m.it && pushInv(h, m.it, m.n || 1)) { h.mailDone.push(m.id); got++; toast('📬 ได้รับ ' + m.it.nm + ((m.n || 1) > 1 ? ' x' + m.n : '') + ' จากกล่องจดหมาย'); } else keep.push(m);
+    if (m.it && pushInv(h, m.it, m.n || 1)) { h.mailDone.push(m.id); claimed.push(m); if (m.from !== 'gm') toast('📬 ได้รับ ' + m.it.nm + ((m.n || 1) > 1 ? ' x' + m.n : '') + ' จากกล่องจดหมาย'); } else keep.push(m);
   }
-  h.mail = keep; h.mailDone = h.mailDone.slice(-80);
-  if (got && h === S.hero) { S.dirty = true; saveSoon(); if (typeof renderEquip === 'function' && EQ.open) renderEquip(); }
-  return got;
+  h.mail = keep; h.mailDone = h.mailDone.slice(-200);
+  if (h === S.hero) {
+    const gm = claimed.filter((m) => m.from === 'gm'), wait = keep.filter((m) => m.from === 'gm' && !GIFT.seen.has(m.id));
+    for (const m of keep) GIFT.seen.add(m.id);
+    if (gm.length || wait.length) giftNotify(gm, wait);
+    if (claimed.length) { S.dirty = true; saveSoon(); if (typeof renderEquip === 'function' && EQ.open) renderEquip(); }
+  }
+  return claimed.length;
 }
 function takeItem(k, n) {
   const h = S.hero, i = h.inv.findIndex((x) => x.k === k);
@@ -5813,15 +5866,18 @@ const isDg = () => !!(W.map && W.map.dg);
 const rarCol = (r) => (RAR[r] || RAR[0]).col;
 
 /* ---------- rare gear ---------- */
+// normal value range of an option at dungeon tier t
+function optRange(k, t) {
+  return ['str', 'agi', 'vit', 'int', 'dex', 'luk'].includes(k) ? [1 + t, 2 + t * 2]
+    : (k === 'atkPct' || k === 'matkPct' || k === 'hpPct') ? [2 + t, 3 + t * 2]
+    : (k === 'aspdPct' || k === 'crit') ? [1 + t, 2 + t]
+    : k === 'flee' ? [2 + t * 2, 3 + t * 4]
+    : k === 'def' ? [2 + t * 2, 3 + t * 5]
+    : [5 * t, 12 * t];
+}
 function rollOpt(t, used) {
   const pool = OPT_KEYS.filter((k) => !used.has(k)), k = pool[(Math.random() * pool.length) | 0];
-  const R = (a, b) => a + Math.floor(Math.random() * (b - a + 1));
-  const v = ['str', 'agi', 'vit', 'int', 'dex', 'luk'].includes(k) ? R(1 + t, 2 + t * 2)
-    : (k === 'atkPct' || k === 'matkPct' || k === 'hpPct') ? R(2 + t, 3 + t * 2)
-    : (k === 'aspdPct' || k === 'crit') ? R(1 + t, 2 + t)
-    : k === 'flee' ? R(2 + t * 2, 3 + t * 4)
-    : k === 'def' ? R(2 + t * 2, 3 + t * 5)
-    : R(5 * t, 12 * t);
+  const [a, b] = optRange(k, t), v = a + Math.floor(Math.random() * (b - a + 1));
   used.add(k); return [k, v];
 }
 function pickW(ws) { const tot = ws.reduce((a, b) => a + b, 0) || 1; let r = Math.random() * tot; for (let i = 0; i < ws.length; i++) { r -= ws[i]; if (r <= 0) return i; } return 0; }
@@ -7232,7 +7288,7 @@ $('#mmCv').addEventListener('click', (e) => {
 const PANELS = {
   stats: ['สถานะตัวละคร', panelStats], skills: ['สกิล', panelSkills], job: ['เปลี่ยนอาชีพ', panelJob],
   map: ['แผนที่', panelMap], dungeon: ['ดันเจี้ยน', panelDungeon], npc_healer: ['ซิสเตอร์ลูน่า', panelHealer], npc_smith: ['ริว ช่างตีบวก', panelSmith], market: ['ตลาดซื้อ-ขาย', panelMarket], shop: ['ร้านช่างตีเหล็ก', panelShop], rank: ['ทำเนียบนักผจญภัย', panelRank], gm: ['ห้องควบคุม GM', panelGM],
-  npc_gacha: ['🎰 ตู้กาชา', panelGacha], pvp: ['⚔️ ห้อง PVP', panelPvp], dgresult: ['🏆 ผลงานในดันเจี้ยน', panelDgResult], album: ['📖 อัลบั้มการ์ด', panelAlbum], auto: ['โหมดออโต้', panelAuto], online: ['ผู้เล่นและปาร์ตี้', panelOnline], sound: ['ตั้งค่า', panelSound], chat: ['แชท', panelChat]
+  npc_gacha: ['🎰 ตู้กาชา', panelGacha], pvp: ['⚔️ ห้อง PVP', panelPvp], dgresult: ['🏆 ผลงานในดันเจี้ยน', panelDgResult], album: ['📖 อัลบั้มการ์ด', panelAlbum], gmgive: ['🎁 ส่งของให้ผู้เล่น', panelGmGive], auto: ['โหมดออโต้', panelAuto], online: ['ผู้เล่นและปาร์ตี้', panelOnline], sound: ['ตั้งค่า', panelSound], chat: ['แชท', panelChat]
 };
 function openPanel(name) {
   if (name === 'rank' || name === 'gm') loadPlayers();
@@ -7793,15 +7849,7 @@ function renderGMPlayers() {
         const lv = el('input', { type: 'number', min: 0, max: 15, 'aria-label': 'ค่าตีบวก' }); lv.value = cur('weapon'); sel.addEventListener('change', () => { lv.value = cur(sel.value); });
         return el('div', { class: 'ct' }, 'ตีบวก', sel, lv, el('button', { class: 'mini', text: 'ตั้ง', onclick: () => { const k = sel.value, v = int(lv.value, 0, 0, 15);
           gmWrite(p.id, (r) => r.update(Object.assign(k === 'weapon' ? { refineW: v } : k === 'armor' ? { refineA: v } : { ref: Object.assign({}, p.ref || {}, { [k]: v }) }, { gmRef: [k, v], gmF: ['gmRef'], gmStamp: Date.now() }))); } })); })(),
-      (() => { const sel = el('select', { 'aria-label': 'ของที่จะส่ง' }); sel.append(el('option', { value: 'key', text: '🗝️ กุญแจดันเจี้ยน' }));
-        for (const sid of Object.keys(DG_SETS)) for (const id of Object.keys(GEAR)) if (GEAR[id].dg && (GEAR[id].set === sid || GEAR[id].dset === sid)) { sel.append(el('option', { value: id, text: GEAR[id].nm + (GEAR[id].slot === 'ring' ? ' (1 รู)' : '') })); if (GEAR[id].slot === 'ring') sel.append(el('option', { value: id + '|2', text: GEAR[id].nm + ' (2 รู)' })); }
-        const rar = el('select', { 'aria-label': 'ความหายาก' }); for (const r of [1, 2, 3, 4]) rar.append(el('option', { value: String(r), text: RAR[r].nm }));
-        const qty = el('input', { type: 'number', min: 1, max: 99, 'aria-label': 'จำนวน' }); qty.value = 1;
-        return el('div', { class: 'ct' }, 'ส่งของ', sel, rar, qty, el('button', { class: 'mini', text: 'ส่ง', onclick: () => {
-          const id = sel.value, n = int(qty.value, 1, 1, 99), items = [];
-          if (id === 'key') items.push({ id: uid36().slice(-12), n, it: keyItem() });
-          else { const [gid, sk] = id.split('|'), dg = dgDef(GEAR[gid].set || GEAR[gid].dset); for (let i = 0; i < Math.min(n, 10); i++) items.push({ id: uid36().slice(-12), n: 1, it: rollDgItem(dg, int(rar.value, 1, 1, 4), gid, sk === '2' ? 2 : 1) }); }
-          gmWrite(p.id, (r) => r.update({ mail: (p.mail || []).concat(items).slice(-30), gmF: ['mail'], gmStamp: Date.now() })); } })); })()));
+      el('div', { class: 'ct' }, el('button', { class: 'mini pri', text: '🎁 ส่งของ / คืนของให้ผู้เล่น…', onclick: () => { gmGiveInit(p); openPanel('gmgive'); } }))));
   }
 }
 
@@ -7949,6 +7997,120 @@ async function restoreBackup(b) {
   bkAdd(bkNow(), 'ก่อนกู้ข้อมูลสำรอง');
   S.hero = sanitizeHero(b.doc); S.dirty = true; S.blocked = S.blocked === 'dup' ? S.blocked : false;
   toast('กำลังกู้ข้อมูล…'); await save(); setTimeout(doReload, 600);
+}
+
+/* ---------- GM: compose and send items to a player ---------- */
+const GM_PIECES = DG_LINES.concat('katar').map((l) => 'w_' + l).concat(['a', 's', 'r', 'sh']);
+const gmGearId = (set, piece) => (piece.startsWith('w_') ? 'w_' + set + '_' + piece.slice(2) : piece + '_' + set);
+function gmGiveInit(p) {
+  if (S.gmGive && S.gmGive.id === p.id) return;
+  S.gmGive = { id: p.id, name: p.name, list: [], busy: false, type: 'gear', set: Object.keys(DG_SETS)[0], piece: 'a', r: 4, v: '', sk: 1, opts: [], gacha: 'g_crown', card: '', cv: '', ore: 'ori', qty: 1, msg: 'GM ส่งของคืนให้ ขออภัยที่เกิดปัญหา' };
+}
+function gmBuild(G) {
+  const qty = Math.max(1, Math.min(G.type === 'gear' || G.type === 'gacha' ? 10 : 999, G.qty | 0 || 1));
+  if (G.type === 'key') return [{ it: keyItem(), n: qty }];
+  if (G.type === 'ore') return [{ it: oreItem(G.ore), n: qty }];
+  if (G.type === 'card') { const e = albumEntries().find((x) => x.id === G.card); if (!e) return null; const vs = cardVars(e.tpl); return [{ it: cardItem(e.tpl, vs ? (vs.includes(G.cv) ? G.cv : vs[0]) : null), n: qty }]; }
+  if (G.type === 'gacha') { if (!GEAR[G.gacha]) return null; return Array.from({ length: qty }, () => ({ it: gearItem(G.gacha), n: 1 })); }
+  const id = gmGearId(G.set, G.piece); if (!GEAR[id]) return null;
+  const r = G.r, used = new Set(), o = [];
+  for (let i = 0; i < RAR[r].opts; i++) { const e = G.opts[i]; if (e && e[0] && !used.has(e[0]) && OPT_KEYS.includes(e[0])) { used.add(e[0]); o.push([e[0], Math.max(1, Math.min(999, e[1] | 0 || 1))]); } }
+  const vs = varsOf(id);
+  return Array.from({ length: qty }, () => ({ it: Object.assign(gearItem(id), { r, o: o.map((e) => e.slice()) }, vs ? { v: vs.includes(G.v) ? G.v : vs[0] } : {}, id.startsWith('r_') && G.sk === 2 ? { sk: 2 } : {}), n: 1 }));
+}
+async function gmSendList(G) {
+  if (G.busy) return;
+  if (!G.list.length) { toast('ยังไม่มีของในรายการ'); return; }
+  const ref = S.db.doc('heroes/' + G.id);
+  let snap; try { snap = await ref.get(); } catch (e) { toast('อ่านข้อมูลผู้เล่นไม่สำเร็จ ลองใหม่'); return; }
+  if (!snap.exists) { toast('ไม่พบข้อมูลผู้เล่นนี้'); return; }
+  G.busy = true; renderSheet();
+  const msg = G.msg.trim().slice(0, 80), entries = G.list.map((x, i) => ({ id: (uid36() + i.toString(36)).slice(-16), n: x.n, it: x.it, from: 'gm', msg }));
+  // writes the entries that are not in the player's mailbox yet (and not already received); returns how many it had to add
+  const apply = async () => {
+    const s = await ref.get(), d = s.exists ? s.data() : {}, have = new Set((d.mail || []).map((m) => m.id)), done = new Set(d.mailDone || []);
+    const add = entries.filter((e) => !have.has(e.id) && !done.has(e.id)); if (!add.length) return 0;
+    await ref.update({ sv: SCHEMA, mail: (d.mail || []).concat(add).slice(-MAIL_MAX), gmF: ['mail'], gmStamp: Date.now() }); return add.length;
+  };
+  try {
+    await apply();
+    // the player's own save can land at the same moment and drop the mail: check again a few times and re-add if needed
+    for (let t = 0; t < 3; t++) { await new Promise((r) => setTimeout(r, 3500)); if (!(await apply())) break; }
+    toast('ส่งของให้ ' + G.name + ' เรียบร้อยและตรวจแล้ว (' + entries.length + ' รายการ)'); G.list = []; loadPlayers(true);
+  } catch (e) { toast('ส่งไม่สำเร็จ (' + ((e && e.code) || 'ไม่ทราบสาเหตุ') + ') ลองใหม่'); }
+  G.busy = false; if (S.sheet === 'gmgive') renderSheet();
+}
+function panelGmGive(body) {
+  const G = S.gmGive;
+  if (!G) { body.append(el('p', { class: 'note', text: 'เลือกผู้เล่นจากห้อง GM ก่อน' })); return; }
+  const re = () => renderSheet(), fld = (label, ctl) => el('label', { class: 'fld' }, label, ctl);
+  const sel = (opts, val, on, label) => { const s = el('select', { 'aria-label': label }); for (const [v, t] of opts) s.append(el('option', { value: v, text: t })); s.value = val; s.addEventListener('change', () => on(s.value)); return s; };
+  body.append(el('button', { class: 'mini', text: '← กลับห้อง GM', onclick: () => openPanel('gm') }));
+  body.append(el('div', { class: 'sub', text: '🎁 ส่งของให้: ' + G.name }));
+  const tf = el('div', { class: 'mkf' });
+  for (const [id, lb] of [['gear', '⚔️ อุปกรณ์ดันเจี้ยน'], ['gacha', '🎰 ของกาชา'], ['card', '🃏 การ์ด'], ['key', '🗝️ กุญแจ'], ['ore', '🔷 แร่ตีบวก']]) tf.append(el('button', { class: 'chip' + (G.type === id ? ' on' : ''), text: lb, onclick: () => { G.type = id; G.qty = 1; re(); } }));
+  body.append(tf);
+  const box = el('div', { class: 'gmbox' });
+  if (G.type === 'gear') {
+    const sets = Object.keys(DG_SETS).map((k) => [k, DG_SETS[k].nm]);
+    box.append(fld('เซ็ต', sel(sets, G.set, (v) => { G.set = v; re(); }, 'เซ็ตดันเจี้ยน')));
+    const pcs = GM_PIECES.map((pc) => [pc, (GEAR[gmGearId(G.set, pc)] || {}).nm]).filter((x) => x[1]);
+    if (!pcs.some((x) => x[0] === G.piece)) G.piece = pcs[0] ? pcs[0][0] : 'a';
+    box.append(fld('ชิ้น', sel(pcs, G.piece, (v) => { G.piece = v; re(); }, 'ชิ้นของ')));
+    box.append(fld('ความหายาก', sel([1, 2, 3, 4].map((r) => [String(r), RAR[r].nm + ' (ออปชัน ' + RAR[r].opts + ' ช่อง)']), String(G.r), (v) => { G.r = Number(v); re(); }, 'ความหายาก')));
+    const id = gmGearId(G.set, G.piece), vs = varsOf(id), t = (GEAR[id] && GEAR[id].t) || (DG_SETS[G.set] || {}).t || 1;
+    if (vs) { if (!vs.includes(G.v)) G.v = vs[0]; box.append(fld('แบบสเตตัส', sel(vs.map((v) => [v, v.toUpperCase()]), G.v, (v) => { G.v = v; re(); }, 'แบบสเตตัส'))); }
+    if (id.startsWith('r_')) box.append(fld('ช่องการ์ด', sel([['1', '1 รู'], ['2', '2 รู']], String(G.sk), (v) => { G.sk = Number(v); re(); }, 'ช่องการ์ด')));
+    const n = RAR[G.r].opts;
+    if (n) box.append(el('div', { class: 'sub', text: 'ออปชัน (เลือกได้ ' + n + ' ช่อง ห้ามซ้ำกัน)' }));
+    for (let i = 0; i < n; i++) {
+      const cur = G.opts[i] || ['', 0];
+      const ks = [['', '— ว่าง —']].concat(OPT_KEYS.map((k) => [k, BUFF_TH[k] || k.toUpperCase()]));
+      const rng = el('span', { class: 'gmrng', text: cur[0] ? 'ช่วงปกติ ' + optRange(cur[0], t).join('–') : '' });
+      const num = el('input', { type: 'number', min: 1, max: 999, 'aria-label': 'ค่าออปชันช่องที่ ' + (i + 1) }); num.value = cur[0] ? cur[1] : '';
+      num.addEventListener('change', () => { G.opts[i] = [cur[0], Math.max(1, Math.min(999, int(num.value, 1, 1, 999)))]; re(); });
+      const ksel = sel(ks, cur[0], (k) => { G.opts[i] = k ? [k, optRange(k, t)[1]] : ['', 0]; re(); }, 'ออปชันช่องที่ ' + (i + 1));
+      box.append(el('div', { class: 'gmrow' }, ksel, num), rng);
+    }
+  } else if (G.type === 'gacha') {
+    const gs = Object.keys(GEAR).filter((k) => GEAR[k].gacha).map((k) => [k, GEAR[k].nm]);
+    if (!GEAR[G.gacha] || !GEAR[G.gacha].gacha) G.gacha = gs[0][0];
+    box.append(fld('ของกาชา', sel(gs, G.gacha, (v) => { G.gacha = v; re(); }, 'ของกาชา')));
+  } else if (G.type === 'card') {
+    const es = albumEntries(); if (!es.some((e) => e.id === G.card)) G.card = es[0] ? es[0].id : '';
+    box.append(fld('การ์ด', sel(es.map((e) => [e.id, e.tpl.name + ' (' + CS_TH[e.c.cs] + ') · ' + e.where]), G.card, (v) => { G.card = v; G.cv = ''; re(); }, 'การ์ด')));
+    const e = es.find((x) => x.id === G.card), vs = e ? cardVars(e.tpl) : null;
+    if (vs) { if (!vs.includes(G.cv)) G.cv = vs[0]; box.append(fld('แบบการ์ด', sel(vs.map((v) => [v, CARD_VAR_TH[v] + (e ? ' : ' + bonusText(cardBonus(e.tpl, v)) : '')]), G.cv, (v) => { G.cv = v; re(); }, 'แบบการ์ด'))); }
+  } else if (G.type === 'ore') {
+    box.append(fld('แร่', sel(Object.keys(ORE).map((k) => [k, ORE[k].nm]), G.ore, (v) => { G.ore = v; re(); }, 'แร่')));
+  }
+  const q = el('input', { type: 'number', min: 1, max: 999, 'aria-label': 'จำนวน' }); q.value = G.qty; q.addEventListener('change', () => { G.qty = int(q.value, 1, 1, 999); re(); });
+  box.append(fld('จำนวน' + (G.type === 'gear' || G.type === 'gacha' ? ' (สูงสุด 10 ชิ้นต่อครั้ง)' : ''), q));
+  body.append(box);
+  // preview
+  const built = gmBuild(G);
+  if (built && built[0]) {
+    const d = itemDesc(built[0].it), pv = el('div', { class: 'gfrow' }), info = el('div'), nm = el('b', { text: 'ตัวอย่าง: ' + d.name + (d.tag ? '  [' + d.tag + ']' : '') }); if (d.col) nm.style.color = d.col;
+    info.append(nm); for (const l of d.lines) info.append(el('div', { text: l }));
+    const dup = G.type === 'gear' && new Set((G.opts.slice(0, RAR[G.r].opts)).filter((e) => e && e[0]).map((e) => e[0])).size < G.opts.slice(0, RAR[G.r].opts).filter((e) => e && e[0]).length;
+    if (dup) info.append(el('div', { class: 'gmrng', text: '⚠️ มีออปชันซ้ำกัน ระบบจะใช้เฉพาะช่องแรกที่ไม่ซ้ำ' }));
+    pv.append(info, el('span', { class: 'gfn', text: built.length > 1 || built[0].n > 1 ? 'x' + (built.length > 1 ? built.length : built[0].n) : '' })); body.append(pv);
+  }
+  body.append(el('button', { class: 'btn-main', text: '➕ เพิ่มในรายการ', disabled: !built || G.busy, onclick: () => {
+    if (G.list.length + built.length > MAIL_MAX) { toast('รายการเต็ม (สูงสุด ' + MAIL_MAX + ' รายการต่อครั้ง)'); return; }
+    for (const b of built) G.list.push(b); G.qty = 1; re(); } }));
+  // staged list
+  body.append(el('div', { class: 'sub', text: 'รายการที่จะส่ง (' + G.list.length + ')' }));
+  if (!G.list.length) body.append(el('p', { class: 'note', text: 'ยังไม่มีของในรายการ เลือกของด้านบนแล้วกด "เพิ่มในรายการ" ได้หลายชิ้นก่อนส่ง' }));
+  G.list.forEach((x, i) => {
+    const d = itemDesc(x.it), row = el('div', { class: 'gfrow' }), info = el('div'), nm = el('b', { text: d.name + (d.tag ? '  [' + d.tag + ']' : '') }); if (d.col) nm.style.color = d.col;
+    info.append(nm); for (const l of d.lines) info.append(el('div', { text: l }));
+    row.append(info, el('span', { class: 'gfn', text: x.n > 1 ? 'x' + x.n : '' }), el('button', { class: 'mini warn', text: 'ลบ', disabled: G.busy, onclick: () => { G.list.splice(i, 1); re(); } })); body.append(row);
+  });
+  const msg = el('input', { type: 'text', maxlength: 80, 'aria-label': 'ข้อความถึงผู้เล่น' }); msg.value = G.msg; msg.addEventListener('change', () => { G.msg = msg.value; });
+  body.append(fld('ข้อความถึงผู้เล่น (แสดงในหน้าต่างแจ้งเตือน)', msg));
+  body.append(el('button', { class: 'btn-main', text: G.busy ? 'กำลังส่งและตรวจสอบ…' : '📬 ส่งให้ ' + G.name + ' (' + G.list.length + ' รายการ)', disabled: G.busy || !G.list.length, onclick: () => { G.msg = msg.value; gmSendList(G); } }));
+  body.append(el('p', { class: 'note', text: 'ของจะเข้ากล่องจดหมายของผู้เล่น แล้วเข้ากระเป๋าเองและขึ้นแจ้งเตือนส่วนตัว ถ้าผู้เล่นออฟไลน์ จะเห็นแจ้งเตือนตอนเข้าเกมครั้งหน้า ตีบวกให้ผู้เล่นที่หัวข้อ "ตีบวก" ในห้อง GM' }));
 }
 
 /* ---------- boot ---------- */
