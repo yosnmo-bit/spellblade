@@ -997,8 +997,8 @@ function MON(id, name, arch, color, lv, extra) {
 }
 
 const DEFAULT_CONFIG = {
-  version: '2.9.53',
-  patchNotes: 'อัปเดต 2.9.53\n• (GM) ตั้งค่าบอสดันเจี้ยนได้ละเอียดขึ้น: คูณเลือดได้สูงสุด 100,000 เท่า และปรับ ATK / DEF ของบอสได้\n• (จาก 2.9.52) แจ้งเตือนเมื่อได้รับของจาก GM',
+  version: '2.9.54',
+  patchNotes: 'อัปเดต 2.9.54\n• สเตตัสอัปได้สูงสุด 150 (เดิม 99) ตั้งแต่ 99 ขึ้นไปราคาแต้มแพงขึ้น: จาก 99 ไป 150 ใช้ 757 แต้มต่อสเตตัส\n• เพิ่มปุ่ม +10 ในหน้าสถานะ\n• (GM) ปรับ ATK / DEF / เลือดบอสดันเจี้ยนได้',
   announcement: 'ยินดีต้อนรับสู่ช่วงทดสอบ! เจอบั๊กบอก GM ได้เลย',
   rates: { bexp: 1, jexp: 1, gold: 1, drop: 1 },
   deathPenalty: 1,
@@ -1650,7 +1650,10 @@ function jobNeed(J, tier) {
   const eq = Math.max(1, Math.round(b0 + (J - 1) * spread));
   return Math.max(8, Math.round(baseNeed(eq) * 0.75 * clamp(spread, 0.2, 1.5)));
 }
-const statCost = (v) => 2 + Math.floor((v - 1) / 10);
+// stat cap 150. Up to 98 the price is unchanged; from 99 on every point costs 1 more, so 99 -> 150 takes 757 points per stat
+const STAT_MAX = 150, STAT_STEEP = 99;
+const statCost = (v) => 2 + Math.floor((v - 1) / 10) + (v >= STAT_STEEP ? 1 : 0);
+const statRangeCost = (a, b) => { let t = 0; for (let v = a; v < b; v++) t += statCost(v); return t; };
 const statGain = (L) => 3 + Math.floor(L / 5);
 function totalStatPts(L) { let t = 48; for (let l = 2; l <= L; l++) t += statGain(l); return t; }
 function spentStatPts(st) { let t = 0; for (const k of STATS) for (let v = 1; v < st[k]; v++) t += statCost(v); return t; }
@@ -1692,7 +1695,7 @@ function sanitizeHero(d) {
     mkDone: (Array.isArray(d.mkDone) ? d.mkDone : []).filter((x) => typeof x === 'string').map((x) => x.slice(0, 40)).slice(-80),
     ref: (() => { const r = d.ref || {}, o = {}; for (const k of ['off', 'ring1', 'ring2', 'head', 'face', 'mouth', 'shoes', 'wings']) o[k] = int(r[k], 0, 0, 15); return o; })()
   };
-  const st = d.stats || {}; for (const k of STATS) h.stats[k] = int(st[k], 1, 1, 99);
+  const st = d.stats || {}; for (const k of STATS) h.stats[k] = int(st[k], 1, 1, STAT_MAX);
   const seenK = new Set();
   h.inv = [];
   for (const x of (Array.isArray(d.inv) ? d.inv : [])) { const it = sanitizeItem(x, true); if (!it) continue; const same = h.inv.find((y) => y.k === it.k); if (same) { if (it.kind !== 'gear') same.n = Math.min(999, (same.n || 1) + (it.n || 1)); } else if (h.inv.length < INV_MAX) h.inv.push(it); }
@@ -7322,14 +7325,14 @@ const AUTO_BUILD = { novice: { str: 3, agi: 2, vit: 2, dex: 1 }, sword: { str: 4
   magician: { int: 4, dex: 3, agi: 1 }, archer: { dex: 4, agi: 2, str: 1, luk: 1 }, thief: { agi: 4, str: 2, luk: 2, dex: 1 }, merchant: { str: 4, dex: 2, vit: 2, luk: 1 } };
 function addStat(k, n) {
   const h = S.hero;
-  for (let i = 0; i < n; i++) { const c = statCost(h.stats[k]); if (h.statPts < c || h.stats[k] >= 99) break; h.statPts -= c; h.stats[k]++; }
+  for (let i = 0; i < n; i++) { const c = statCost(h.stats[k]); if (h.statPts < c || h.stats[k] >= STAT_MAX) break; h.statPts -= c; h.stats[k]++; }
   P.D = derived(); S.dirty = true; renderSheet(); hudText();
 }
 function autoAlloc() {
   const h = S.hero, wts = AUTO_BUILD[JOBS[h.job].line] || AUTO_BUILD.novice;
   for (let g = 0; g < 3000; g++) {
     let best = null, bv = 1e9;
-    for (const k in wts) { const v = h.stats[k]; if (v >= 99 || h.statPts < statCost(v)) continue; const sc = v / wts[k]; if (sc < bv) { bv = sc; best = k; } }
+    for (const k in wts) { const v = h.stats[k]; if (v >= STAT_MAX || h.statPts < statCost(v)) continue; const sc = v / wts[k]; if (sc < bv) { bv = sc; best = k; } }
     if (!best) break;
     h.statPts -= statCost(h.stats[best]); h.stats[best]++;
   }
@@ -7347,15 +7350,17 @@ function resetStats() {
 function panelStats(body) {
   const h = S.hero, D = derived();
   body.append(el('div', { class: 'ph' }, el('span', { class: 't', text: h.name }), el('span', { class: 'muted', text: jobName(h.job) + '  Base ' + h.level + '  Job ' + h.jobLv })));
-  body.append(el('div', { class: 'pts' }, 'แต้มสเตตัสคงเหลือ ', el('b', { text: String(h.statPts) }), el('span', { class: 'muted', text: '  ตัวเลขสีเขียวคือโบนัสจาก Job Lv' })));
+  body.append(el('div', { class: 'pts' }, 'แต้มสเตตัสคงเหลือ ', el('b', { text: String(h.statPts) }), el('span', { class: 'muted', text: '  ตัวเลขสีเขียวคือโบนัสจาก Job Lv และอุปกรณ์' })));
+  body.append(el('p', { class: 'note', text: 'สเตตัสสูงสุด ' + STAT_MAX + ' ต่อตัว  ตั้งแต่ ' + STAT_STEEP + ' ขึ้นไปราคาแต้มแพงขึ้น: จาก ' + STAT_STEEP + ' ไป ' + STAT_MAX + ' ใช้ ' + fmt(statRangeCost(STAT_STEEP, STAT_MAX)) + ' แต้มต่อสเตตัส' }));
   for (const k of STATS) {
-    const v = h.stats[k], bonus = D.st[k] - v, cost = statCost(v), can = h.statPts >= cost && v < 99;
+    const v = h.stats[k], bonus = D.st[k] - v, cost = statCost(v), can = h.statPts >= cost && v < STAT_MAX;
     body.append(el('div', { class: 'srow' },
-      el('div', null, el('div', { class: 'n', text: k.toUpperCase() }), el('div', { class: 'd', text: STAT_INFO[k] + ' (ใช้ ' + cost + ' แต้ม)' })),
+      el('div', null, el('div', { class: 'n', text: k.toUpperCase() }), el('div', { class: 'd', text: STAT_INFO[k] + (v >= STAT_MAX ? ' (เต็มแล้ว)' : ' (ใช้ ' + cost + ' แต้ม)') })),
       el('div', { class: 'v' }, String(v), bonus > 0 ? el('em', { text: '+' + bonus }) : null),
       el('div', { class: 'btns' },
         el('button', { class: 'mini pri', text: '+1', disabled: !can, 'aria-label': 'เพิ่ม ' + k.toUpperCase() + ' 1', onclick: () => addStat(k, 1) }),
-        el('button', { class: 'mini', text: '+5', disabled: !can, 'aria-label': 'เพิ่ม ' + k.toUpperCase() + ' 5', onclick: () => addStat(k, 5) }))));
+        el('button', { class: 'mini', text: '+5', disabled: !can, 'aria-label': 'เพิ่ม ' + k.toUpperCase() + ' 5', onclick: () => addStat(k, 5) }),
+        el('button', { class: 'mini', text: '+10', disabled: !can, 'aria-label': 'เพิ่ม ' + k.toUpperCase() + ' 10', onclick: () => addStat(k, 10) }))));
   }
   const kv = el('div', { class: 'kv' });
   [['ATK', fmt(D.atk)], ['MATK', fmt(D.matk)], ['DEF', fmt(D.def)], ['HIT', fmt(D.hit)], ['FLEE', fmt(D.flee)], ['CRIT', D.crit.toFixed(1) + '%'],
