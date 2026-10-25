@@ -5477,6 +5477,8 @@ function applyMirror(o) {
     if (m && m.ti !== ti) { W.mons = W.mons.filter((x) => x !== m); m = null; }
     if (!m) { m = makeMon(tpl, ti, nx, ny); m.uid = uid; W.mons.push(m); NET.atkSeen.set(uid, int(e[7], 0, 0, 1e9)); }
     m.nx = nx; m.ny = ny;
+    const mhx = e.length > 8 ? num(e[8], 0, 0, 1e12) : 0;
+    if (mhx > 0 && m.maxHp !== mhx) { const r = m.maxHp > 0 ? m.hp / m.maxHp : 1; m.maxHp = mhx; m.hp = r * mhx; }   // same max HP as the host, so every screen shows the same bar
     const hpHost = num(e[4], 1000, 0, 1000) / 1000 * m.maxHp;
     if (!(m.predT && W.t - m.predT < 2.5 && m.hp < hpHost)) m.hp = hpHost;
     const fl = int(e[5], 0, 0, 63);
@@ -5596,7 +5598,7 @@ function onlineTick(dt) {
       let ti = -1;
       if (m.tgt) { ti = tp.indexOf(m.tgt); if (ti < 0) { tp.push(m.tgt); ti = tp.length - 1; } }
       ms.push([m.uid, m.ti, Math.round(m.x / WORLD.w * 1000), Math.round(m.y / WORLD.h * 1000), Math.round(clamp(m.hp / m.maxHp, 0, 1) * 1000),
-        (m.state === 'chase' ? 1 : 0) | (m.moving ? 2 : 0) | (m.state === 'dead' ? 4 : 0) | (m.enr ? 8 : 0) | ((m.frzUntil || 0) > W.t ? 16 : 0) | ((m.slowUntil || 0) > W.t ? 32 : 0), ti, m.atkN || 0]);
+        (m.state === 'chase' ? 1 : 0) | (m.moving ? 2 : 0) | (m.state === 'dead' ? 4 : 0) | (m.enr ? 8 : 0) | ((m.frzUntil || 0) > W.t ? 16 : 0) | ((m.slowUntil || 0) > W.t ? 32 : 0), ti, m.atkN || 0, m.raid ? Math.round(m.maxHp) : 0]);   // last value: raid boss max HP (host scales it by party size)
     }
     pr.ms = ms; pr.tp = tp; pr.kd = NET.kd;
     if (isDg()) { pr.bk = NET.bk; pr.dq = DG.state; pr.dro = DG.round || 0; }
