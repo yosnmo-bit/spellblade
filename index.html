@@ -1697,7 +1697,7 @@ function canJobChange(h) {
 function newHero(name, look) {
   return { name, look, job: 'novice', level: 1, exp: 0, jobLv: 1, jobExp: 0, stats: { str: 1, agi: 1, vit: 1, int: 1, dex: 1, luk: 1 },
     statPts: 48, skillPts: 0, skills: {}, hotbar: ['', '', '', '', '', '', '', ''], gold: 200, refineW: 0, refineA: 0, potHp: 10, potSp: 3, potHpL: 0, potSpL: 0, potAll: 0, potBtn: ['hp', 'sp'], potAuto: { hp: 35, sp: 12, hpL: 0, spL: 0, all: 0 },
-    mapId: 'village', kills: 0, bossKills: 0, fbKills: 0, dgClears: 0, mail: [], mailDone: [], wstyle: 'dual', gmStamp: 0, inv: [], eq: null, ref: {} };
+    mapId: 'village', kills: 0, bossKills: 0, fbKills: 0, dgClears: 0, mail: [], mailDone: [], wstyle: 'dual', gmStamp: 0, inv: [], eq: null, ref: {}, rm: {} };
 }
 function sanitizeHero(d) {
   d = d || {};
@@ -1719,7 +1719,8 @@ function sanitizeHero(d) {
     wstyle: d.wstyle === 'katar' ? 'katar' : 'dual', gmStamp: num(d.gmStamp, 0, 0, 1e15),
     bagX: int(d.bagX, 0, 0, BAG_X_MAX),
     mkDone: (Array.isArray(d.mkDone) ? d.mkDone : []).filter((x) => typeof x === 'string').map((x) => x.slice(0, 40)).slice(-80),
-    ref: (() => { const r = d.ref || {}, o = {}; for (const k of ['off', 'ring1', 'ring2', 'head', 'face', 'mouth', 'shoes', 'wings']) o[k] = int(r[k], 0, 0, 15); return o; })()
+    ref: (() => { const r = d.ref || {}, o = {}; for (const k of ['off', 'ring1', 'ring2', 'head', 'face', 'mouth', 'shoes', 'wings']) o[k] = int(r[k], 0, 0, 15); return o; })(),
+    rm: (() => { const r = d.rm || {}, o = {}; for (const k of ['weapon', 'armor', 'off', 'ring1', 'ring2', 'head', 'face', 'mouth', 'shoes', 'wings']) { const m = r[k] || {}, q = {}; for (let l = 0; l < 15; l++) { const n = int(m[l], 0, 0, 50); if (n) q[l] = n; } if (Object.keys(q).length) o[k] = q; } return o; })()
   };
   const st = d.stats || {}; for (const k of STATS) h.stats[k] = int(st[k], 1, 1, STAT_MAX);
   const seenK = new Set();
@@ -2659,7 +2660,7 @@ function heroDoc() {
   const h = S.hero;
   return { name: h.name, look: h.look, job: h.job, level: h.level, exp: h.exp, jobLv: h.jobLv, jobExp: h.jobExp, stats: h.stats,
     skills: h.skills, hotbar: h.hotbar, gold: h.gold, refineW: h.refineW, refineA: h.refineA, potHp: h.potHp, potSp: h.potSp, potHpL: h.potHpL || 0, potSpL: h.potSpL || 0, potAll: h.potAll || 0, potBtn: h.potBtn || ['hp', 'sp'], potAuto: h.potAuto || { hp: 35, sp: 12, hpL: 0, spL: 0, all: 0 },
-    mapId: h.mapId, kills: h.kills, bossKills: h.bossKills || 0, fbKills: h.fbKills || 0, dgClears: h.dgClears || 0, off: h.off || null, mail: h.mail || [], mailDone: (h.mailDone || []).slice(-80), sv: SCHEMA, sid: S.sid, sidT: S.sidT || 0, wstyle: h.wstyle, gmStamp: h.gmStamp || 0, inv: h.inv, eq: h.eq, mkDone: h.mkDone || [], ref: h.ref || {}, bagX: h.bagX || 0, updatedAt: Date.now() };
+    mapId: h.mapId, kills: h.kills, bossKills: h.bossKills || 0, fbKills: h.fbKills || 0, dgClears: h.dgClears || 0, off: h.off || null, mail: h.mail || [], mailDone: (h.mailDone || []).slice(-80), sv: SCHEMA, sid: S.sid, sidT: S.sidT || 0, wstyle: h.wstyle, gmStamp: h.gmStamp || 0, inv: h.inv, eq: h.eq, mkDone: h.mkDone || [], ref: h.ref || {}, rm: h.rm || {}, bagX: h.bagX || 0, updatedAt: Date.now() };
 }
 function saveLocal() { if (S.hero) lsSet(LS_SAVE + (S.uid || ''), JSON.stringify(Object.assign(heroDoc(), { savedAt: Date.now() }))); }
 // save guard: every save carries the game version (sv) and this tab's session id (sid);
@@ -6753,17 +6754,24 @@ function refineSlot(slot) {
   setTimeout(() => {
     REF.busy = false;
     const nm = SLOT_TH[slot];
-    if (Math.random() * 100 < refineChance(r)) {
+    if (Math.random() * 100 < refineChance(r, h, slot)) {
+      refMissSet(h, slot, r, 0);
       setRef(h, slot, r + 1); AU.sfx('refineOk'); toast('ตีบวกสำเร็จ! ' + nm + ' +' + (r + 1));
       addFx({ kind: 'pillar', x: P.x, y: P.y, color: '#ffe27a', dur: 0.9, w: 28 }); addNum(P.x, P.y - 74, nm + ' +' + (r + 1), '#ffe27a', 15, { font: 'th', pop: true, dur: 1.5 });
       if (r + 1 >= 15) { chatSend('🌈 ' + h.name + ' ตี' + nm + 'สำเร็จถึง +15 ขั้นสูงสุด!', 'w', true, true); addFx({ kind: 'pillar', x: P.x, y: P.y, color: '#ff6bd5', dur: 1.8, w: 60 }); }
-    } else { AU.sfx('refineFail'); toast('ตีบวกล้มเหลว ' + nm + ' ยังอยู่ที่ +' + r); addNum(P.x, P.y - 74, 'ล้มเหลว', '#ff8f8f', 14, { font: 'th', dur: 1.2 }); }
+    } else {
+      const miss = refMissGet(h, slot, r) + 1; refMissSet(h, slot, r, miss);
+      const to = Math.max(refSafeFloor(r), r - 1); if (to !== r) setRef(h, slot, to);
+      const nxt = refineChance(r, h, slot);
+      AU.sfx('refineFail'); toast('ตีไม่ติด! ' + nm + (to !== r ? ' ลดเหลือ +' + to : ' คงอยู่ที่ +' + r + ' (จุดเซฟ)') + '  ครั้งหน้าโอกาส ' + nxt + '%');
+      addNum(P.x, P.y - 74, 'ตีไม่ติด', '#ff8f8f', 14, { font: 'th', dur: 1.2 });
+    }
     P.D = derived(); S.dirty = true; save(); hudText(); drawAvatar(); if (S.sheet === 'npc_smith') renderSheet();
   }, 700);
 }
 function panelSmith(body) {
   const h = S.hero;
-  body.append(el('div', { class: 'npcsay' }, el('b', { text: 'ริว ช่างตีบวก' }), el('p', { text: 'อยากให้ตีบวกชิ้นไหนครับ อาวุธกับแหวนใช้ Oridecon ส่วนชุดเกราะ รองเท้า หมวก ปาก ใบหน้า และปีกใช้ Elunium ขั้น +1 ถึง +3 ใช้ก้อนเดียว ขั้นสูงขึ้นใช้มากขึ้น ถ้าพลาดของไม่หายนะครับ' })));
+  body.append(el('div', { class: 'npcsay' }, el('b', { text: 'ริว ช่างตีบวก' }), el('p', { text: 'อยากให้ตีบวกชิ้นไหนครับ อาวุธกับแหวนใช้ Oridecon ส่วนชุดเกราะ รองเท้า หมวก ปาก ใบหน้า และปีกใช้ Elunium ขั้น +1 ถึง +3 ใช้ก้อนเดียว ขั้นสูงขึ้นใช้มากขึ้น จุดเซฟคือ +6 +9 +12 ถ้าตีไม่ติดจะลดลง 1 ขั้น แต่ไม่ต่ำกว่าจุดเซฟที่ผ่านมาแล้ว และพลาดแต่ละครั้งจะเพิ่มโอกาสครั้งต่อไป 2%' })));
   body.append(el('div', { class: 'orebar' }, el('span', { text: '🔷 Oridecon x' + oreCount('ori') }), el('span', { text: '💎 Elunium x' + oreCount('elu') }), el('span', { text: '💰 ' + fmt(h.gold) + ' G' })));
   for (const slot of REF_SLOTS) {
     if (slot === 'off' && !dualNow(h) && !shieldUser(h)) continue;
@@ -6774,11 +6782,11 @@ function panelSmith(body) {
       el('span', { class: 'refic', text: inf && inf.ic ? inf.ic : '·' }),
       el('div', { class: 'grow' },
         el('div', { class: 'nm2', style: inf && inf.r >= 1 ? 'color:' + rarCol(inf.r) : null, text: SLOT_TH[slot] + (ok ? '  ' + inf.nm : '  ยังไม่ได้สวม') + (r ? '  +' + r : '') }),
-        ok && !max ? el('div', { class: 'ds', text: '→ +' + (r + 1) + '  ' + ORE[ore].ic + ' ' + need + ' ก้อน (มี ' + have + ')  💰 ' + fmt(cost) + ' G  โอกาส ' + refineChance(r) + '%' }) : null,
+        ok && !max ? el('div', { class: 'ds', text: '→ +' + (r + 1) + '  ' + ORE[ore].ic + ' ' + need + ' ก้อน (มี ' + have + ')  💰 ' + fmt(cost) + ' G  โอกาส ' + refineChance(r, h, slot) + '%' + (refMissGet(h, slot, r) ? ' (พลาดสะสม +' + refMissGet(h, slot, r) * REF_MISS_STEP + '%)' : '') + (r >= 5 ? '  ถ้าพลาดลดเหลือ +' + Math.max(refSafeFloor(r), r - 1) : '') }) : null,
         el('div', { class: 'meta', text: max ? 'ตีบวกสูงสุดแล้ว' : slot === 'off' && !dualNow(h) ? 'DEF +2 ต่อขั้น (โล่)' : REF_EFF[slot] })),
       el('button', { class: 'mini pri', text: REF.busy ? '…' : max ? 'MAX' : '+' + (r + 1), disabled: !ok || max || !enough || REF.busy, onclick: () => refineSlot(slot) })));
   }
-  body.append(el('p', { class: 'note', text: 'Oridecon และ Elunium ดรอปจากมอนสเตอร์ทุกแผนที่ บอสแผนที่และบอสดันเจี้ยนดรอปหลายก้อน ค่าตีบวกเพิ่มขึ้นทุกขั้น ส่วนลดสายพ่อค้าใช้ได้' }));
+  body.append(el('p', { class: 'note', text: 'Oridecon และ Elunium ดรอปจากมอนสเตอร์ทุกแผนที่ บอสแผนที่และบอสดันเจี้ยนดรอปหลายก้อน ค่าตีบวกเพิ่มขึ้นทุกขั้น ส่วนลดสายพ่อค้าใช้ได้ 🔒 จุดเซฟ: +6 +9 +12' }));
 }
 
 /* ---------- gacha machine: a gold sink, prizes cannot go to the marketplace ---------- */
@@ -8138,7 +8146,13 @@ function panelMap(body) {
 }
 
 /* shop */
-const refineChance = (r) => r < 4 ? 100 : Math.max(20, 100 - (r - 3) * 12);
+/* ตารางอัตราตีบวก: key = ขั้นปัจจุบัน r (ตีไปขั้น r+1) ; +2% ต่อการพลาดแต่ละครั้งของขั้นนั้น */
+const REF_BASE = { 0: 100, 1: 100, 2: 100, 3: 100, 4: 100, 5: 90, 6: 80, 7: 70, 8: 60, 9: 55, 10: 45, 11: 35, 12: 30, 13: 25, 14: 20 };
+const REF_SAFE = [6, 9, 12], REF_MISS_STEP = 2;
+const refSafeFloor = (r) => { let f = 0; for (const x of REF_SAFE) if (r >= x) f = x; return f; };
+const refMissGet = (h, slot, r) => { const m = h.rm && h.rm[slot]; return (m && m[r]) | 0; };
+const refMissSet = (h, slot, r, n) => { h.rm = h.rm || {}; h.rm[slot] = h.rm[slot] || {}; if (n > 0) h.rm[slot][r] = n; else delete h.rm[slot][r]; };
+const refineChance = (r, h, slot) => Math.min(100, (REF_BASE[r] == null ? 20 : REF_BASE[r]) + (h && slot ? refMissGet(h, slot, r) * REF_MISS_STEP : 0));
 const refineCost = (kind, r) => Math.round((kind === 'w' ? CONFIG.shop.refineW : CONFIG.shop.refineA) * Math.pow(1.5, r));
 /* ---------- card album: every card in the game, where it drops, what it gives, where it goes ---------- */
 let albumFilter = 'all';
