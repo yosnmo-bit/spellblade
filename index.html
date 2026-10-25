@@ -2012,20 +2012,24 @@ function processKill(m, killer, ti) {
   if (!ok) return;
   const mult = n > 1 ? (1 + 0.25 * (n - 1)) / n : 1;
   const b = Math.round(tpl.bexp * R.bexp * mult), j = Math.round(tpl.jexp * R.jexp * mult);
-  if (mine) {
+  // party members on the same farming map all get gold + drops (rolled separately for each), even standing still; dungeons keep their own loot rules
+  const doLoot = mine || !isDg();
+  const ax = mine ? m.x : P.x, ay = mine ? m.y : P.y - 100, at = { x: ax, y: ay };
+  if (doLoot) {
     const g = Math.round(tpl.gold * R.gold);
-    h.gold += g; h.kills += 1; AU.sfx('coin');
-    addNum(m.x, m.y - 6, '+' + fmt(g) + 'G', '#ffd36b', 10, { dur: 1.1 });
+    h.gold += g; if (mine) h.kills += 1; AU.sfx('coin');
+    addNum(ax, ay - 6, '+' + fmt(g) + 'G', '#ffd36b', 10, { dur: 1.1 });
     if (Math.random() < Math.min(1, (tpl.boss ? 1 : 0.07) * R.drop)) {
-      if (Math.random() < 0.65) { h.potHp += tpl.boss ? 10 : 1; addNum(m.x, m.y + 8, '+ยาแดง', '#ff8f8f', 11, { font: 'th', dur: 1.2 }); }
-      else { h.potSp += tpl.boss ? 5 : 1; addNum(m.x, m.y + 8, '+ยาฟ้า', '#8fc0ff', 11, { font: 'th', dur: 1.2 }); }
+      if (Math.random() < 0.65) { h.potHp += tpl.boss ? 10 : 1; addNum(ax, ay + 8, '+ยาแดง', '#ff8f8f', 11, { font: 'th', dur: 1.2 }); }
+      else { h.potSp += tpl.boss ? 5 : 1; addNum(ax, ay + 8, '+ยาฟ้า', '#8fc0ff', 11, { font: 'th', dur: 1.2 }); }
     }
-    if (Math.random() < Math.min(1, 0.35 * R.drop)) { const it = lootItem(tpl); if (addItem(it, 1)) addNum(m.x, m.y + 22, '+' + it.nm, '#d8e6ff', 10, { font: 'th', dur: 1.3 }); }
-    if (!tpl.raid && Math.random() * 100 < (tpl.boss ? CONFIG.bossCard : CONFIG.cardChance)) { const c = dropCard(tpl); if (addItem(c, 1)) { gotCard(c); lootBeam(m.x, m.y, 'card', true); } }
+    if (Math.random() < Math.min(1, 0.35 * R.drop)) { const it = lootItem(tpl); if (addItem(it, 1)) addNum(ax, ay + 22, '+' + it.nm, '#d8e6ff', 10, { font: 'th', dur: 1.3 }); }
+    if (!tpl.raid && Math.random() * 100 < (tpl.boss ? CONFIG.bossCard : CONFIG.cardChance)) { const c = dropCard(tpl); if (addItem(c, 1)) { gotCard(c); lootBeam(ax, ay, 'card', mine); } }
     if (tpl.boss && !tpl.raid && !isDg()) { h.fbKills = (h.fbKills || 0) + 1; const rr = Math.random() * 100, sk = rr < CONFIG.fbRing2 ? 2 : rr < CONFIG.fbRing2 + CONFIG.fbRing1 ? 1 : 0;
-      if (sk) { const it = fieldBossRing(tpl, sk); if (it && addItem(it, 1)) { lootBeam(m.x + 18, m.y, lootKey(it), true); const nm = it.nm + (sk === 2 ? ' [2 รู]' : ''); toast('💍 ได้รับ ' + nm + ' (' + RAR[it.r].nm + ')'); addNum(m.x, m.y + 50, '+💍 ' + nm, rarCol(it.r), 12, { font: 'th', dur: 2, pop: true }); AU.sfx(it.r >= 3 ? 'legend' : 'card'); if (sk === 2) chatSend('💍 ' + h.name + ' ได้ ' + nm + ' จากบอส ' + tpl.name + '!', 'w', true, true); } } }
-    dropKeys(m, tpl); dropOres(m, tpl);
-  } else addNum(P.x, P.y - 60, 'ปาร์ตี้ +' + fmt(b) + ' EXP', '#8dff9a', 10, { font: 'th', dur: 1.2 });
+      if (sk) { const it = fieldBossRing(tpl, sk); if (it && addItem(it, 1)) { lootBeam(ax + 18, ay, lootKey(it), mine); const nm = it.nm + (sk === 2 ? ' [2 รู]' : ''); toast('💍 ได้รับ ' + nm + ' (' + RAR[it.r].nm + ')'); addNum(ax, ay + 50, '+💍 ' + nm, rarCol(it.r), 12, { font: 'th', dur: 2, pop: true }); AU.sfx(it.r >= 3 ? 'legend' : 'card'); if (sk === 2) chatSend('💍 ' + h.name + ' ได้ ' + nm + ' จากบอส ' + tpl.name + '!', 'w', true, true); } } }
+    dropKeys(at, tpl); dropOres(at, tpl);
+  }
+  if (!mine) addNum(P.x, P.y - 60, 'ปาร์ตี้ +' + fmt(b) + ' EXP', '#8dff9a', 10, { font: 'th', dur: 1.2 });
   gainExp(b, j);
   S.dirty = true;
 }
@@ -5362,6 +5366,7 @@ function readPresence(p) {
     pl: Array.isArray(pr.pl) && typeof pr.pl[0] === 'string' ? [pr.pl[0].slice(0, 40), int(pr.pl[1], 0, 0, 1e9)] : null,
     rq: typeof pr.rq === 'string' ? pr.rq.slice(0, 24) : '',
     rj: (Array.isArray(pr.rj) ? pr.rj : []).filter((x) => typeof x === 'string').slice(0, 8).map((x) => x.slice(0, 40)),
+    kk: (Array.isArray(pr.kk) ? pr.kk : []).filter((x) => typeof x === 'string').slice(0, 8).map((x) => x.slice(0, 40)),
     rc: Array.isArray(pr.rc) ? [String(pr.rc[0] || '').slice(0, 20), String(pr.rc[1] || '').slice(0, 12), pr.rc[2] ? 1 : 0, String(pr.rc[3] || '').slice(0, 80)] : null,
     ra: Array.isArray(pr.ra) ? [String(pr.ra[0] || '').slice(0, 12), int(pr.ra[1], 0, -9, 9)] : null,
     rs: Array.isArray(pr.rs) ? [0, 1, 2].map((i) => num(pr.rs[i], 0, 0, 1e13)) : null,
@@ -5610,16 +5615,24 @@ document.addEventListener('visibilitychange', () => {
 window.addEventListener('pagehide', () => { if (ONLINE.room && ONLINE.last) ONLINE.room.presence(Object.assign({}, ONLINE.last, { aw: 1, hb: ++ONLINE.hb })).catch(() => {}); });
 
 /* ---------- party ---------- */
-function partyMates(anyMap) { const out = []; if (!PARTY.key) return out; for (const o of activeOthers()) if (o.pk === PARTY.key && (anyMap || (W.map && o.map === W.map.id))) out.push(o); return out; }
+// kicked list: the leader owns it, everyone else reads it from the leader's presence
+function partyKickList() {
+  const lk = PARTY.pl ? PARTY.pl[0] : '';
+  if (lk && lk === NET.me) return PARTY.kicked || [];
+  const L = lk && ONLINE.others.get(lk);
+  return (L && L.pk === PARTY.key && L.kk) || PARTY.kicked || [];
+}
+function partyMates(anyMap) { const out = []; if (!PARTY.key) return out; const kk = partyKickList(); for (const o of activeOthers()) if (o.pk === PARTY.key && !kk.includes(o.key) && (anyMap || (W.map && o.map === W.map.id))) out.push(o); return out; }
 function partyInvite(o) {
   if (PARTY.key && partyMates(true).length + 1 >= CONFIG.party.max) { toast('ปาร์ตี้เต็มแล้ว สูงสุด ' + CONFIG.party.max + ' คน'); return; }
   if (!NET.me) { toast('ระบบปาร์ตี้ยังเชื่อมต่อไม่ได้'); return; }
   if (hasMates() && !isLeader()) { toast('เฉพาะหัวหน้าปาร์ตี้ 👑 ที่ชวนเพื่อนได้'); return; }
   if (!PARTY.key) { PARTY.key = 'p' + uid36(); lsSet('spellblade_party', PARTY.key); PARTY.pl = [NET.me, 1]; }
+  PARTY.kicked = (PARTY.kicked || []).filter((x) => x !== o.key);
   if (!PARTY.invited.includes(o.key)) PARTY.invited.push(o.key);
   toast('ส่งคำชวนถึง ' + o.name + ' แล้ว'); renderSheet();
 }
-function partyLeave() { PARTY.key = ''; PARTY.invited = []; PARTY.pl = null; PARTY.follow = false; PARTY.reqs = []; PARTY.rc = null; PARTY.myRc = null; PARTY.sel = ''; renderRc(); showReqBox(); lsSet('spellblade_party', ''); toast('ออกจากปาร์ตี้แล้ว'); renderSheet(); renderPartyHud(); }
+function partyLeave() { PARTY.key = ''; PARTY.kicked = []; PARTY.invited = []; PARTY.pl = null; PARTY.follow = false; PARTY.reqs = []; PARTY.rc = null; PARTY.myRc = null; PARTY.sel = ''; renderRc(); showReqBox(); lsSet('spellblade_party', ''); toast('ออกจากปาร์ตี้แล้ว'); renderSheet(); renderPartyHud(); }
 function showInvite() {
   const box = $('#invite'); if (!PARTY.offer) { box.hidden = true; return; }
   box.textContent = '';
@@ -5762,19 +5775,21 @@ function panelOnline(body) {
   if (PARTY.req) body.append(el('div', { class: 'pts' }, '🙋 ส่งคำขอเข้าปาร์ตี้ของ ' + PARTY.req.to + ' แล้ว รอหัวหน้าตอบรับ ', el('button', { class: 'mini', text: 'ยกเลิกคำขอ', onclick: () => { PARTY.req = null; renderSheet(); } })));
   if (PARTY.key) {
     const mates = partyMates(true), L = partyLeader(), lead = isLeader();
-    body.append(el('div', { class: 'ds', style: 'margin:2px 0 6px', text: 'สมาชิก ' + (mates.length + 1) + '/' + CONFIG.party.max + ' คน' + (mates.length ? (lead ? '   คุณคือหัวหน้าปาร์ตี้ 👑 แตะชื่อเพื่อนเพื่อโอนหัวหน้า' : '   หัวหน้า: 👑 ' + nameOf(L)) : '') }));
+    body.append(el('div', { class: 'ds', style: 'margin:2px 0 6px', text: 'สมาชิก ' + (mates.length + 1) + '/' + CONFIG.party.max + ' คน' + (mates.length ? (lead ? '   คุณคือหัวหน้าปาร์ตี้ 👑 แตะชื่อเพื่อนเพื่อโอนหัวหน้าหรือเตะออก' : '   หัวหน้า: 👑 ' + nameOf(L)) : '') }));
     body.append(el('div', { class: 'list-row' }, headCanvas(S.hero.look, S.hero.job, S.hero.wstyle, eqVis(S.hero), S.hero.eq && S.hero.eq.weapon && S.hero.eq.weapon.id),
       el('div', { class: 'grow' }, el('div', { class: 'nm2', text: (lead && mates.length ? '👑 ' : '') + S.hero.name + ' (คุณ)' }), el('div', { class: 'ds', text: jobName(S.hero.job) + '  B' + S.hero.level + ' J' + S.hero.jobLv }))));
     for (const o of mates) {
       const sel = lead && PARTY.sel === o.key;
       body.append(el('div', { class: 'list-row' + (lead ? ' tap' : '') + (sel ? ' sel' : ''), onclick: lead ? () => { PARTY.sel = sel ? '' : o.key; renderSheet(); } : null }, headCanvas(o.look, o.job, o.ws, o.eqv, o.wv),
         el('div', { class: 'grow' }, el('div', { class: 'nm2', text: (o.key === L ? '👑 ' : '') + o.name }), el('div', { class: 'ds', text: jobName(o.job) + '  B' + o.lv + ' J' + o.jl + '  HP ' + o.hp + '%' }), el('div', { class: 'meta', text: mapName(o.map) }))));
-      if (sel) { const tb = el('button', { class: 'mini pri', text: '👑 โอนหัวหน้าให้ ' + o.name }); twoStep(tb, tb.textContent, 'แตะอีกครั้งเพื่อโอน', () => partyTransfer(o.key)); body.append(el('div', { class: 'acts', style: 'margin:-2px 0 8px 46px' }, tb)); }
+      if (sel) { const tb = el('button', { class: 'mini pri', text: '👑 โอนหัวหน้าให้ ' + o.name }); twoStep(tb, tb.textContent, 'แตะอีกครั้งเพื่อโอน', () => partyTransfer(o.key));
+        const kb = el('button', { class: 'mini warn', text: '🚫 เตะ ' + o.name + ' ออก' }); twoStep(kb, kb.textContent, 'แตะอีกครั้งเพื่อเตะ', () => partyKick(o.key));
+        body.append(el('div', { class: 'acts', style: 'margin:-2px 0 8px 46px' }, tb, kb)); }
     }
     if (!mates.length) body.append(el('p', { class: 'note', text: 'ยังไม่มีใครตอบรับ ชวนผู้เล่นจากรายชื่อด้านล่างได้' }));
     if (mates.length && !lead) body.append(el('div', { class: 'acts' }, el('button', { class: 'mini pri', text: PARTY.follow ? '✋ หยุดตามหัวหน้า' : '👣 เดินตามหัวหน้า', onclick: () => setFollow(!PARTY.follow) })));
     if (lead && PARTY.reqs.length) body.append(el('p', { class: 'note', text: '🙋 มีคำขอเข้าปาร์ตี้ ' + PARTY.reqs.length + ' รายการ ตอบรับได้ที่กล่องด้านบนจอ' }));
-    body.append(el('p', { class: 'note', text: 'สมาชิกที่อยู่แผนที่เดียวกันแบ่ง EXP กัน และได้โบนัสเพิ่ม 25% ต่อสมาชิกหนึ่งคน ส่วนทองและไอเทมเป็นของคนที่ตีปิด หัวหน้าปาร์ตี้เป็นคนกดเข้าดันเจี้ยน' }));
+    body.append(el('p', { class: 'note', text: 'สมาชิกที่อยู่แผนที่เดียวกันแบ่ง EXP กัน และได้โบนัสเพิ่ม 25% ต่อสมาชิกหนึ่งคน ส่วนทองและไอเทมที่ฟามในแผนที่ทุกคนที่อยู่แผนที่เดียวกันได้รับเหมือนกัน (ต่อให้ยืนเฉยๆ ก็ได้) หัวหน้าปาร์ตี้เป็นคนกดเข้าดันเจี้ยน และเตะสมาชิกออกได้' }));
     body.append(el('div', { class: 'acts' }, el('button', { class: 'mini warn', text: 'ออกจากปาร์ตี้', onclick: partyLeave })));
   } else body.append(el('p', { class: 'note', text: 'กดชวนผู้เล่นเพื่อตั้งปาร์ตี้ คนที่ชวนคนแรกจะเป็นหัวหน้า 👑 หรือกดขอเข้าปาร์ตี้ของคนอื่นได้ สูงสุด ' + CONFIG.party.max + ' คน' }));
   body.append(el('div', { class: 'sub', text: 'ผู้เล่นออนไลน์' }));
@@ -6660,7 +6675,7 @@ function panelGacha(body) {
   body.append(el('p', { class: 'note', style: 'color:var(--bad);font-weight:700', text: 'ของจากตู้กาชาไม่สามารถขายลงตลาดกลางได้' }));
 }
 /* =================== PARTY: leader, follow, join requests, dungeon ready check =================== */
-Object.assign(PARTY, { pl: null, req: null, reqs: [], rej: [], follow: false, sel: '', rc: null, myRc: null, fwT: 0 });
+Object.assign(PARTY, { pl: null, req: null, reqs: [], rej: [], kicked: [], dgT: 0, dgMsgT: 0, follow: false, sel: '', rc: null, myRc: null, fwT: 0 });
 const partyLeader = () => (PARTY.key ? (PARTY.pl ? PARTY.pl[0] : NET.me || '') : '');
 const isLeader = () => !!PARTY.key && !!NET.me && partyLeader() === NET.me;
 const partyCount = () => (PARTY.key ? partyMates(true).length + 1 : 1);
@@ -6687,8 +6702,20 @@ function partyTransfer(k) {
   PARTY.pl = [k, (PARTY.pl ? PARTY.pl[1] : 0) + 1]; PARTY.sel = '';
   toast('👑 โอนหัวหน้าปาร์ตี้ให้ ' + nameOf(k) + ' แล้ว'); renderPartyHud(); renderSheet();
 }
+function partyKick(k) {
+  if (!isLeader()) return;
+  const o = ONLINE.others.get(k); if (!o || o.pk !== PARTY.key) return;
+  PARTY.kicked = (PARTY.kicked || []).filter((x) => x !== k).concat(k).slice(-8);
+  PARTY.invited = PARTY.invited.filter((x) => x !== k); PARTY.reqs = PARTY.reqs.filter((x) => x !== k); PARTY.sel = '';
+  toast('🚫 เตะ ' + o.name + ' ออกจากปาร์ตี้แล้ว'); renderPartyHud(); showReqBox(); renderSheet();
+}
+function partyKickedOut(by) {
+  PARTY.key = ''; PARTY.kicked = []; PARTY.invited = []; PARTY.pl = null; PARTY.follow = false; PARTY.reqs = []; PARTY.rc = null; PARTY.myRc = null; PARTY.sel = '';
+  lsSet('spellblade_party', ''); renderRc(); showReqBox();
+  toast('🚫 ' + (by || 'หัวหน้า') + ' เตะคุณออกจากปาร์ตี้'); AU.sfx('refineFail'); renderPartyHud(); renderSheet();
+}
 function joinParty(pk, pl) {
-  PARTY.key = pk; lsSet('spellblade_party', pk); PARTY.pl = pl ? [pl[0], pl[1]] : null;
+  PARTY.key = pk; lsSet('spellblade_party', pk); PARTY.kicked = []; PARTY.pl = pl ? [pl[0], pl[1]] : null;
   PARTY.offer = null; PARTY.invited = []; PARTY.req = null; PARTY.reqs = []; PARTY.rej = [];
   showInvite(); showReqBox(); toast('เข้าร่วมปาร์ตี้แล้ว'); AU.sfx('jobup'); renderPartyHud(); if (S.sheet === 'online') renderSheet();
 }
@@ -6704,13 +6731,28 @@ function partyFollowTick() {
   if (!PARTY.key || isLeader()) { PARTY.follow = false; renderPartyHud(); return; }
   const L = ONLINE.others.get(partyLeader()); if (!L || isGone(L) || !W.map) return;
   if (L.map !== W.map.id) {
-    if (isDg() || String(L.map).startsWith('dg:')) return;
+    if (isDg()) return;
+    if (String(L.map).startsWith('dg:')) { followIntoDungeon(L); return; }
     if ((L.map === 'village' || CONFIG.maps.some((m) => m.id === L.map)) && W.t - PARTY.fwT > 2) { PARTY.fwT = W.t; enterMap(L.map); save(); toast('👣 ตามหัวหน้าไปที่ ' + mapName(L.map)); }
     return;
   }
   priestAssist();
   const d = Math.hypot(L.x - P.x, L.y - P.y);
   if (d > 150 || (d > 72 && !P.target)) { P.target = null; P.queued = null; P.npc = null; P.tx = L.x + (P.x < L.x ? -44 : 44); P.ty = L.y + 30; }
+}
+
+// leader is inside a dungeon room (reconnected or newly joined member): walk in after them
+function followIntoDungeon(L) {
+  if (W.t - PARTY.dgT < 2.5) return; PARTY.dgT = W.t;
+  if (PARTY.myRc && !PARTY.myRc.entered && !PARTY.myRc.fail) return;   // the ready check is already taking us in
+  const dg = CONFIG.dungeons.find((d) => d.on && String(L.map).startsWith('dg:' + d.id + ':'));
+  if (!dg || dgInstance(dg) !== L.map) return;
+  const say = (t) => { if (W.t - PARTY.dgMsgT > 15) { PARTY.dgMsgT = W.t; toast(t); } };
+  if (activeOthers().some((o) => o.map === L.map && o.dq === 2)) { say('ดันเจี้ยนของหัวหน้าเคลียร์แล้ว ไม่ต้องตามเข้า'); return; }
+  if (S.hero.level < dg.minLv) { say('ตามหัวหน้าเข้า ' + dg.name + ' ไม่ได้ ต้องเลเวล ' + dg.minLv + ' ขึ้นไป'); return; }
+  if (keyCount() < 1) { say('ตามหัวหน้าเข้า ' + dg.name + ' ไม่ได้ ต้องมีกุญแจดันเจี้ยน 1 ดอก'); return; }
+  toast('👣 ตามหัวหน้าเข้า ' + dg.name);
+  enterDungeonNow(dg.id, true);
 }
 
 // acolyte line, following the leader: revive > heal > re-buff when a buff runs out
@@ -6744,7 +6786,7 @@ function showReqBox() {
     el('button', { class: 'mini pri', text: 'รับ', onclick: () => {
       PARTY.reqs = PARTY.reqs.filter((x) => x !== k);
       if (partyCount() >= CONFIG.party.max) toast('ปาร์ตี้เต็มแล้ว ' + CONFIG.party.max + '/' + CONFIG.party.max);
-      else if (!PARTY.invited.includes(k)) { PARTY.invited.push(k); toast('รับ ' + o.name + ' เข้าปาร์ตี้'); }
+      else if (!PARTY.invited.includes(k)) { PARTY.kicked = (PARTY.kicked || []).filter((x) => x !== k); PARTY.invited.push(k); toast('รับ ' + o.name + ' เข้าปาร์ตี้'); }
       showReqBox();
     } }),
     el('button', { class: 'mini', text: 'ไม่รับ', onclick: () => { PARTY.reqs = PARTY.reqs.filter((x) => x !== k); PARTY.rej = PARTY.rej.concat(k).slice(-8); showReqBox(); } }));
@@ -6836,6 +6878,13 @@ function renderRc() {
 /* ---------- presence intake hook (called after every presence update) ---------- */
 function partyIntake() {
   partySync();
+  if (PARTY.key && NET.me && !isLeader()) {
+    const KL = ONLINE.others.get(partyLeader());
+    if (KL && KL.pk === PARTY.key && KL.kk) {
+      if (KL.kk.includes(NET.me)) { partyKickedOut(KL.name); return; }
+      PARTY.kicked = KL.kk.slice();   // keep a copy so a new leader inherits the list
+    }
+  }
   // my pending join request
   if (PARTY.req) {
     const R = PARTY.req, L = activeOthers().find((o) => o.pk === R.pk && o.pl && o.pl[0] === o.key);
@@ -6855,6 +6904,7 @@ function partyPresence() {
     pl: PARTY.key ? PARTY.pl : null,
     rq: PARTY.req && Date.now() - PARTY.req.t < 60000 ? PARTY.req.pk : '',
     rj: isLeader() ? PARTY.rej.slice(-8) : [],
+    kk: isLeader() ? (PARTY.kicked || []).slice(-8) : [],
     rc: PARTY.rc && isLeader() ? [PARTY.rc.id, PARTY.rc.n, PARTY.rc.go ? 1 : 0, PARTY.rc.fail || ''] : null,
     ra: PARTY.myRc ? [PARTY.myRc.n, PARTY.myRc.st] : null
   };
