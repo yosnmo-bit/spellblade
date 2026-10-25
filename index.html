@@ -648,7 +648,7 @@ const FIREBASE_CONFIG = {
   appId: "1:790980978571:web:7e21fd5479de3a726c718e"
 };
 /* ===== ตัวเชื่อมเกมกับ Firebase (ไม่ต้องแก้) ===== */
-window.__NET_RATE = 250;
+window.__NET_RATE = 500;
 (function () {
   const cfgOk = !!(window.firebase && FIREBASE_CONFIG && FIREBASE_CONFIG.apiKey && FIREBASE_CONFIG.databaseURL);
   let resolveReady; const ready = new Promise((r) => { resolveReady = r; });
@@ -846,7 +846,7 @@ window.__NET_RATE = 250;
 })();
 </script>
 
-<script>window.__WEB = 1; window.__NET_RATE = 300;</script>
+<script>window.__WEB = 1; window.__NET_RATE = 500;</script>
 <script src="sb-kk.js?v=c51e07fd" onerror="(window.__miss=window.__miss||[]).push('sb-kk.js')"></script>
 <script src="sb-world.js?v=d7c0bd7c" onerror="(window.__miss=window.__miss||[]).push('sb-world.js')"></script>
 <script src="sb-mobs.js?v=c9d10de7" onerror="(window.__miss=window.__miss||[]).push('sb-mobs.js')"></script>
@@ -5675,7 +5675,7 @@ function onlineTick(dt) {
   const room = ONLINE.room; if (!room) return;
   if (P.swingT !== ONLINE.lastSwing) { ONLINE.lastSwing = P.swingT; ONLINE.swc++; }
   const now = performance.now();
-  if (now - ONLINE.lastSend < (window.__NET_RATE || 160)) return;
+  if (now - ONLINE.lastSend < (NET.isHost ? Math.min(window.__NET_RATE || 160, 400) : (window.__NET_RATE || 160))) return;   // host streams monsters, so it sends a bit faster
   const h = S.hero, D = P.D || derived();
   const pr = { v: 1, n: h.name, j: h.job, l: h.level, jl: h.jobLv, m: W.map.id,
     x: Math.round(P.x / WORLD.w * 1000) / 1000, y: Math.round(P.y / WORLD.h * 1000) / 1000,
@@ -5704,7 +5704,7 @@ function onlineTick(dt) {
   { const sp = (NET.sup || []).filter((e) => Date.now() - e[5] < 8000); NET.sup = sp; if (sp.length) pr.sup = sp.map((e) => e.slice(0, 5)); }
   if (S.blocked) return;   // a tab that stopped saving also stops showing itself
   const sig = JSON.stringify(pr);
-  if (sig === ONLINE.sig && now - ONLINE.lastSend < (window.__WEB ? 2500 : 1000)) return;
+  if (sig === ONLINE.sig && now - ONLINE.lastSend < (window.__WEB ? 4000 : 1500)) return;   // idle heartbeat (entries expire after 12 s)
   ONLINE.sig = sig; ONLINE.lastSend = now;
   pr.hb = ++ONLINE.hb; pr.aw = 0; pr.st = S.sidT || 0; ONLINE.last = pr;
   room.presence(pr).catch(() => {});
