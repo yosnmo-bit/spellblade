@@ -1647,6 +1647,8 @@ const WSCALE = (WORLD.w * WORLD.h) / (720 * 1200);   // area vs the original 720
 const monCount = (map) => Math.round(map.count * 4);
 S.zoom = num(lsGet('spellblade_zoom'), 1.15, 0.8, 1.8);
 try { S.autoSel = JSON.parse(lsGet('spellblade_autosel') || '{}') || {}; } catch (e) { S.autoSel = {}; }
+try { S.autoOpt = Object.assign({ basic: true, skill: true }, JSON.parse(lsGet('spellblade_autoopt') || '{}') || {}); } catch (e) { S.autoOpt = { basic: true, skill: true }; }
+if (!S.autoOpt.basic && !S.autoOpt.skill) S.autoOpt = { basic: true, skill: true };
 const P = { x: 180, y: 420, tx: null, ty: null, target: null, queued: null, atkT: 0, swingT: -9, castT: -9, castKind: '', cheerT: -9, dir: 1, walking: false,
   hp: 1, sp: 1, dead: false, deadUntil: 0, buffs: {}, cds: {}, potT: 0, D: null, nextAuto: 0, hurtT: -9 };
 
@@ -1705,7 +1707,7 @@ function sanitizeHero(d) {
     potAuto: (() => { const a = d.potAuto || {}, o = {}; for (const k of ['hp', 'sp', 'hpL', 'spL', 'all']) o[k] = int(a[k], { hp: 35, sp: 12, hpL: 0, spL: 0, all: 0 }[k], 0, 95); return o; })(),
     potBtn: [0, 1].map((i) => { const v = Array.isArray(d.potBtn) ? d.potBtn[i] : null; return typeof v === 'string' && ['hp', 'sp', 'hpL', 'spL', 'all'].includes(v) ? v : ['hp', 'sp'][i]; }),
     mapId: typeof d.mapId === 'string' ? d.mapId.slice(0, 40) : '', kills: int(d.kills, 0, 0, 1e12), bossKills: int(d.bossKills, 0, 0, 1e9), fbKills: int(d.fbKills, 0, 0, 1e9), dgClears: int(d.dgClears, 0, 0, 1e9),
-    off: (() => { const o = d.off; if (!o || typeof o !== 'object') return null; const since = num(o.since, 0, 0, 1e15); return since ? { since, msg: str(o.msg, '', 30), map: typeof o.map === 'string' ? o.map.slice(0, 40) : '' } : null; })(),
+    off: (() => { const o = d.off; if (!o || typeof o !== 'object') return null; const since = num(o.since, 0, 0, 1e15); return since ? { since, msg: str(o.msg, '', 30), map: typeof o.map === 'string' ? o.map.slice(0, 40) : '', rad: num(o.rad, 1, 0, 1), x: num(o.x, -1, -1, 1), y: num(o.y, -1, -1, 1) } : null; })(),
     mail: (Array.isArray(d.mail) ? d.mail : []).slice(-60).map((m) => m && typeof m.id === 'string' ? Object.assign({ id: m.id.slice(0, 24), n: int(m.n, 1, 1, 999), it: sanitizeItem(m.it, false) }, m.from === 'gm' ? { from: 'gm', msg: str(m.msg, '', 80) } : {}) : null).filter((m) => m && m.it),
     mailDone: (Array.isArray(d.mailDone) ? d.mailDone : []).filter((x) => typeof x === 'string').slice(-80),
     wstyle: d.wstyle === 'katar' ? 'katar' : 'dual', gmStamp: num(d.gmStamp, 0, 0, 1e15),
@@ -2278,6 +2280,7 @@ function autoAct() {
     if (sk.type === 'buff') { if (P.buffs[id] || !P.target) continue; castSkill(id); return; }
     if (sk.type === 'heal') { if (P.hp < D.maxHp * 0.6 || ((sk.party || sk.zone) && partyNeedsHeal())) { castSkill(id); return; } continue; }
     if (sk.type === 'res') { if (deadMateNear()) { castSkill(id); return; } continue; }
+    if (S.auto && !S.autoOpt.skill) continue;   // auto set to basic attacks only
     if (!P.target) continue;
     if (sk.type === 'aoe' && sk.self && Math.hypot(P.target.x - P.x, P.target.y - P.y) > sk.r * 0.8) continue;
     castSkill(id); return;
@@ -2367,7 +2370,7 @@ function update(dt) {
     else {
       P.dir = tg.x >= P.x ? 1 : -1;
       if (P.queued) { const id = P.queued; P.queued = null; castSkill(id, true); }
-      else if (P.atkT <= 0) { basicAttack(tg); P.atkT = D.aspdMs / 1000; }
+      else if (P.atkT <= 0 && !(S.auto && !S.autoOpt.basic)) { basicAttack(tg); P.atkT = D.aspdMs / 1000; }
     }
   } else if (P.tx != null) { moving = moveToward(P.tx, P.ty, dt, 2); if (!moving) P.tx = null; }
   P.walking = moving;
@@ -7108,24 +7111,43 @@ function offModel(h, map) {
   const phys = (mult, t) => { const miss = clamp((t.lv * 1.1 + 12 - D.hit) / 100, 0, 0.6); return D.atk * mult * (critP * cdm + (1 - critP) * (1 - miss) * 100 / (100 + t.def)) * (1 + (D.pdmg || 0) / 100); };
   const mag = (mult, t) => D.matk * mult * (critP * cdm + (1 - critP) * 100 / (100 + t.def * 0.6)) * (1 + (D.mdmg || 0) / 100);
   const spIn = D.maxSp * 0.012 + D.st.int * 0.05, hpReg = D.maxHp * 0.006 + D.st.vit * 0.08;
-  const dpsOf = (t) => {
+  let spUse = 0;
+  const dpsOf = (t, unl) => {
     let dps = (magic ? mag(0.75, t) : phys(D.w === 'dual' && D.atkType === 'melee' ? 1.24 : 1, t)) / swing;
     const list = skills.map(({ sk, lv }) => { const m = sk.m[0] + sk.m[1] * lv, e = (sk.dmg === 'magic' ? mag(m, t) : phys(m, t)) * (sk.type === 'aoe' ? 2 : 1), cd = Math.max(0.8, sk.cd * (1 - (D.cdr || 0) / 100)), cost = Math.max(1, spCost(sk, lv)); return { e, rate: 1 / cd, cost }; }).sort((a, b) => b.e / b.cost - a.e / a.cost);
-    let used = 0;   // skills are limited by how much SP the character regenerates
-    for (const s of list) { const drain = s.rate * s.cost, f = Math.min(1, Math.max(0, spIn - used) / drain); used += f * drain; dps += f * s.rate * s.e; }
+    let used = 0;   // skills are limited by how much SP the character regenerates (unl: potions refill it)
+    for (const s of list) { const drain = s.rate * s.cost, f = unl ? 1 : Math.min(1, Math.max(0, spIn - used) / drain); used += f * drain; dps += f * s.rate * s.e; }
+    spUse = used;
     return dps;
   };
   const rows = [];
   for (const t of pool) {
     const ttk = t.hp / Math.max(1, dpsOf(t)), miss = clamp((D.flee - (t.lv + 25)) / 100, 0, 0.8);
     const dmgKill = t.atk * 100 / (100 + D.def) * (1 - miss) / 1.8 * (ttk + 1);
-    rows.push({ tpl: t, ttk, rest: dmgKill / Math.max(1, hpReg), safe: dmgKill <= D.maxHp * 0.45 && ttk <= 90 });
+    const ttkP = t.hp / Math.max(1, dpsOf(t, true)), spPK = spUse * ttkP, dmgP = t.atk * 100 / (100 + D.def) * (1 - miss) / 1.8 * (ttkP + 1);
+    rows.push({ tpl: t, ttk, rest: dmgKill / Math.max(1, hpReg), ttkP, spPK, dmgP, safe: dmgKill <= D.maxHp * 0.45 && ttk <= 90 });
   }
   const safe = rows.filter((r) => r.safe), phi = safe.length / rows.length;
   if (!safe.length || phi < 0.15) return { ok: false, reason: 'ตัวละครยังอ่อนเกินไปสำหรับแผนที่นี้ ล่ามอนไม่ปลอดภัย ลองไปแผนที่เลเวลต่ำกว่านี้' };
   const cycle = safe.reduce((a, r) => a + r.ttk + r.rest, 0) / safe.length + 3 / Math.max(0.3, phi);
   const kph = 3600 / cycle * clamp(offCfg().eff, 0, 2), mean = (f) => safe.reduce((a, r) => a + f(r.tpl), 0) / safe.length;
-  return { ok: true, kph, rows: safe, bph: kph * mean((t) => t.bexp) * R.bexp, jph: kph * mean((t) => t.jexp) * R.jexp, gph: kph * mean((t) => t.gold) * R.gold };
+  // with potions: HP and SP drain while fighting, the character drinks instead of resting, and skills are no longer limited by SP regen
+  const eff = clamp(offCfg().eff, 0, 2), cycP = safe.reduce((a, r) => a + r.ttkP, 0) / safe.length + 3 / Math.max(0.3, phi);
+  const hpDef = safe.reduce((a, r) => a + Math.max(0, r.dmgP - hpReg * cycP), 0) / safe.length, spDef = safe.reduce((a, r) => a + Math.max(0, r.spPK - spIn * cycP), 0) / safe.length;
+  const pk = { b: mean((t) => t.bexp) * R.bexp, j: mean((t) => t.jexp) * R.jexp, g: mean((t) => t.gold) * R.gold };
+  return { ok: true, kph, kphP: 3600 / cycP * eff, hpU: hpDef / Math.max(1, D.maxHp * POT.hp.hp), spU: spDef / Math.max(1, D.maxSp * POT.sp.sp), pk, rows: safe, bph: kph * pk.b, jph: kph * pk.j, gph: kph * pk.g };
+}
+// roam size: a smaller area has fewer monsters in reach, so fewer kills
+const OFF_RADS = [[1, 'ทั้งแมพ', 1], [0.5, '50%', 0.9], [0.25, '25%', 0.75], [0.1, '10%', 0.55], [0, 'ยืนอยู่กับที่', 0.35]];
+const offRadEff = (r) => (OFF_RADS.find((x) => x[0] === r) || OFF_RADS[0])[2];
+const OFFUI = { rad: (() => { const v = parseFloat(lsGet('spellblade_offrad')); return OFF_RADS.some((x) => x[0] === v) ? v : 1; })() };
+// kills and potions used over `hours`: potions are drunk while the bag has them, then it falls back to resting
+function offPlan(h, M, hours, rad) {
+  const f = offRadEff(rad), kR = M.kph * f, kP = M.kphP * f, potH = h.potHp | 0, potS = h.potSp | 0;
+  const capH = M.hpU > 0.001 ? potH / M.hpU : Infinity, capS = M.spU > 0.001 ? potS / M.spU : Infinity;
+  let Kp = kP > kR ? Math.min(kP * hours, capH, capS) : 0; if (!isFinite(Kp)) Kp = kP * hours;
+  const tP = kP > 0 ? Kp / kP : 0, Kr = kR * Math.max(0, hours - tP);
+  return { N: Kp + Kr, hpPot: Math.min(potH, Math.ceil(Kp * M.hpU)), spPot: Math.min(potS, Math.ceil(Kp * M.spU)) };
 }
 function offCheck(h) {
   const cfg = offCfg(); let map = null; try { map = currentMap(); } catch (e) {}
@@ -7149,7 +7171,7 @@ function offSettle(h) {
   h.off = null;
   if (!map || !cfg.on) { res.reason = !map ? 'ไม่พบแผนที่เดิม' : 'ระบบฟามออฟไลน์ปิดอยู่'; return res; }
   const M = offModel(h, map); if (!M.ok) { res.reason = M.reason; return res; }
-  const R = CONFIG.rates, N = Math.max(0, Math.round(M.kph * (el / 3600000) * (0.95 + Math.random() * 0.1))), bag = new Map(), keysOn = CONFIG.dungeons.some((d) => d.on);
+  const R = CONFIG.rates, plan = offPlan(h, M, el / 3600000, o.rad == null ? 1 : o.rad), N = Math.max(0, Math.round(plan.N * (0.95 + Math.random() * 0.1))), bag = new Map(), keysOn = CONFIG.dungeons.some((d) => d.on);
   let B = 0, J = 0, G = 0, pH = 0, pS = 0;
   const add = (it, n) => { const e = bag.get(it.k) || { it, n: 0 }; e.n += n; bag.set(it.k, e); };
   for (let i = 0; i < N; i++) {   // the same rolls as a normal kill
@@ -7162,7 +7184,8 @@ function offSettle(h) {
     if (Math.random() * 100 < CONFIG.ore.ori * R.drop) add(oreItem('ori'), 1);
     if (Math.random() * 100 < CONFIG.ore.elu * R.drop) add(oreItem('elu'), 1);
   }
-  h.gold += G; h.kills += N; h.potHp += pH; h.potSp += pS;
+  h.potHp = Math.max(0, h.potHp - plan.hpPot) + pH; h.potSp = Math.max(0, h.potSp - plan.spPot) + pS; res.potUsed = { hp: plan.hpPot, sp: plan.spPot };
+  h.gold += G; h.kills += N;
   const xr = offApplyExp(h, B, J);
   if (pH) res.drops.push({ nm: 'ยาแดง', n: pH, col: '#ff8f8f' }); if (pS) res.drops.push({ nm: 'ยาฟ้า', n: pS, col: '#8fc0ff' });
   for (const { it, n } of bag.values()) {
@@ -7177,14 +7200,14 @@ function offSettle(h) {
 function offRecord(h) {
   const v = eqVis(h);
   return { uid: S.uid, name: h.name, job: h.job, lv: h.level, jl: h.jobLv, map: h.off.map, g: h.look.g, h: h.look.hair, c: h.look.hc, ws: h.wstyle, wv: (h.eq && h.eq.weapon && h.eq.weapon.id) || '',
-    ev: [v.head || '', v.face || '', v.mouth || '', v.wings || ''], au: [topRar(h), weaponRar(h), h.refineW], msg: h.off.msg, since: h.off.since, until: h.off.since + offCfg().maxH * 3600000 };
+    ev: [v.head || '', v.face || '', v.mouth || '', v.wings || ''], au: [topRar(h), weaponRar(h), h.refineW], msg: h.off.msg, rad: h.off.rad == null ? 1 : h.off.rad, x: h.off.x == null ? -1 : h.off.x, y: h.off.y == null ? -1 : h.off.y, since: h.off.since, until: h.off.since + offCfg().maxH * 3600000 };
 }
 async function offClearRecord() { if (S.db && S.uid) { try { await S.db.doc('offline/' + S.uid).delete(); } catch (e) {} } }
 
 /* ---------- start: leave a message, save, and stop the game ---------- */
 async function offStart(msg) {
   const h = S.hero, chk = offCheck(h); if (!chk.ok) { toast(chk.reason); return; }
-  h.off = { since: nowSrv(), msg: String(msg || '').trim().slice(0, 30), map: chk.map.id };
+  h.off = { since: nowSrv(), msg: String(msg || '').trim().slice(0, 30), map: chk.map.id, rad: OFFUI.rad, x: Math.round(P.x / WORLD.w * 1000) / 1000, y: Math.round(P.y / WORLD.h * 1000) / 1000 };
   if (PARTY.key) { PARTY.key = ''; PARTY.pl = null; lsSet('spellblade_party', ''); }
   S.dirty = true; let saved = false;
   for (let i = 0; i < 3 && !saved; i++) { await save(); saved = !S.dirty && !S.blocked; if (!saved) await new Promise((r) => setTimeout(r, 800)); }
@@ -7224,6 +7247,7 @@ function offShowResult() {
   else {
     const row = (a, b, c) => { const d = el('div', { class: 'gfrow' }, el('b', { text: a }), el('span', { class: 'gfn', text: b })); if (c) d.firstChild.style.color = c; return d; };
     body.append(row('ล่ามอนได้', '≈ ' + fmt(r.kills) + ' ตัว'), row('💰 ทอง', '+' + fmt(r.gold) + ' G', '#ffd36b'), row('⭐ EXP', r.b ? '+' + fmt(r.b) : '0 (เลเวลสูงสุดแล้ว)', '#8dff9a'), row('🔷 Job EXP', r.j ? '+' + fmt(r.j) : '0 (Job สูงสุดแล้ว)', '#c9a7ff'));
+    if (r.potUsed && (r.potUsed.hp || r.potUsed.sp)) body.append(row('🧪 ใช้ยาแดงไป', '-' + fmt(r.potUsed.hp), '#ff8f8f'), row('🧪 ใช้ยาฟ้าไป', '-' + fmt(r.potUsed.sp), '#8fc0ff'));
     if (r.lv1 > r.lv0 || r.jl1 > r.jl0) body.append(el('p', { class: 'note', text: '🎉 ' + (r.lv1 > r.lv0 ? 'Base Lv ' + r.lv0 + ' → ' + r.lv1 + '   ' : '') + (r.jl1 > r.jl0 ? 'Job Lv ' + r.jl0 + ' → ' + r.jl1 : '') }));
     body.append(el('div', { class: 'sub', text: 'ของที่ดรอป' }));
     if (!r.drops.length) body.append(el('p', { class: 'note', text: 'ไม่มีของดรอป' }));
@@ -7240,16 +7264,21 @@ function panelOffline(body) {
   const h = S.hero, cfg = offCfg(), chk = offCheck(h);
   body.append(el('div', { class: 'npcsay' }, el('b', { text: '💤 ฟามออฟไลน์' }), el('p', { text: 'ตัวละครล่ามอนต่อในแผนที่นี้แม้ปิดเกมไปแล้ว ได้นานสูงสุด ' + cfg.maxH + ' ชั่วโมง ได้ EXP ทอง และของดรอปประมาณ ' + Math.round(cfg.eff * 100) + '% ของการเล่นจริง ผู้เล่นคนอื่นที่เล่นอยู่จะเห็นตัวละครและข้อความของคุณยืนล่ามอนอยู่ตลอดเวลา เมื่อกลับมาเปิดเกมจะมีสรุปรางวัลให้' })));
   if (!chk.ok) { body.append(el('p', { class: 'note', style: 'color:var(--bad)', text: '⚠️ ' + chk.reason })); return; }
-  const m = chk.model, H = cfg.maxH;
+  const m = chk.model, H = cfg.maxH, plan = offPlan(h, m, H, OFFUI.rad);
   body.append(el('div', { class: 'sub', text: 'แผนที่: ' + chk.map.name }));
   const row = (a, b) => el('div', { class: 'gfrow' }, el('b', { text: a }), el('span', { class: 'gfn', text: b }));
   body.append(el('div', { class: 'sub', text: 'ประมาณการเต็ม ' + H + ' ชั่วโมง (ค่าจริงสุ่มเล็กน้อย)' }),
-    row('ล่ามอน', '≈ ' + fmt(m.kph * H) + ' ตัว'), row('💰 ทอง', '≈ ' + fmt(m.gph * H) + ' G'), row('⭐ EXP', '≈ ' + fmt(m.bph * H)), row('🔷 Job EXP', '≈ ' + fmt(m.jph * H)));
+    row('ล่ามอน', '≈ ' + fmt(plan.N) + ' ตัว'), row('💰 ทอง', '≈ ' + fmt(plan.N * m.pk.g) + ' G'), row('⭐ EXP', '≈ ' + fmt(plan.N * m.pk.b)), row('🔷 Job EXP', '≈ ' + fmt(plan.N * m.pk.j)),
+    row('🧪 ยาแดงที่ใช้ (มี ' + fmt(h.potHp | 0) + ')', '≈ ' + fmt(plan.hpPot)), row('🧪 ยาฟ้าที่ใช้ (มี ' + fmt(h.potSp | 0) + ')', '≈ ' + fmt(plan.spPot)));
   const inp = el('input', { type: 'text', maxlength: 30, placeholder: 'ข้อความสั้นๆ ที่คนอื่นเห็นเหนือหัวคุณ', 'aria-label': 'ข้อความเหนือหัว' }); inp.value = lsGet('spellblade_offmsg') || '';
   body.append(el('label', { class: 'fld', style: 'margin-top:10px' }, 'ข้อความเหนือหัว (ไม่เกิน 30 ตัวอักษร)', inp));
+  inp.addEventListener('input', () => lsSet('spellblade_offmsg', inp.value.trim().slice(0, 30)));
+  body.append(el('div', { class: 'sub', style: 'margin-top:10px', text: 'ขนาดวงเดิน (รอบจุดที่ยืนตอนเริ่ม)' }), el('div', { class: 'acts', style: 'margin-top:6px' },
+    ...OFF_RADS.map(([v, lab]) => el('button', { class: 'mini' + (OFFUI.rad === v ? ' pri' : ''), 'aria-pressed': String(OFFUI.rad === v), text: lab, onclick: () => { OFFUI.rad = v; lsSet('spellblade_offrad', String(v)); renderSheet(); } }))),
+    el('p', { class: 'note', text: 'วงเล็กลง มอนที่อยู่ในระยะน้อยลง ได้รางวัลน้อยลง (ทั้งแมพ 100% · 50% ≈ 90% · 25% ≈ 75% · 10% ≈ 55% · ยืนอยู่กับที่ ≈ 35%)' }));
   const btn = el('button', { class: 'btn-main', text: '💤 เริ่มฟามออฟไลน์ (ออกจากเกม)' });
   twoStep(btn, '💤 เริ่มฟามออฟไลน์ (ออกจากเกม)', 'แตะอีกครั้งเพื่อยืนยัน เกมจะปิด', () => { lsSet('spellblade_offmsg', inp.value.trim().slice(0, 30)); offStart(inp.value); });
-  body.append(btn, el('p', { class: 'note', text: 'ระหว่างฟามจะไม่ได้ใช้ยา ไม่ตาย และไม่เสีย EXP ถ้ากลับมาก่อนครบเวลา จะได้รางวัลตามเวลาที่ฟามไปจริง ตัวละครจะออกจากฝูงปาร์ตี้ตอนเริ่ม' }));
+  body.append(btn, el('p', { class: 'note', text: 'ระหว่างฟาม HP/SP จะลดตามการต่อสู้ ตัวละครใช้ยาแดง/ยาฟ้าในกระเป๋าเอง ถ้ายาหมดจะนั่งพักฟื้นแทนทำให้ฟามช้าลง ไม่ตายและไม่เสีย EXP ถ้ากลับมาก่อนครบเวลา จะได้รางวัลตามเวลาที่ฟามไปจริง ตัวละครจะออกจากฝูงปาร์ตี้ตอนเริ่ม' }));
 }
 
 /* ---------- characters shown to other players ---------- */
@@ -7259,7 +7288,7 @@ function offBotFrom(d) {
   return { key: 'bot:' + d.uid, uid: d.uid, bot: true, name: str(d.name, 'นักผจญภัย', 16), job: d.job, lv: int(d.lv, 1, 1, 999), jl: int(d.jl, 1, 1, 999), map: typeof d.map === 'string' ? d.map.slice(0, 40) : '',
     look: { g: d.g === 'f' ? 'f' : 'm', hair: int(d.h, 0, 0, HAIR_NAMES.length - 1), hc: color(d.c, HAIR_COLORS[0]) }, ws: d.ws === 'katar' ? 'katar' : 'dual',
     wv: typeof d.wv === 'string' && GEAR[d.wv] && GEAR[d.wv].slot === 'weapon' ? d.wv : '', eqv: { head: g(ev[0], 'head'), face: g(ev[1], 'face'), mouth: g(ev[2], 'mouth'), wings: g(ev[3], 'wings') },
-    au: Array.isArray(d.au) ? [int(d.au[0], 0, 0, 4), int(d.au[1], 0, 0, 4), int(d.au[2], 0, 0, 20)] : [0, 0, 0], msg: str(d.msg, '', 30), until: num(d.until, 0, 0, 1e15),
+    au: Array.isArray(d.au) ? [int(d.au[0], 0, 0, 4), int(d.au[1], 0, 0, 4), int(d.au[2], 0, 0, 20)] : [0, 0, 0], msg: str(d.msg, '', 30), rad: num(d.rad, 1, 0, 1), ox: num(d.x, -1, -1, 1), oy: num(d.y, -1, -1, 1), until: num(d.until, 0, 0, 1e15),
     range: clamp(L.range || 46, 40, 200), aspd: clamp(L.aspd * 1.1, 0.8, 1.6), hp: 100, dead: false, cc: 0, walking: false, swingT: -9, bbT: -99, x: 0, y: 0, ready: false };
 }
 function offIntake(snap) {
@@ -7297,8 +7326,11 @@ function botsTick(dt) {
   for (const b of list) {
     try {
       b.hp = 100; b.dead = false; b.bb = [b.msg, 0]; b.bbT = t;   // the message stays up all the time
-      if (!b.ready) { b.x = bd.x0 + 80 + Math.random() * (bd.x1 - bd.x0 - 160); b.y = bd.y0 + 60 + Math.random() * (bd.y1 - bd.y0 - 120); b.ready = true; b.atkT = Math.random(); b.nextSkill = t + 2 + Math.random() * 3; b.swingT = -9; }
-      let tg = b.tg; if (!tg || tg.state === 'dead' || !W.mons.includes(tg)) { tg = null; let best = 1e9; for (const m of W.mons) { if (m.state === 'dead' || m.boss) continue; const d = Math.hypot(m.x - b.x, m.y - b.y); if (d < best) { best = d; tg = m; } } b.tg = tg; }
+      const fr = b.rad == null ? 1 : b.rad, hasO = b.ox >= 0 && b.oy >= 0 && fr < 1, ocx = clamp(b.ox * WORLD.w, bd.x0, bd.x1), ocy = clamp(b.oy * WORLD.h, bd.y0, bd.y1);
+      const rg = hasO ? { x0: Math.max(bd.x0, ocx - fr * (bd.x1 - bd.x0) / 2), x1: Math.min(bd.x1, ocx + fr * (bd.x1 - bd.x0) / 2), y0: Math.max(bd.y0, ocy - fr * (bd.y1 - bd.y0) / 2), y1: Math.min(bd.y1, ocy + fr * (bd.y1 - bd.y0) / 2) } : bd;   // walking area
+      if (!b.ready) { if (hasO) { b.x = ocx; b.y = ocy; } else { b.x = bd.x0 + 80 + Math.random() * (bd.x1 - bd.x0 - 160); b.y = bd.y0 + 60 + Math.random() * (bd.y1 - bd.y0 - 120); } b.ready = true; b.atkT = Math.random(); b.nextSkill = t + 2 + Math.random() * 3; b.swingT = -9; }
+      const inReg = (m) => Math.hypot(m.x - clamp(m.x, rg.x0, rg.x1), m.y - clamp(m.y, rg.y0, rg.y1)) <= (b.range || 60) * 0.9;
+      let tg = b.tg; if (!tg || tg.state === 'dead' || !W.mons.includes(tg) || !inReg(tg)) { tg = null; let best = 1e9; for (const m of W.mons) { if (m.state === 'dead' || m.boss || !inReg(m)) continue; const d = Math.hypot(m.x - b.x, m.y - b.y); if (d < best) { best = d; tg = m; } } b.tg = tg; }
       if (tg) {
         const dx = tg.x - b.x, dy = tg.y - b.y, d = Math.hypot(dx, dy); b._fa = Math.atan2(dx, dy);
         if (d > b.range) { const k = Math.min(1, 78 * dt / d); b.x += dx * k; b.y += dy * k; b.walking = true; }
@@ -7318,10 +7350,10 @@ function botsTick(dt) {
           }
         }
       } else {
-        if (!b.dest || Math.hypot(b.dest[0] - b.x, b.dest[1] - b.y) < 12) b.dest = [bd.x0 + 80 + Math.random() * (bd.x1 - bd.x0 - 160), bd.y0 + 60 + Math.random() * (bd.y1 - bd.y0 - 120)];
-        const dx = b.dest[0] - b.x, dy = b.dest[1] - b.y, d = Math.hypot(dx, dy) || 1, k = Math.min(1, 60 * dt / d); b.x += dx * k; b.y += dy * k; b.walking = true;
+        if (!b.dest || Math.hypot(b.dest[0] - b.x, b.dest[1] - b.y) < 12) b.dest = hasO ? [rg.x0 + Math.random() * (rg.x1 - rg.x0), rg.y0 + Math.random() * (rg.y1 - rg.y0)] : [bd.x0 + 80 + Math.random() * (bd.x1 - bd.x0 - 160), bd.y0 + 60 + Math.random() * (bd.y1 - bd.y0 - 120)];
+        const dx = b.dest[0] - b.x, dy = b.dest[1] - b.y, d = Math.hypot(dx, dy) || 1, k = Math.min(1, 60 * dt / d); b.x += dx * k; b.y += dy * k; b.walking = d > 2;
       }
-      b.x = clamp(b.x, bd.x0, bd.x1); b.y = clamp(b.y, bd.y0, bd.y1);
+      b.x = clamp(b.x, rg.x0, rg.x1); b.y = clamp(b.y, rg.y0, rg.y1);
     } catch (e) { /* a bad record must never stop the game loop */ }
   }
 }
@@ -7609,6 +7641,12 @@ function panelAuto(body) {
       el('span', { class: 'an' }, el('b', { text: tpl.name }), el('small', { text: 'Lv ' + tpl.lv + (tpl.boss ? '  บอส' : '') + (tpl.aggro ? '  ดุร้าย' : '') }))));
   });
   body.append(g);
+  { // what auto is allowed to use: basic attacks, skills, or both (at least one stays on)
+    const setOpt = (k) => { const o = S.autoOpt; o[k] = !o[k]; if (!o.basic && !o.skill) o[k === 'basic' ? 'skill' : 'basic'] = true; lsSet('spellblade_autoopt', JSON.stringify(o)); P.queued = null; renderSheet(); };
+    const tg = (k, label) => el('button', { class: 'mini' + (S.autoOpt[k] ? ' pri' : ''), 'aria-pressed': String(!!S.autoOpt[k]), text: (S.autoOpt[k] ? '✅ ' : '⬜ ') + label, onclick: () => setOpt(k) });
+    body.append(el('div', { class: 'sub', text: 'ออโต้ใช้อะไรบ้าง' }), el('div', { class: 'acts', style: 'margin-top:6px' }, tg('basic', 'ตีธรรมดา'), tg('skill', 'สกิลโจมตี')),
+      el('p', { class: 'note', text: 'ปิดตีธรรมดา = ใช้แต่สกิล ปิดสกิล = ตีธรรมดาอย่างเดียว (บัฟ/ฮีล/ชุบยังใช้ตามปกติ) ต้องเปิดอย่างน้อย 1 อย่าง' }));
+  }
   const n = autoPick.set.size;
   const start = (arr) => { S.autoSel[map.id] = arr; lsSet('spellblade_autosel', JSON.stringify(S.autoSel)); closeSheet(); P.target = null; setAuto(true); toast(arr ? 'ออโต้: ตีเฉพาะ ' + arr.length + ' ชนิดที่เลือก' : 'ออโต้: ตีทุกตัวบนแผนที่'); };
   body.append(el('div', { class: 'acts' }, el('button', { class: 'mini', text: 'ตีทุกตัว', onclick: () => start(null) }),
