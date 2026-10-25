@@ -136,7 +136,7 @@ button:disabled{cursor:default}
 .dead[hidden]{display:none}
 .dead .big{font-family:"Charm","Noto Serif Thai",serif;font-size:2.4rem;font-weight:700;color:#ff8f7a}
 
-.auto{position:relative}
+.auto{position:relative;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;touch-action:manipulation}
 .auto .dot{position:absolute;top:-2px;right:-2px;min-width:18px;height:18px;border-radius:9px;background:#e8473a;color:#fff;font:700 9px/18px "Silkscreen",monospace;padding:0 3px}
 .auto .dot[hidden]{display:none}
 .zoom{position:absolute;left:8px;top:46%;display:flex;flex-direction:column;gap:6px}
@@ -218,7 +218,7 @@ button:disabled{cursor:default}
 
 .bossbar{position:static;display:flex;flex-direction:column;gap:4px;align-items:flex-start;max-width:calc(100vw - 118px)}
 .bossbar[hidden]{display:none}
-.bossrow{display:flex;gap:8px;align-items:center;justify-content:space-between;padding:4px 10px;border-radius:10px;border:1px solid rgba(255,190,90,.5);background:rgba(30,12,8,.72);color:#ffe0b0;font-size:.74rem;white-space:nowrap}
+.bossrow{display:flex;gap:8px;align-items:center;justify-content:space-between;padding:4px 10px;border-radius:10px;border:1px solid rgba(255,190,90,.5);background:rgba(30,12,8,.72);color:#ffe0b0;font-size:.74rem;flex-wrap:wrap;text-align:left}
 .bossrow b{font-size:.66rem;color:#ffd36b}
 .bossrow.alive{border-color:#ff6b4a;box-shadow:0 0 10px rgba(255,90,60,.5)}
 .bossrow.alive b{color:#ff8f6b}
@@ -1804,7 +1804,7 @@ function enterMap(id, silent, dmap) {
   NET.isHost = !hostThere;
   buildSpawns(map);
   if (!hostThere) { if (W.spawns.length) fillSpawns(); else for (let i = 0; i < monCount(map); i++) spawnMon(); }
-  updAutoBadge(); bossEnterMap(map);
+  P.aax = P.x; P.aay = P.y; updAutoBadge(); bossEnterMap(map);
   addFx({ kind: 'ring', x: P.x, y: P.y, r: 46, color: '#9fe3ff', dur: 0.7 });
   if (!silent) { toast(map.name + '  Lv ' + map.min + '–' + map.max); AU.sfx('warp'); }
   W.pvp = [];
@@ -2174,6 +2174,7 @@ function pickTarget() {
     if (m.state === 'dead' || m.alpha < 0.5 || m.hp <= 0) continue;
     const onMe = m.tgt === me && m.state === 'chase';
     if (sel && !m.pvp && !sel.has(m.id) && !onMe) continue;
+    if (S.auto && !m.pvp && autoLim(m, onMe)) continue;
     const sc = Math.hypot(m.x - P.x, m.y - P.y) + Math.min(120, Math.max(0, m.lv - lv) * 4) - (onMe ? 160 : 0);
     if (sc < bs) { bs = sc; best = m; }
   }
@@ -2431,8 +2432,11 @@ function update(dt) {
   const walkHold = S.auto && P.tx != null && !P.target && W.t - (P.txAt || 0) < 10;   // walking by hand/follow: don't grab a target yet
   const fLock = PARTY.follow && W.t - (PARTY.ftgT || 0) < 0.8;   // target is dictated by the party leader
   if (S.auto) {
-    if (walkHold) { /* keep walking */ }
-    else if (!P.target) P.target = pickTarget();
+    if (walkHold) { P.aax = P.x; P.aay = P.y; /* keep walking; the circle follows */ }
+    else if (!P.target) {
+      P.target = pickTarget();
+      if (!P.target && P.tx == null && isFinite(autoR()) && P.aax != null && Math.hypot(P.aax - P.x, P.aay - P.y) > 40) { P.tx = P.aax; P.ty = P.aay; P.txAt = -99; }   // nothing in the circle: head back to its centre
+    }
     else if (!P.queued && !fLock && W.t > (P.reT || 0)) {
       // re-check twice a second: switch away from a far target when something is closer or is hitting us
       P.reT = W.t + 0.5;
@@ -6027,7 +6031,7 @@ const fmtLeft = (ms) => { const s = Math.max(0, Math.ceil(ms / 1000)), h = Math.
 function bossLine(map, t) {
   const s = bossState(map.id)[t.id], now = nowMs();
   if (!s || s.alive || !s.next) { const m = W.map && W.map.id === map.id ? W.mons.find((x) => x.boss && x.id === t.id && x.state !== 'dead') : null; return { alive: true, text: 'ปรากฏตัวอยู่' + (m ? '  HP ' + Math.max(1, Math.round(m.hp / m.maxHp * 100)) + '%' : '') }; }
-  return s.next > now ? { alive: false, text: 'เกิดใหม่ใน ' + fmtLeft(s.next - now) } : { alive: false, text: 'กำลังจะปรากฏตัว…' };
+  return s.next > now ? { alive: false, text: (s.by ? 'ถูกสังหารโดย ' + s.by + '  ' : '') + 'เกิดใหม่ใน ' + fmtLeft(s.next - now) } : { alive: false, text: 'กำลังจะปรากฏตัว…' };
 }
 function renderBossBar() {
   const box = $('#bossBar'); if (!box) return;
@@ -7708,14 +7712,30 @@ function hud() {
   const now = performance.now();
   if (now - hudLast > 200) { hudLast = now; hudText(); }
 }
-function setAuto(v) { S.auto = v; $('#autoBtn').setAttribute('aria-pressed', String(v)); if (!v) P.queued = null; updAutoBadge(); }
-$('#autoBtn').addEventListener('click', () => { if (S.auto) { setAuto(false); toast('ปิดออโต้'); } else openPanel('auto'); });
+function setAuto(v) { S.auto = v; if (v) { P.aax = P.x; P.aay = P.y; } $('#autoBtn').setAttribute('aria-pressed', String(v)); if (!v) P.queued = null; updAutoBadge(); }
+{ let lpT = null, lpFired = false; const ab = $('#autoBtn');
+  ab.addEventListener('pointerdown', () => { lpFired = false; clearTimeout(lpT); lpT = setTimeout(() => { lpFired = true; openPanel('autorange'); }, 550); });
+  for (const ev of ['pointerup', 'pointerleave', 'pointercancel']) ab.addEventListener(ev, () => clearTimeout(lpT));
+  ab.addEventListener('contextmenu', (e) => e.preventDefault());
+  ab.addEventListener('click', () => { if (lpFired) { lpFired = false; return; } if (S.auto) { setAuto(false); toast('ปิดออโต้'); } else openPanel('auto'); }); }
 function setZoom(z) { S.zoom = clamp(z, 0.8, 1.8); lsSet('spellblade_zoom', S.zoom.toFixed(2)); }
 const PTR = new Map(); let pinch = null;
 $('#world').addEventListener('pointerdown', (e) => { PTR.set(e.pointerId, { x: e.clientX, y: e.clientY }); if (PTR.size === 2) { const [a, b] = [...PTR.values()]; pinch = { d: Math.max(20, Math.hypot(a.x - b.x, a.y - b.y)), z: S.zoom }; } });
 $('#world').addEventListener('pointermove', (e) => { if (!PTR.has(e.pointerId)) return; PTR.set(e.pointerId, { x: e.clientX, y: e.clientY }); if (pinch && PTR.size >= 2) { const [a, b] = [...PTR.values()]; setZoom(pinch.z * pinch.d / Math.max(20, Math.hypot(a.x - b.x, a.y - b.y))); } });
 for (const ev of ['pointerup', 'pointercancel', 'pointerleave']) $('#world').addEventListener(ev, (e) => { PTR.delete(e.pointerId); if (PTR.size < 2) pinch = null; });
 $('#world').addEventListener('wheel', (e) => { e.preventDefault(); setZoom(S.zoom * (1 + e.deltaY * 0.0012)); }, { passive: false });
+S.autoRange = num(lsGet('spellblade_autorange'), 1, 0.05, 1);   // share of the map the auto walk circle covers (1 = whole map)
+const AUTO_RANGES = [[1, 'ทั้งแมพ'], [0.5, '50%'], [0.25, '25%'], [0.1, '10%']];
+function autoR() { const p = S.autoRange || 1; return p >= 1 ? Infinity : Math.sqrt(p * WORLD.w * WORLD.h / Math.PI); }   // circle area = p x map area
+function autoLim(m, onMe) { const r = autoR(); if (!isFinite(r) || P.aax == null) return false; return Math.hypot(m.x - P.aax, m.y - P.aay) > r + (onMe ? 80 : 0); }
+function panelAutoRange(body) {
+  if (isTown()) { body.append(el('p', { class: 'note', text: '🏘️ ในหมู่บ้านไม่มีมอนสเตอร์' })); return; }
+  body.append(el('p', { class: 'note', style: 'margin-top:0', text: 'เลือกวงเดินของออโต้ ตัวละครจะล่าเฉพาะมอนในวงรอบจุดที่เปิดออโต้ (เดินเองเมื่อไหร่ วงจะย้ายมาตรงที่ยืนอยู่) ถ้าไม่มีมอนในวงจะเดินกลับมาจุดศูนย์กลาง' }));
+  const g = el('div', { class: 'acts', style: 'flex-wrap:wrap' });
+  for (const [v, lb] of AUTO_RANGES) g.append(el('button', { class: 'mini' + ((S.autoRange || 1) === v ? ' pri' : ''), 'aria-pressed': String((S.autoRange || 1) === v), text: ((S.autoRange || 1) === v ? '✅ ' : '') + lb,
+    onclick: () => { S.autoRange = v; lsSet('spellblade_autorange', String(v)); P.aax = P.x; P.aay = P.y; closeSheet(); toast('วงเดินออโต้: ' + lb); } }));
+  body.append(g);
+}
 function autoSet() { const a = W.map && S.autoSel[W.map.id]; return Array.isArray(a) && a.length ? new Set(a) : null; }
 function updAutoBadge() { const d = $('#autoDot'); if (!d) return; const s = autoSet(); d.hidden = !(S.auto && s); if (s) d.textContent = s.size; }
 let autoPick = null;
@@ -7849,6 +7869,7 @@ function drawMinimap(now) {
   // view area
   const vw = (R3.on ? 7.4 * (S.zoom || 1) * R3.U : W.w / (S.zoom || 1)), vh = vw * Math.min(1.6, (W.h - 200) / Math.max(1, W.w));
   g.strokeStyle = 'rgba(255,255,255,.35)'; g.lineWidth = d; g.strokeRect((P.x - vw / 2) * sx, (P.y - vh * 0.62) * sy, vw * sx, vh * sy);
+  if (S.auto && isFinite(autoR()) && P.aax != null) { g.beginPath(); g.ellipse(P.aax * sx, P.aay * sy, autoR() * sx, autoR() * sy, 0, 0, TAU); g.strokeStyle = 'rgba(255,225,77,.8)'; g.setLineDash([4 * d, 3 * d]); g.lineWidth = d; g.stroke(); g.setLineDash([]); }
   for (const m of W.mons) if (!m.boss && m.state !== 'dead') mmDot(g, m.x * sx, m.y * sy, 1.1 * d, 'rgba(255,120,110,.7)');
   for (const o of othersHere()) {
     const pm = PARTY.key && o.pk === PARTY.key;
@@ -7878,7 +7899,7 @@ $('#mmCv').addEventListener('click', (e) => {
 
 /* ---------- sheet panels ---------- */
 const PANELS = {
-  stats: ['สถานะตัวละคร', panelStats], skills: ['สกิล', panelSkills], job: ['เปลี่ยนอาชีพ', panelJob],
+  autorange: ['วงเดินออโต้', panelAutoRange], stats: ['สถานะตัวละคร', panelStats], skills: ['สกิล', panelSkills], job: ['เปลี่ยนอาชีพ', panelJob],
   map: ['แผนที่', panelMap], dungeon: ['ดันเจี้ยน', panelDungeon], npc_healer: ['ซิสเตอร์ลูน่า', panelHealer], npc_smith: ['ริว ช่างตีบวก', panelSmith], market: ['ตลาดซื้อ-ขาย', panelMarket], shop: ['ร้านช่างตีเหล็ก', panelShop], rank: ['ทำเนียบนักผจญภัย', panelRank], gm: ['ห้องควบคุม GM', panelGM],
   npc_gacha: ['🎰 ตู้กาชา', panelGacha], pvp: ['⚔️ ห้อง PVP', panelPvp], dgresult: ['🏆 ผลงานในดันเจี้ยน', panelDgResult], album: ['📖 อัลบั้มการ์ด', panelAlbum], gmgive: ['🎁 ส่งของให้ผู้เล่น', panelGmGive], offline: ['💤 ฟามออฟไลน์', panelOffline], auto: ['โหมดออโต้', panelAuto], online: ['ผู้เล่นและปาร์ตี้', panelOnline], sound: ['ตั้งค่า', panelSound], chat: ['แชท', panelChat]
 };
