@@ -6061,7 +6061,6 @@ function panelSound(body) {
     el('button', { class: 'mini', text: 'ลองเสียงการ์ด', onclick: () => AU.sfx('card') })));
   body.append(el('p', { class: 'note', style: 'margin-top:12px', text: 'แต่ละแผนที่มีเพลงของตัวเอง ถ้าไม่ได้ยินเสียง ให้ตรวจว่ามือถือไม่ได้เปิดโหมดเงียบ' }));
   potAutoSection(body);
-  backupSection(body);
   body.append(el('div', { class: 'sub', text: 'ภาพ' }));
   const kk = R3.kkUse !== false;
   body.append(el('div', { class: 'acts' }, el('button', { class: 'mini' + (kk ? ' on' : ''), text: kk ? '✅ ตัวละครโมเดลใหม่' : 'ตัวละครแบบเดิม', onclick: () => { R3.kkUse = !kk; lsSet('spellblade_kk', R3.kkUse ? '1' : '0'); drawAvatar(); renderSheet(); } })));
@@ -8675,18 +8674,9 @@ function docSum(d) {
 }
 const docSig = (d) => { const s = docSum(d); return [s.lv, s.jl, s.kills, s.ref, s.items, s.gold].join(':'); };
 const docScore = (d) => { const s = docSum(d); return s.lv * 1e6 + s.jl * 1e3 + s.kills; };
-function bkAdd(doc, why) {
-  if (!doc || typeof doc !== 'object' || !doc.name) return;
-  try {
-    let list = bkList();
-    if (list.length && docSig(list[list.length - 1].doc) === docSig(doc)) return;
-    list.push({ at: Date.now(), why, doc: JSON.parse(JSON.stringify(doc)) });
-    while (list.length > 5) { let lo = 0; for (let i = 1; i < list.length - 1; i++) if (docScore(list[i].doc) < docScore(list[lo].doc)) lo = i; list.splice(lo === list.length - 1 ? 0 : lo, 1); }   // never drops the newest; drops the poorest first
-    for (let n = list.length; n > 0; n--) { try { localStorage.setItem(BK_KEY(), JSON.stringify(list.slice(-n))); return; } catch (e) {} }
-  } catch (e) {}
-}
+function bkAdd() {}   // local backups removed (exploitable to undo failed refines)
 const bkNow = () => (S.hero ? Object.assign(heroDoc(), { savedAt: Date.now() }) : null);
-setInterval(() => { if (S.hero && !S.blocked && S.screen === 'game') bkAdd(bkNow(), 'อัตโนมัติ'); }, 600000);
+try { Object.keys(localStorage).filter((k) => k.indexOf('sb_bk_') === 0).forEach((k) => localStorage.removeItem(k)); } catch (e) {}   // wipe backups saved by older versions
 async function loadServerHero() {
   for (let i = 0; i < 3; i++) {
     try {
@@ -8751,25 +8741,6 @@ async function bootHero() {
   if (hero) { S.hero = hero; S.savedOnline = fromServer; if (!fromServer) save(); if (S.restoredLocal) toast('กู้ความคืบหน้าจากเครื่องนี้ขึ้นเซิร์ฟเวอร์แล้ว'); showSelect(); } else setupCreate();
   return true;
 }
-// settings: local backups of the character, restorable with two taps
-function backupSection(body) {
-  body.append(el('div', { class: 'sub', text: 'สำรองข้อมูลตัวละคร (ในเครื่องนี้)' }));
-  const list = bkList().slice().reverse();
-  if (!list.length) { body.append(el('p', { class: 'note', text: 'ยังไม่มีข้อมูลสำรอง ระบบจะเก็บให้เองทุกครั้งที่เข้าเกม และทุก 10 นาทีระหว่างเล่น' })); return; }
-  body.append(el('p', { class: 'note', text: 'ถ้าตัวละครหรือของหาย ให้กู้จากชุดที่ข้อมูลครบที่สุด (เลเวล ตีบวก และจำนวนของมากสุด)' }));
-  for (const b of list) {
-    const s = docSum(b.doc), row = el('div', { class: 'bkrow' });
-    row.append(el('b', { text: new Date(b.at).toLocaleString('th-TH') + ' · ' + b.why }), el('div', { text: s.name + ' Base ' + s.lv + '/Job ' + s.jl + ' · ล่า ' + s.kills.toLocaleString() + ' · บวกรวม +' + s.ref + ' · ของ ' + s.items + ' ชิ้น · ' + s.gold.toLocaleString() + ' G' }));
-    const btn = el('button', { class: 'mini', text: 'กู้ข้อมูลชุดนี้' }); twoStep(btn, 'กู้ข้อมูลชุดนี้', 'แตะอีกครั้งเพื่อยืนยัน', () => restoreBackup(b));
-    row.append(btn); body.append(row);
-  }
-}
-async function restoreBackup(b) {
-  bkAdd(bkNow(), 'ก่อนกู้ข้อมูลสำรอง');
-  S.hero = sanitizeHero(b.doc); S.dirty = true; S.blocked = S.blocked === 'dup' ? S.blocked : false;
-  toast('กำลังกู้ข้อมูล…'); await save(); setTimeout(doReload, 600);
-}
-
 /* ---------- GM: compose and send items to a player ---------- */
 const GM_PIECES = DG_LINES.concat('katar').map((l) => 'w_' + l).concat(['a', 's', 'r', 'sh']);
 const gmGearId = (set, piece) => (piece.startsWith('w_') ? 'w_' + set + '_' + piece.slice(2) : piece + '_' + set);
