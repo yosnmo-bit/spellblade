@@ -6060,7 +6060,6 @@ function panelSound(body) {
     el('button', { class: 'mini', text: 'ลองเสียงคริ', onclick: () => AU.sfx('crit') }),
     el('button', { class: 'mini', text: 'ลองเสียงการ์ด', onclick: () => AU.sfx('card') })));
   body.append(el('p', { class: 'note', style: 'margin-top:12px', text: 'แต่ละแผนที่มีเพลงของตัวเอง ถ้าไม่ได้ยินเสียง ให้ตรวจว่ามือถือไม่ได้เปิดโหมดเงียบ' }));
-  potAutoSection(body);
   body.append(el('div', { class: 'sub', text: 'ภาพ' }));
   const kk = R3.kkUse !== false;
   body.append(el('div', { class: 'acts' }, el('button', { class: 'mini' + (kk ? ' on' : ''), text: kk ? '✅ ตัวละครโมเดลใหม่' : 'ตัวละครแบบเดิม', onclick: () => { R3.kkUse = !kk; lsSet('spellblade_kk', R3.kkUse ? '1' : '0'); drawAvatar(); renderSheet(); } })));
@@ -7897,7 +7896,13 @@ function panelAuto(body) {
   body.append(el('div', { class: 'acts' }, el('button', { class: 'mini', text: 'ตีทุกตัว', onclick: () => start(null) }),
     el('button', { class: 'mini pri', text: n ? 'ตีเฉพาะที่เลือก (' + n + ')' : 'เลือกอย่างน้อย 1 ชนิด', disabled: !n, onclick: () => start([...autoPick.set]) })));
 }
-$('#potHp').addEventListener('click', () => { usePot((S.hero.potBtn || ['hp'])[0]); hudText(); });
+{ let lpT = null, lpFired = false;
+  const hook = (id, idx, def) => { const b = $(id);
+    b.addEventListener('pointerdown', () => { lpFired = false; clearTimeout(lpT); lpT = setTimeout(() => { lpFired = true; openPanel('potauto'); }, 1000); });
+    for (const ev of ['pointerup', 'pointerleave', 'pointercancel']) b.addEventListener(ev, () => clearTimeout(lpT));
+    b.addEventListener('contextmenu', (e) => e.preventDefault());
+    b.addEventListener('click', () => { if (lpFired) { lpFired = false; return; } usePot((S.hero.potBtn || def)[idx]); hudText(); }); };
+  hook('#potHp', 0, ['hp']); hook('#potSp', 1, ['hp', 'sp']); }
 $('#chatBtn').addEventListener('click', () => openPanel('chat'));
 $('#avatar').addEventListener('click', () => openEquip('eq'));
 $('#pvpBar').addEventListener('click', () => openPanel('pvp'));
@@ -7947,7 +7952,6 @@ $('#rwExit').addEventListener('click', () => leaveDungeon());
 $('#rwAgain').addEventListener('click', () => dgAgain());
 $('#rwBag').addEventListener('click', () => { $('#raidWin').hidden = true; openEquip('bag'); });
 $('#hName').addEventListener('click', () => openEquip('eq'));
-$('#potSp').addEventListener('click', () => { usePot((S.hero.potBtn || ['hp', 'sp'])[1]); hudText(); });
 document.querySelectorAll('.sbtn').forEach((b) => b.addEventListener('click', () => openPanel(b.dataset.panel)));
 $('#world').addEventListener('pointerdown', (e) => {
   if (!S.hero || P.dead) return;
@@ -8033,7 +8037,7 @@ $('#mmCv').addEventListener('click', (e) => {
 
 /* ---------- sheet panels ---------- */
 const PANELS = {
-  autorange: ['วงเดินออโต้', panelAutoRange], stats: ['สถานะตัวละคร', panelStats], skills: ['สกิล', panelSkills], job: ['เปลี่ยนอาชีพ', panelJob],
+  autorange: ['วงเดินออโต้', panelAutoRange], potauto: ['🧪 ตั้งค่าใช้ยาอัตโนมัติ', (b) => potAutoSection(b)], stats: ['สถานะตัวละคร', panelStats], skills: ['สกิล', panelSkills], job: ['เปลี่ยนอาชีพ', panelJob],
   map: ['แผนที่', panelMap], dungeon: ['ดันเจี้ยน', panelDungeon], npc_healer: ['ซิสเตอร์ลูน่า', panelHealer], npc_smith: ['ริว ช่างตีบวก', panelSmith], market: ['ตลาดซื้อ-ขาย', panelMarket], shop: ['ร้านช่างตีเหล็ก', panelShop], rank: ['ทำเนียบนักผจญภัย', panelRank], gm: ['ห้องควบคุม GM', panelGM],
   npc_gacha: ['🎰 ตู้กาชา', panelGacha], pvp: ['⚔️ ห้อง PVP', panelPvp], dgresult: ['🏆 ผลงานในดันเจี้ยน', panelDgResult], album: ['📖 อัลบั้มการ์ด', panelAlbum], gmgive: ['🎁 ส่งของให้ผู้เล่น', panelGmGive], offline: ['💤 ฟามออฟไลน์', panelOffline], auto: ['โหมดออโต้', panelAuto], online: ['ผู้เล่นและปาร์ตี้', panelOnline], sound: ['ตั้งค่า', panelSound], chat: ['แชท', panelChat]
 };
@@ -8134,9 +8138,17 @@ function assignSlot(id, i) {
   else { for (let k = 0; k < 8; k++) if (h.hotbar[k] === id) h.hotbar[k] = ''; h.hotbar[i] = id; }
   S.dirty = true; renderHotbar(); renderSheet();
 }
+function resetSkills() {
+  const h = S.hero;
+  h.skills = {}; h.hotbar = (h.hotbar || []).map((x) => (x && String(x).startsWith('pot:') ? x : ''));
+  recalcPoints(h); P.D = derived(); AU.sfx('card');
+  S.dirty = true; save(); renderHotbar(); hudText(); renderSheet(); toast('รีแต้มสกิลแล้ว');
+}
 function panelSkills(body) {
   const h = S.hero;
-  body.append(el('div', { class: 'pts' }, 'แต้มสกิลคงเหลือ ', el('b', { text: String(h.skillPts) }), el('span', { class: 'muted', text: '  ได้ 1 แต้มทุก Job Lv' })));
+  const spent = Object.values(h.skills || {}).reduce((a, b) => a + b, 0);
+  const rbtn = twoStep(el('button', { class: 'mini', text: '🔄 รีแต้มสกิล', disabled: !spent, style: 'margin-left:auto' }), '🔄 รีแต้มสกิล', 'แตะอีกครั้งเพื่อยืนยัน', () => resetSkills());
+  body.append(el('div', { class: 'pts', style: 'display:flex;align-items:center;gap:6px;flex-wrap:wrap' }, el('span', {}, 'แต้มสกิลคงเหลือ ', el('b', { text: String(h.skillPts) }), el('span', { class: 'muted', text: '  ได้ 1 แต้มทุก Job Lv' })), rbtn));
   body.append(el('p', { class: 'note', text: 'สกิลในช่อง 1–8 จะอยู่ที่แถบล่าง (แถวบน 1–4 แถวล่าง 5–8) และโหมดออโต้จะใช้ให้เองตามลำดับช่อง' }));
   for (const jid of chainOf(h.job)) {
     const list = Object.values(SKILLS).filter((s) => s.job === jid);
@@ -8352,7 +8364,6 @@ function panelShop(body) {
       el('button', { class: 'mini', text: 'x1', disabled: h.gold < unit, onclick: () => buyPot(kind, 1) }),
       el('button', { class: 'mini pri', text: 'x10', disabled: h.gold < unit * 10, onclick: () => buyPot(kind, 10) })));
   }
-  potAutoSection(body);
   body.append(el('div', { class: 'sub', text: 'อุปกรณ์สวมใส่' }));
   body.append(el('p', { class: 'note', text: 'ซื้อแล้วไปสวมได้ที่หน้าตัวละคร (แตะรูปตัวละครมุมซ้ายบน)' }));
   for (const id in GEAR) {
