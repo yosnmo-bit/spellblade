@@ -107,6 +107,11 @@ button:disabled{cursor:default}
 .sbtn.glow{border-color:#ffd166;box-shadow:0 0 12px rgba(255,209,102,.8)}
 .sbtn[hidden]{display:none}
 .mtog{border-color:rgba(255,209,102,.55)}
+.rcol{max-height:calc(100% - 172px)}
+.rcol>:not(.side){flex-shrink:0}
+.side{flex:0 1 auto;min-height:0;overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain;touch-action:pan-y;-webkit-overflow-scrolling:touch;scrollbar-width:none;padding:4px 4px 8px}
+.side::-webkit-scrollbar{display:none}
+.side .sbtn{flex-shrink:0}
 .rcol.folded .side{display:none}
 .rcol.folded .mtog{background:rgba(10,14,24,.78)}
 .hud-bottom{position:absolute;left:8px;right:8px;bottom:10px;display:flex;align-items:flex-end;gap:7px}
@@ -592,7 +597,6 @@ body.lg-on .selwrap .btn-main{max-width:260px}
       <div class="skills" id="hotbar"></div>
       <button class="auto" id="autoBtn" aria-pressed="false">AUTO<span class="dot" id="autoDot" hidden></span></button>
     </div>
-    <div class="zoom"><button id="zoomIn" aria-label="ซูมเข้า">＋</button><button id="zoomOut" aria-label="ซูมออก">－</button></div>
     <div class="chatfeed" id="chatFeed" aria-live="polite"></div>
     <div class="bossann" id="bossAnn" role="status" aria-live="polite"></div>
     <div class="invite" id="invite" hidden></div>
@@ -613,7 +617,7 @@ body.lg-on .selwrap .btn-main{max-width:260px}
     <div class="sheet-title rwtitle"><span id="rwTitle">🏆 เคลียร์ดันเจี้ยน!</span></div>
     <div class="mb"><p class="rwsub" id="rwSub"></p><div id="rwBoard"></div><div class="rwlist" id="rwList"></div>
       <p class="rwcd" id="rwCd"></p>
-      <div class="acts" style="justify-content:center"><button class="mini" id="rwBag">ดูกระเป๋า</button><button class="mini pri" id="rwExit">ออกเลย</button></div></div>
+      <div class="acts" style="justify-content:center"><button class="mini" id="rwBag">ดูกระเป๋า</button><button class="mini warn" id="rwAgain">🔁 ลงดันอีกครั้ง</button><button class="mini pri" id="rwExit">ออกเลย</button></div></div>
   </div>
 </div>
 <button id="pvpBar" class="pvpbar" hidden aria-label="สนาม PVP"><span id="pvpBarT">⚔️ PVP</span><small>แตะเพื่อดูอันดับ / ออก</small></button>
@@ -5362,7 +5366,8 @@ function readPresence(p) {
     bb: Array.isArray(pr.bb) && typeof pr.bb[0] === 'string' ? [pr.bb[0].slice(0, 40), int(pr.bb[1], 0, 0, 1e9)] : null,
     wv: typeof pr.wv === 'string' && typeof GEAR === 'object' && GEAR[pr.wv] && GEAR[pr.wv].slot === 'weapon' ? pr.wv : '',
     au: Array.isArray(pr.au) ? [int(pr.au[0], 0, 0, 4), int(pr.au[1], 0, 0, 4), int(pr.au[2], 0, 0, 20)] : [0, 0, 0], cc: int(pr.cc, 0, 0, 2),
-    bk: arr(pr.bk, 8), dq: pr.dq == null ? null : int(pr.dq, 0, 0, 2),
+    bk: arr(pr.bk, 8), dq: pr.dq == null ? null : int(pr.dq, 0, 0, 2), dro: pr.dro == null ? null : int(pr.dro, 0, 0, 1e6),
+    da: Array.isArray(pr.da) && typeof pr.da[0] === 'string' ? [pr.da[0].slice(0, 40), int(pr.da[1], 0, 0, 1e6)] : null,
     pl: Array.isArray(pr.pl) && typeof pr.pl[0] === 'string' ? [pr.pl[0].slice(0, 40), int(pr.pl[1], 0, 0, 1e9)] : null,
     rq: typeof pr.rq === 'string' ? pr.rq.slice(0, 24) : '',
     rj: (Array.isArray(pr.rj) ? pr.rj : []).filter((x) => typeof x === 'string').slice(0, 8).map((x) => x.slice(0, 40)),
@@ -5590,9 +5595,10 @@ function onlineTick(dt) {
         (m.state === 'chase' ? 1 : 0) | (m.moving ? 2 : 0) | (m.state === 'dead' ? 4 : 0) | (m.enr ? 8 : 0) | ((m.frzUntil || 0) > W.t ? 16 : 0) | ((m.slowUntil || 0) > W.t ? 32 : 0), ti, m.atkN || 0]);
     }
     pr.ms = ms; pr.tp = tp; pr.kd = NET.kd;
-    if (isDg()) { pr.bk = NET.bk; pr.dq = DG.state; }
+    if (isDg()) { pr.bk = NET.bk; pr.dq = DG.state; pr.dro = DG.round || 0; }
   }
   Object.assign(pr, partyPresence());
+  if (isDg() && DG.ask && isLeader()) pr.da = DG.ask;
   if (isDg() && DG.rs) pr.rs = [Math.round(DG.rs.dmg), Math.round(DG.rs.heal), Math.round(DG.rs.taken)];
   pvpPresence(pr);
   { const lb = (NET.lb || []).filter((e) => Date.now() - e[4] < 6000); NET.lb = lb; if (lb.length) pr.lb = lb; }
@@ -6003,7 +6009,7 @@ function dgMap(dg, inst) {
 }
 const dgInstance = (dg) => ('dg:' + dg.id + ':' + (PARTY.key || S.uid || NET.me || 'solo')).slice(0, 40);
 function dgStat(k, v) { if (W.map && W.map.dg && DG.state !== 2 && v > 0) DG.rs[k] += v; }
-function dgReset() { DG.rs = { dmg: 0, heal: 0, taken: 0 }; DG.state = 0; DG.bkSeen.clear(); NET.bk = []; W.tele = []; P.ccUntil = 0; $('#raidWin').hidden = true; clearTimeout(DG.winT); $('#dgExit').textContent = '🚪 ออกจากดันเจี้ยน'; }
+function dgReset() { DG.round = null; DG.ask = null; DG.paid = null; DG.rs = { dmg: 0, heal: 0, taken: 0 }; DG.state = 0; DG.bkSeen.clear(); NET.bk = []; W.tele = []; P.ccUntil = 0; $('#raidWin').hidden = true; clearTimeout(DG.winT); $('#dgExit').textContent = '🚪 ออกจากดันเจี้ยน'; }
 function enterDungeon(id) {
   const dg = dgDef(id), h = S.hero;
   if (!dg || !dg.on) return;
@@ -6038,7 +6044,43 @@ function enterDungeonNow(id, fromCheck) {
   raidBanner('🏰 ' + dg.name + '  ระวังตัว บอสกำลังมา!', 'warn');
   save();
 }
-function leaveDungeon() { if (!isDg()) return; const won = DG.state === 2 && DG.lastBoard, back = DG.ret || S.hero.mapId; enterMap(back); save(); if (won) openPanel('dgresult'); }
+function leaveDungeon(noPanel) { if (!isDg()) return; const won = DG.state === 2 && DG.lastBoard, back = DG.ret || S.hero.mapId; enterMap(back); save(); if (won && !noPanel) openPanel('dgresult'); }
+// "run it again" from the clear screen: the boss room is reset in place and everyone in the room keeps fighting.
+// Only the party leader (or a solo player) can ask. The leader's request travels in presence (da); the room host resets the
+// monsters and announces the new round (dro); every other client resets its own side when it sees that round number rise.
+function dgAgain() {
+  const dg = DG.lastDg && dgDef(DG.lastDg); if (!dg || !isDg() || DG.state !== 2) return;
+  const mates = hasMates(); if (mates && !isLeader()) return;
+  if (keyCount() < 1) { toast('ต้องมีกุญแจดันเจี้ยน 1 ดอก (ดรอปจากมอนทุกแผนที่)'); return; }
+  const ho = NET.isHost ? null : ONLINE.others.get(NET.host);
+  const n = Math.max(DG.round || 0, (ho && ho.dro) || 0) + 1;
+  takeItem('K:any', 1); DG.paid = n;
+  if (!mates || NET.isHost) dgRoundReset(n);
+  else { DG.ask = [W.map.id, n]; $('#rwAgain').disabled = true; toast('🔁 กำลังรีห้องบอส…'); }
+}
+function dgRoundReset(n) {
+  if (!isDg()) return;
+  DG.round = n;
+  if (DG.paid !== n) {   // each member pays their own key for the new round
+    if (keyCount() < 1) { toast('ไม่มีกุญแจสำหรับรอบใหม่ ออกจากดันเจี้ยน'); leaveDungeon(true); return; }
+    takeItem('K:any', 1);
+  }
+  clearTimeout(DG.winT); $('#raidWin').hidden = true; $('#dgExit').textContent = '🚪 ออกจากดันเจี้ยน';
+  DG.state = 0; DG.t0 = W.t; DG.loot = []; DG.rs = { dmg: 0, heal: 0, taken: 0 };
+  W.mons = []; W.tele = []; W.pend = []; W.nums = []; P.ccUntil = 0; P.target = null; P.queued = null; P.tx = null; P.npc = null;
+  if (P.dead) respawn();
+  P.x = WORLD.w / 2; P.y = WORLD.h * 0.74; R3.camSnap = true;
+  AU.sfx('warp'); addFx({ kind: 'ring', x: P.x, y: P.y, r: 46, color: '#9fe3ff', dur: 0.7 });
+  raidBanner('🔁 เริ่มรอบใหม่  ระวังตัว บอสกำลังมา!', 'warn');
+  S.dirty = true; save();
+}
+// room host: pick up the leader's request
+function dgHostAgainTick() {
+  if (DG.round == null) DG.round = 0;
+  if (!PARTY.key || isLeader()) return;
+  const lo = ONLINE.others.get(partyLeader());
+  if (lo && lo.pk === PARTY.key && lo.map === W.map.id && lo.da && lo.da[0] === W.map.id && lo.da[1] > DG.round) dgRoundReset(lo.da[1]);
+}
 
 /* ---------- host: raid boss AI ---------- */
 function spawnMinion(x, y) {
@@ -6088,6 +6130,7 @@ function sanitizeBk(e) {
 }
 function processBossEvents(ho) {
   if (!isDg()) return;
+  if (ho.dro != null) { if (DG.round == null) DG.round = ho.dro; else if (ho.dro > DG.round) { dgRoundReset(ho.dro); if (!isDg()) return; } }
   if (ho.dq != null && ho.dq > DG.state) DG.state = ho.dq;
   if (!Array.isArray(ho.bk)) return;
   const seen = DG.bkSeen.get(ho.key); let mx = seen || 0;
@@ -6144,6 +6187,7 @@ function dgTick() {
   if (!isDg()) return;
   teleTick();
   if (NET.isHost) {
+    dgHostAgainTick(); if (!isDg()) return;
     if (DG.state === 0 && W.t - DG.t0 > 3.5) { spawnRaid(); DG.state = 1; }
     if (DG.state === 1) raidAI();
   }
@@ -6216,8 +6260,10 @@ function showRaidWin(dg, got, gold) {
         ...(it.o || []).map((o) => el('small', { class: 'gopt', text: '✦ ' + bonusText({ [o[0]]: o[1] }) })))));
   }
   box.hidden = false;
+  DG.lastDg = dg.id;
+  { const ag = $('#rwAgain'), mem = hasMates() && !isLeader(), nk = keyCount() < 1; ag.hidden = mem; ag.disabled = nk; ag.textContent = nk ? '🔁 ไม่มีกุญแจ' : '🔁 ลงดันอีกครั้ง'; }
   // leave automatically after a short countdown (no staying behind once the boss is down)
-  let left = 5;
+  let left = hasMates() ? 15 : 5;   // parties get longer so the leader can choose to go again
   const show = () => {
     const cd = $('#rwCd'); cd.textContent = ''; cd.append('ออกจากดันเจี้ยนอัตโนมัติใน ', el('b', { text: String(left) }), ' วินาที');
     $('#rwExit').textContent = 'ออกเลย (' + left + ')'; $('#dgExit').textContent = '🚪 ออกจากดันเจี้ยนใน ' + left;
@@ -7528,8 +7574,6 @@ function hud() {
 function setAuto(v) { S.auto = v; $('#autoBtn').setAttribute('aria-pressed', String(v)); if (!v) P.queued = null; updAutoBadge(); }
 $('#autoBtn').addEventListener('click', () => { if (S.auto) { setAuto(false); toast('ปิดออโต้'); } else openPanel('auto'); });
 function setZoom(z) { S.zoom = clamp(z, 0.8, 1.8); lsSet('spellblade_zoom', S.zoom.toFixed(2)); }
-$('#zoomIn').addEventListener('click', () => setZoom(S.zoom - 0.2));
-$('#zoomOut').addEventListener('click', () => setZoom(S.zoom + 0.2));
 const PTR = new Map(); let pinch = null;
 $('#world').addEventListener('pointerdown', (e) => { PTR.set(e.pointerId, { x: e.clientX, y: e.clientY }); if (PTR.size === 2) { const [a, b] = [...PTR.values()]; pinch = { d: Math.max(20, Math.hypot(a.x - b.x, a.y - b.y)), z: S.zoom }; } });
 $('#world').addEventListener('pointermove', (e) => { if (!PTR.has(e.pointerId)) return; PTR.set(e.pointerId, { x: e.clientX, y: e.clientY }); if (pinch && PTR.size >= 2) { const [a, b] = [...PTR.values()]; setZoom(pinch.z * pinch.d / Math.max(20, Math.hypot(a.x - b.x, a.y - b.y))); } });
@@ -7603,6 +7647,7 @@ addEventListener('resize', hudLayout);
 R3.onKKTex = () => { if (S.hero && S.screen === 'game') drawAvatar(); };
 $('#dgExit').addEventListener('click', () => leaveDungeon());
 $('#rwExit').addEventListener('click', () => leaveDungeon());
+$('#rwAgain').addEventListener('click', () => dgAgain());
 $('#rwBag').addEventListener('click', () => { $('#raidWin').hidden = true; openEquip('bag'); });
 $('#hName').addEventListener('click', () => openEquip('eq'));
 $('#potSp').addEventListener('click', () => { usePot((S.hero.potBtn || ['hp', 'sp'])[1]); hudText(); });
