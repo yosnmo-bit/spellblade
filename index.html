@@ -2319,7 +2319,7 @@ function castSkill(id, fromQueue) {
 }
 /* ---------- Assassin Cross combo skills: Sonic Slash (katar) and Star Slash (dual daggers) ---------- */
 let COMBO_SEQ = 0;
-const COMBO_CHARGE = 0.3, SONIC_HITS = 10, SONIC_GAP = 0.1, STAR_R = 120, STAR_DASH = 0.12, STAR_ORDER = [0, 3, 1, 4, 2];   // STAR_ORDER: pentagon corner (from the bottom, going round) for star points 1..5
+const COMBO_CHARGE = 0.3, SONIC_HITS = 10, SONIC_GAP = 0.1, STAR_R = 200, STAR_DASH = 0.12, STAR_ORDER = [0, 3, 1, 4, 2];   // STAR_ORDER: pentagon corner (from the bottom, going round) for star points 1..5
 function comboEnd(id) { if (P.combo && P.combo.id === id) { P.combo = null; P.lockT = 0; P.invT = 0; P.dash = null; P.atkT = Math.max(P.atkT, 0.25); } }
 // 30% chance per target per cast: Sonic Slash stuns, Star Slash slows. Map bosses and dungeon bosses are immune.
 function comboProc(tg, sk, done) {
@@ -2338,11 +2338,11 @@ function comboProc(tg, sk, done) {
   if (!NET.isHost) { NET.mcc = (NET.mcc || []).filter((e) => Date.now() - e[4] < 6000).slice(-19); NET.mcc.push([uid36().slice(-9), tg.uid, type, Math.round(dur * 1000), Date.now()]); }
 }
 function starCut(A, B, mult, sk, done) {
-  const k = 1.3, ax = A.x, ay = A.y * k, dx = B.x - A.x, dy = B.y * k - ay, L2 = dx * dx + dy * dy || 1;
+  const k = 0.81, ax = A.x, ay = A.y * k, dx = B.x - A.x, dy = B.y * k - ay, L2 = dx * dx + dy * dy || 1;
   for (const m of pvpPool()) {
     if (m.state === 'dead' || m.hp <= 0) continue;
     const px = m.x, py = m.y * k, u = clamp(((px - ax) * dx + (py - ay) * dy) / L2, 0, 1), s = m.size || 1;
-    if (Math.hypot(px - (ax + dx * u), py - (ay + dy * u)) > 48 + s * 10) continue;
+    if (Math.hypot(px - (ax + dx * u), py - (ay + dy * u)) > 60 + s * 10) continue;
     applyHit(m, rollPhys(mult, m), 1); addFx({ kind: 'burst', x: m.x, y: m.y - 14 * s, color: '#c084ff', dur: 0.3 }); comboProc(m, sk, done);
   }
 }
@@ -2351,7 +2351,7 @@ function startCombo(sk, lv, tg, mult) {
   const alive = () => P.combo && P.combo.id === id && !P.dead && W.map === map;
   const total = sk.combo === 'sonic' ? CH + SONIC_HITS * SONIC_GAP + 0.1 : CH + 5 * STAR_DASH + 0.15;
   const done = new Set();
-  P.combo = { id, kind: sk.combo }; P.lockT = W.t + total; P.walking = false; P.queued = null;
+  P.combo = { id, kind: sk.combo, t0: W.t, total }; P.lockT = W.t + total; P.walking = false; P.queued = null;
   if (sk.combo === 'star') P.invT = W.t + total + 0.05;   // immortal for the whole skill
   addFx({ kind: 'darkAura', x: P.x, y: P.y, dur: CH + 0.25 });
   addFx({ kind: 'ring', x: P.x, y: P.y, r: 54, color: '#7b2cff', dur: CH + 0.2 });
@@ -2368,7 +2368,12 @@ function startCombo(sk, lv, tg, mult) {
     later(CH + SONIC_HITS * SONIC_GAP + 0.08, () => comboEnd(id));
   } else {
     const x0 = P.x, y0 = P.y, b = bounds(), R = STAR_R;
-    const pt = STAR_ORDER.map((k) => { const a = Math.PI / 2 + k * TAU / 5; return { x: clamp(x0 + Math.cos(a) * R, b.x0, b.x1), y: clamp(y0 - R + Math.sin(a) * R, b.y0, b.y1) }; });
+    // aim the star at the nearby monsters (centre of the crowd, else the target); point 1 stays where you stand, numbers keep the same order
+    let ax = 0, ay = 0, an = 0;
+    for (const m of pvpPool()) if (m.state !== 'dead' && m.hp > 0 && Math.hypot(m.x - x0, m.y - y0) < 240) { ax += m.x; ay += m.y; an++; }
+    if (!an && P.target && P.target.state !== 'dead') { ax = P.target.x; ay = P.target.y; an = 1; }
+    const th = an && Math.hypot(ax / an - x0, ay / an - y0) > 4 ? Math.atan2((ay / an - y0) * 0.81, ax / an - x0) + Math.PI / 2 : 0, co = Math.cos(th), si = Math.sin(th);   // 0.81 = screen squash of the tilted camera, so the star looks regular on screen
+    const pt = STAR_ORDER.map((k) => { const a = Math.PI / 2 + k * TAU / 5, ox = Math.cos(a) * R, oy = -R + Math.sin(a) * R; return { x: clamp(x0 + ox * co - oy * si, b.x0, b.x1), y: clamp(y0 + (ox * si + oy * co) / 0.81, b.y0, b.y1) }; });
     pt[0] = { x: x0, y: y0 }; pt.push(pt[0]);   // 1 -> 2 -> 3 -> 4 -> 5 -> back to 1
     later(CH, () => { if (alive()) addFx({ kind: 'ghost', x: x0, y: y0, dur: total - CH + 0.15 }); });   // shadow clone left on point 1
     for (let i = 0; i < 5; i++) {
@@ -2378,7 +2383,7 @@ function startCombo(sk, lv, tg, mult) {
         P.dash = { x1: A.x, y1: A.y, x2: B.x, y2: B.y, t0: W.t, dur: STAR_DASH }; P.dir = B.x >= A.x ? 1 : -1; P.swingT = W.t;
         AU.sfx('starSlash');
         addFx({ kind: 'starTrail', x1: A.x, y1: A.y, x2: B.x, y2: B.y, dur: total - t0 + 0.5, rv: STAR_DASH });
-        addFx({ kind: 'slash', x: (A.x + B.x) / 2, y: (A.y + B.y) / 2 - 14, color: '#d9a8ff', dur: 0.25, dir: P.dir, big: true });
+        addFx({ kind: 'slash', x: (A.x + B.x) / 2, y: (A.y + B.y) / 2 - 80, color: '#d9a8ff', dur: 0.25, dir: P.dir, big: true });
       });
       later(t0 + STAR_DASH, () => { if (alive()) starCut(A, B, mult, sk, done); });
     }
@@ -2506,6 +2511,7 @@ function update(dt) {
   P.hp = Math.min(D.maxHp, P.hp + (D.maxHp * 0.006 + D.st.vit * 0.08) * dt);
   P.sp = Math.min(D.maxSp, P.sp + (D.maxSp * 0.012 + D.st.int * 0.05) * dt);
   P.atkT -= dt;
+  if (P.combo && P.combo.kind === 'star') { const el = W.t - P.combo.t0; P.air = 1.2 * clamp(Math.min((el - 0.05) / 0.25, (P.combo.total - el) / 0.15), 0, 1); } else P.air = 0;   // rises into the air for Star Slash
   if (P.dash) { const d = P.dash, k = clamp((W.t - d.t0) / d.dur, 0, 1); P.x = d.x1 + (d.x2 - d.x1) * k; P.y = d.y1 + (d.y2 - d.y1) * k; if (k >= 1) P.dash = null; }
   if (ccActive()) { P.walking = false; return; }
   if (W.t < (P.lockT || 0)) { P.walking = false; npcTick(); pvpSync(); fxTick(); botsTick(dt); return; }   // busy with a combo skill: no walking, no auto attack
@@ -4235,7 +4241,7 @@ void main(){
     }
     for (const m of ents) if (m.alpha > 0.02 && m._vis) { const fz = monFrozen(m); if (fz && !m._ft) m._ft = t; if (!fz) m._ft = 0; drawMon(E, m, fz ? m._ft : t); }
     const h = S.hero;
-    E.push(); E.T(P.X, 0, P.Z); E.RY(P._fa || 0);
+    E.push(); E.T(P.X, P.air || 0, P.Z); E.RY(P._fa || 0);
     drawChar(E, h.look, h.job, h.wstyle, { t, walking: P.walking, swing: (t - P.swingT) / 0.3, flash: t - P.hurtT < 0.1 ? 0.45 : 0, dead: P.dead, eq: eqVis(h), wg: myA.wg, ent: P, swingId: P.swingT, hurtId: P.hurtT, castId: P.castT, castKind: P.castKind, cheerId: P.cheerT, atkDur: P.D ? P.D.aspdMs / 1000 : 0.55, wv: h.eq && h.eq.weapon && h.eq.weapon.id, flash: ccActive() && P.ccType === 'freeze' ? 0.32 : (t - P.hurtT < 0.1 ? 0.45 : 0) });
     E.pop();
     if (ccActive()) ccVis(E, P.X, P.Z, P.ccType, t);
@@ -4613,7 +4619,7 @@ Object.assign(FX2O, {
   },
   // purple light line along one edge of the star; it is drawn out as the dash passes
   starTrail(ctx, f, p, t, proj) {
-    const A = proj(f.x1, f.y1, 0.6), B = proj(f.x2, f.y2, 0.6), rev = clamp(p * f.dur / (f.rv || 0.12), 0, 1), fade = p > 0.6 ? (1 - p) / 0.4 : 1;
+    const A = proj(f.x1, f.y1, 2.0), B = proj(f.x2, f.y2, 2.0), rev = clamp(p * f.dur / (f.rv || 0.12), 0, 1), fade = p > 0.6 ? (1 - p) / 0.4 : 1;
     const ex = A.x + (B.x - A.x) * rev, ey = A.y + (B.y - A.y) * rev;
     ctx.globalCompositeOperation = 'lighter'; ctx.lineCap = 'round';
     ctx.strokeStyle = rgba('#7b2cff', 0.55 * fade); ctx.lineWidth = 11; ctx.beginPath(); ctx.moveTo(A.x, A.y); ctx.lineTo(ex, ey); ctx.stroke();
