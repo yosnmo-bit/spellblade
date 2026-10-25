@@ -6322,8 +6322,8 @@ function spawnMinion(x, y) {
 function spawnRaid() {
   const ti = W.map.monsters.findIndex((t) => t.raid);
   if (ti < 0 || W.mons.some((m) => m.raid)) return;
-  const m = makeMon(W.map.monsters[ti], ti, WORLD.w / 2, WORLD.h * 0.34), k = Math.max(1, Math.min(CONFIG.party.max, partySize()) * 0.75);
-  m.hp = m.maxHp = Math.round(m.maxHp * k); W.mons.push(m);
+  const m = makeMon(W.map.monsters[ti], ti, WORLD.w / 2, WORLD.h * 0.34);
+  W.mons.push(m);
   for (let i = 0; i < 4; i++) spawnMinion(WORLD.w / 2 + Math.cos(i * 1.57 + 0.78) * 150, WORLD.h * 0.34 + Math.sin(i * 1.57 + 0.78) * 110);
   pushBk('spawn', [[WORLD.w / 2, WORLD.h * 0.34, 0]], 0);
 }
