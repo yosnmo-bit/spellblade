@@ -4138,7 +4138,8 @@ void main(){
     const sh = R3.shakeUntil > performance.now() ? R3.shakeAmp : 0;
     const tgt = [R3.cx + (Math.random() - 0.5) * sh, 0, R3.cz + (Math.random() - 0.5) * sh];
     const Dc = R3.cd || D;
-    E.setCam([tgt[0], Dc * Math.sin(elev), tgt[2] + Dc * Math.cos(elev)], tgt, fovy, aspect, 0.5, D * 4);
+    const yw = R3.yaw || 0, hd = Dc * Math.cos(elev);
+    E.setCam([tgt[0] + hd * Math.sin(yw), Dc * Math.sin(elev), tgt[2] + hd * Math.cos(yw)], tgt, fovy, aspect, 0.5, D * 4);
     E.fogR = [D * 1.08, D * 2.0];
   };
   function ccVis(E, X, Z, type, t) {
@@ -7852,10 +7853,17 @@ function setAuto(v) { S.auto = v; if (v) { P.aax = P.x; P.aay = P.y; } $('#autoB
   ab.addEventListener('contextmenu', (e) => e.preventDefault());
   ab.addEventListener('click', () => { if (lpFired) { lpFired = false; return; } if (S.auto) { setAuto(false); toast('ปิดออโต้'); } else openPanel('auto'); }); }
 function setZoom(z) { S.zoom = clamp(z, 0.8, 1.8); lsSet('spellblade_zoom', S.zoom.toFixed(2)); }
-const PTR = new Map(); let pinch = null;
-$('#world').addEventListener('pointerdown', (e) => { PTR.set(e.pointerId, { x: e.clientX, y: e.clientY }); if (PTR.size === 2) { const [a, b] = [...PTR.values()]; pinch = { d: Math.max(20, Math.hypot(a.x - b.x, a.y - b.y)), z: S.zoom }; } });
-$('#world').addEventListener('pointermove', (e) => { if (!PTR.has(e.pointerId)) return; PTR.set(e.pointerId, { x: e.clientX, y: e.clientY }); if (pinch && PTR.size >= 2) { const [a, b] = [...PTR.values()]; setZoom(pinch.z * pinch.d / Math.max(20, Math.hypot(a.x - b.x, a.y - b.y))); } });
-for (const ev of ['pointerup', 'pointercancel', 'pointerleave']) $('#world').addEventListener(ev, (e) => { PTR.delete(e.pointerId); if (PTR.size < 2) pinch = null; });
+const PTR = new Map(); let pinch = null, TAP = null;
+R3.yaw = Number(lsGet('spellblade_yaw')) || 0;
+$('#world').addEventListener('pointerdown', (e) => { PTR.set(e.pointerId, { x: e.clientX, y: e.clientY }); if (PTR.size === 2) { TAP = null; const [a, b] = [...PTR.values()]; pinch = { d: Math.max(20, Math.hypot(a.x - b.x, a.y - b.y)), z: S.zoom }; } });
+$('#world').addEventListener('pointermove', (e) => { if (!PTR.has(e.pointerId)) return;
+  if (TAP && TAP.id === e.pointerId && PTR.size === 1) {
+    const dx = e.clientX - TAP.lx;
+    if (!TAP.moved && Math.hypot(e.clientX - TAP.x, e.clientY - TAP.y) > 10) { TAP.moved = true; TAP.lx = e.clientX; return; }
+    if (TAP.moved) { R3.yaw = ((R3.yaw || 0) - dx * 0.008) % TAU; TAP.lx = e.clientX; }
+  }
+  PTR.set(e.pointerId, { x: e.clientX, y: e.clientY }); if (pinch && PTR.size >= 2) { const [a, b] = [...PTR.values()]; setZoom(pinch.z * pinch.d / Math.max(20, Math.hypot(a.x - b.x, a.y - b.y))); } });
+for (const ev of ['pointerup', 'pointercancel', 'pointerleave']) $('#world').addEventListener(ev, (e) => { PTR.delete(e.pointerId); if (PTR.size < 2) pinch = null; if (TAP && TAP.id === e.pointerId) { if (TAP.moved) lsSet('spellblade_yaw', (R3.yaw || 0).toFixed(3)); if (ev === 'pointerup' && !TAP.moved) { const t = TAP; TAP = null; worldTap(t.cx, t.cy, t.rect); } TAP = null; } });
 $('#world').addEventListener('wheel', (e) => { e.preventDefault(); setZoom(S.zoom * (1 + e.deltaY * 0.0012)); }, { passive: false });
 S.autoRange = num(lsGet('spellblade_autorange'), 1, 0.05, 1);   // share of the map the auto walk circle covers (1 = whole map)
 const AUTO_RANGES = [[1, 'ทั้งแมพ'], [0.5, '50%'], [0.25, '25%'], [0.1, '10%']];
@@ -7956,9 +7964,12 @@ document.querySelectorAll('.sbtn').forEach((b) => b.addEventListener('click', ()
 $('#world').addEventListener('pointerdown', (e) => {
   if (!S.hero || P.dead) return;
   e.preventDefault();
-  const r = e.currentTarget.getBoundingClientRect();
-  let x = e.clientX - r.left, y = e.clientY - r.top, best = null, bd = 1e9;
-  if (PTR.size >= 2) return;
+  if (PTR.size >= 2) { TAP = null; return; }
+  TAP = { id: e.pointerId, x: e.clientX, y: e.clientY, lx: e.clientX, cx: e.clientX, cy: e.clientY, moved: false, rect: e.currentTarget.getBoundingClientRect() };
+});
+function worldTap(cx, cy, r) {
+  if (!S.hero || P.dead) return;
+  let x = cx - r.left, y = cy - r.top, best = null, bd = 1e9;
   if (R3.on) { const pk = R3.pick(x, y); if (!pk) return; if (pk.mon) best = pk.mon; else { x = pk.x; y = pk.y; } }
   else { const zs = 1 / S.zoom, c = W.cam2 || { x: P.x, y: P.y }; x = (x - W.w / 2) / zs + c.x; y = (y - W.h * 0.55) / zs + c.y; }
   if (!R3.on) for (const m of pvpPool()) {
@@ -7976,7 +7987,7 @@ $('#world').addEventListener('pointerdown', (e) => {
     addFx({ kind: 'tap', x: P.tx, y: P.ty, color: '#ffffff', dur: 0.35 });
     P.txAt = W.t;   // auto stays on: it pauses while walking and resumes on arrival
   }
-});
+}
 
 /* ---------- minimap ---------- */
 const MM = { key: '', bg: null, t: 0, w: 86, h: 132 };
@@ -8006,7 +8017,9 @@ function drawMinimap(now) {
   g.drawImage(MM.bg, 0, 0);
   // view area
   const vw = (R3.on ? 7.4 * (S.zoom || 1) * R3.U : W.w / (S.zoom || 1)), vh = vw * Math.min(1.6, (W.h - 200) / Math.max(1, W.w));
-  g.strokeStyle = 'rgba(255,255,255,.35)'; g.lineWidth = d; g.strokeRect((P.x - vw / 2) * sx, (P.y - vh * 0.62) * sy, vw * sx, vh * sy);
+  g.strokeStyle = 'rgba(255,255,255,.35)'; g.lineWidth = d;
+  if (R3.on && R3.yaw) { g.save(); g.scale(sx, sy); g.translate(P.x, P.y); g.rotate(-R3.yaw); g.lineWidth = d / Math.max(sx, sy); g.strokeRect(-vw / 2, -vh * 0.62, vw, vh); g.restore(); }
+  else g.strokeRect((P.x - vw / 2) * sx, (P.y - vh * 0.62) * sy, vw * sx, vh * sy);
   if (S.auto && isFinite(autoR()) && P.aax != null) { g.beginPath(); g.ellipse(P.aax * sx, P.aay * sy, autoR() * sx, autoR() * sy, 0, 0, TAU); g.strokeStyle = 'rgba(255,225,77,.8)'; g.setLineDash([4 * d, 3 * d]); g.lineWidth = d; g.stroke(); g.setLineDash([]); }
   for (const m of W.mons) if (!m.boss && m.state !== 'dead') mmDot(g, m.x * sx, m.y * sy, 1.1 * d, 'rgba(255,120,110,.7)');
   for (const o of othersHere()) {
