@@ -914,10 +914,10 @@ defSkill('sm_quake', 'swordman', 'พสุธาสะเทือน', '💥',
 defSkill('sm_iron', 'swordman', 'ร่างเหล็กกล้า', '🛡️', 'passive', { p: { hpPct: 2, def: 1 }, color: '#9fb4d0' });
 defSkill('kn_pierce', 'knight', 'ดาบพุ่งทะลวง', '🗡️', 'atk', { m: [2.0, 0.35], hits: 3, sp: [10, 1], cd: 2, color: '#8fd3ff', fx: 'slash' });
 defSkill('kn_spiral', 'knight', 'พายุคมดาบ', '🌀', 'aoe', { m: [1.8, 0.25], r: 110, sp: [18, 1.5], cd: 5, color: '#b3e5ff', fx: 'quake' });
-defSkill('kn_valor', 'knight', 'ปลุกใจอัศวิน', '🦁', 'buff', { b: { atk: 3, def: 2 }, dur: 60, sp: [20, 2], cd: 90, color: '#ffe066' });
+defSkill('kn_valor', 'knight', 'ปลุกใจอัศวิน', '🦁', 'buff', { b: { atk: 3, def: 2 }, dur: 60, sp: [20, 2], cd: 30, color: '#ffe066' });
 defSkill('lk_judge', 'lordknight', 'ดาบพิพากษา', '⚡', 'atk', { zap: 1, m: [4.0, 0.6], hits: 5, sp: [20, 2], cd: 3, color: '#fff3a0', fx: 'pillar' });
 defSkill('lk_cata', 'lordknight', 'ปฐพีถล่ม', '🌋', 'aoe', { boom: 1, m: [3.0, 0.4], r: 130, self: true, hits: 2, sp: [30, 2], cd: 6, color: '#ff9f43', fx: 'quake' });
-defSkill('lk_fury', 'lordknight', 'โทสะจ้าวสงคราม', '😤', 'buff', { b: { atk: 5, aspd: 3 }, dur: 60, sp: [40, 3], cd: 90, color: '#ff6b6b' });
+defSkill('lk_fury', 'lordknight', 'โทสะจ้าวสงคราม', '😤', 'buff', { b: { atk: 5, aspd: 3 }, dur: 60, sp: [40, 3], cd: 30, color: '#ff6b6b' });
 // Acolyte line
 defSkill('ac_heal', 'acolyte', 'แสงเยียวยา', '💚', 'heal', { party: 1, h: [0.1, 0.03], sp: [8, 1], cd: 3, color: '#8ff0a4' });
 defSkill('ac_bolt', 'acolyte', 'ศรศักดิ์สิทธิ์', '✨', 'atk', { zap: 1, dmg: 'magic', m: [1.2, 0.25], sp: [6, 0.6], cd: 1.5, color: '#fff1a8', fx: 'pillar' });
@@ -936,40 +936,40 @@ defSkill('mg_frost', 'magician', 'ศรน้ำแข็ง', '❄️', 'atk',
 defSkill('mg_spark', 'magician', 'ประกายอัสนี', '⚡', 'aoe', { zap: 1, dmg: 'magic', m: [1.1, 0.2], r: 90, hits: 2, sp: [14, 1], cd: 4, color: '#c9b8ff', fx: 'pillars' });
 defSkill('wz_meteor', 'wizard', 'ฝนอุกกาบาต', '☄️', 'aoe', { fire: 1, fzone: 1, dmg: 'magic', m: [2.2, 0.65], r: 130, hits: 4, sp: [30, 2], cd: 5, color: '#ff9248', fx: 'meteor' });
 defSkill('wz_blizzard', 'wizard', 'พายุหิมะ', '🌨️', 'aoe', { frz: [10, 2], frzDur: 2, ice: 1, dmg: 'magic', m: [2.0, 0.6], r: 140, hits: 3, sp: [28, 2], cd: 4, color: '#bfeaff', fx: 'pillars' });
-defSkill('wz_focus', 'wizard', 'จิตวิเวก', '🧘', 'buff', { b: { matk: 4 }, dur: 90, sp: [25, 2], cd: 120, color: '#d5b3ff' });
+defSkill('wz_focus', 'wizard', 'จิตวิเวก', '🧘', 'buff', { b: { matk: 4 }, dur: 90, sp: [25, 2], cd: 30, color: '#d5b3ff' });
 defSkill('hw_void', 'highwizard', 'หอกมิติ', '🌌', 'atk', { zap: 1, dmg: 'magic', m: [5.0, 1.0], hits: 3, sp: [30, 2], cd: 3, color: '#b18cff', fx: 'pillar' });
 defSkill('hw_cata', 'highwizard', 'ทัณฑ์สวรรค์', '🌠', 'aoe', { nuke: 1, dmg: 'magic', m: [3.5, 0.75], r: 160, hits: 5, sp: [45, 3], cd: 5, color: '#ffd166', fx: 'meteor' });
-defSkill('hw_mind', 'highwizard', 'จิตอนันต์', '🔯', 'buff', { b: { matk: 6, cdr: 2 }, dur: 90, sp: [35, 2], cd: 120, color: '#e0c3ff' });
+defSkill('hw_mind', 'highwizard', 'จิตอนันต์', '🔯', 'buff', { b: { matk: 6, cdr: 2 }, dur: 90, sp: [35, 2], cd: 30, color: '#e0c3ff' });
 // Archer line
 defSkill('ar_double', 'archer', 'ศรคู่', '🏹', 'atk', { m: [1.4, 0.2], hits: 2, sp: [6, 0.5], cd: 1.2, color: '#ffe08a', fx: 'arrow' });
 defSkill('ar_rain', 'archer', 'ห่าศร', '🌧️', 'aoe', { aboom: 1, m: [1.2, 0.2], r: 100, hits: 3, sp: [15, 1], cd: 4, color: '#f5d76e', fx: 'pillars' });
 defSkill('ar_eye', 'archer', 'ตาเหยี่ยว', '👁️', 'passive', { p: { atkPct: 2, dex: 1 }, color: '#e8d27a' });
 defSkill('hu_trap', 'hunter', 'กับดักระเบิด', '💣', 'aoe', { boom: 1, m: [2.0, 0.3], r: 110, sp: [20, 1.5], cd: 5, color: '#ff8c42', fx: 'quake' });
 defSkill('hu_falcon', 'hunter', 'เหยี่ยวจู่โจม', '🦅', 'atk', { m: [2.5, 0.4], hits: 2, sp: [15, 1], cd: 2.5, color: '#d4f1ff', fx: 'arrow' });
-defSkill('hu_focus', 'hunter', 'สมาธิพราน', '🎯', 'buff', { b: { atk: 3, crit: 1 }, dur: 90, sp: [25, 2], cd: 120, color: '#fff0a8' });
+defSkill('hu_focus', 'hunter', 'สมาธิพราน', '🎯', 'buff', { b: { atk: 3, crit: 1 }, dur: 90, sp: [25, 2], cd: 30, color: '#fff0a8' });
 defSkill('sn_heart', 'sniper', 'ศรทะลวงใจ', '💘', 'atk', { m: [5.0, 0.3], crit: true, sp: [30, 2], cd: 3, color: '#ffffff', fx: 'arrow' });
 defSkill('sn_storm', 'sniper', 'พายุศรพันดอก', '🌪️', 'aoe', { aboom: 1, m: [3.0, 0.4], r: 150, hits: 4, sp: [40, 3], cd: 6, color: '#ffe7a3', fx: 'pillars' });
-defSkill('sn_wind', 'sniper', 'ย่างก้าวสายลม', '🌬️', 'buff', { b: { aspd: 4, flee: 3 }, dur: 90, sp: [30, 2], cd: 120, color: '#c7ffd8' });
+defSkill('sn_wind', 'sniper', 'ย่างก้าวสายลม', '🌬️', 'buff', { b: { aspd: 4, flee: 3 }, dur: 90, sp: [30, 2], cd: 30, color: '#c7ffd8' });
 // Thief line
 defSkill('th_stab', 'thief', 'แทงสองคม', '🗡️', 'atk', { m: [1.2, 0.2], hits: 2, sp: [5, 0.4], cd: 1, color: '#e0e0e0', fx: 'slash' });
 defSkill('th_venom', 'thief', 'คมพิษ', '🐍', 'atk', { m: [1.5, 0.25], sp: [8, 0.6], cd: 2, color: '#9be564', fx: 'slash' });
 defSkill('th_light', 'thief', 'ตัวเบาดั่งเงา', '👣', 'passive', { p: { flee: 3, aspdPct: 1 }, color: '#b9b9d0' });
 defSkill('as_flurry', 'assassin', 'ร้อยคมมีด', '🔪', 'atk', { m: [2.2, 0.3], hits: 5, sp: [15, 1], cd: 2, color: '#e8e8ff', fx: 'slash' });
 defSkill('as_shade', 'assassin', 'เงาสังหาร', '🌘', 'aoe', { m: [1.8, 0.25], r: 100, self: true, sp: [22, 1.5], cd: 5, color: '#8a7bff', fx: 'quake' });
-defSkill('as_poison', 'assassin', 'อาบยาพิษ', '☠️', 'buff', { b: { atk: 3, crit: 1 }, dur: 90, sp: [25, 2], cd: 120, color: '#a6ff7a' });
+defSkill('as_poison', 'assassin', 'อาบยาพิษ', '☠️', 'buff', { b: { atk: 3, crit: 1 }, dur: 90, sp: [25, 2], cd: 30, color: '#a6ff7a' });
 defSkill('ax_doom', 'assassincross', 'มีดเงาโลกันต์', '🌑', 'atk', { m: [5.0, 0.7], hits: 6, sp: [35, 2.5], cd: 3, color: '#c8a2ff', fx: 'slash' });
 defSkill('ax_storm', 'assassincross', 'พายุใบมีด', '🌀', 'aoe', { m: [3.0, 0.45], r: 130, self: true, hits: 3, sp: [40, 3], cd: 6, color: '#e0e0ff', fx: 'quake' });
-defSkill('ax_edge', 'assassincross', 'คมมรณะ', '🩸', 'buff', { b: { atk: 5, crit: 2 }, dur: 90, sp: [35, 2], cd: 120, color: '#ff5f7e' });
+defSkill('ax_edge', 'assassincross', 'คมมรณะ', '🩸', 'buff', { b: { atk: 5, crit: 2 }, dur: 90, sp: [35, 2], cd: 30, color: '#ff5f7e' });
 // Merchant line
 defSkill('me_cleave', 'merchant', 'ขวานผ่าศิลา', '🪓', 'atk', { m: [1.5, 0.3], sp: [6, 0.6], cd: 1.6, color: '#ffc078', fx: 'slash' });
 defSkill('me_whirl', 'merchant', 'เหวี่ยงรอบทิศ', '🔄', 'aoe', { m: [1.1, 0.2], r: 90, self: true, sp: [12, 1], cd: 4, color: '#ffd8a8', fx: 'quake' });
 defSkill('me_haggle', 'merchant', 'ต่อรองราคา', '💰', 'passive', { p: { discount: 2 }, color: '#f6d365' });
 defSkill('bs_hammer', 'blacksmith', 'ค้อนสะท้านภพ', '🔨', 'aoe', { boom: 1, m: [2.0, 0.3], r: 120, self: true, sp: [24, 1.5], cd: 5, color: '#ffb04d', fx: 'quake' });
 defSkill('bs_crush', 'blacksmith', 'ขวานพิฆาต', '💥', 'atk', { m: [2.5, 0.4], hits: 2, sp: [15, 1], cd: 2.2, color: '#ff9a3c', fx: 'slash' });
-defSkill('bs_forge', 'blacksmith', 'ไฟเตาหลอม', '🔥', 'buff', { b: { atk: 4, aspd: 2 }, dur: 90, sp: [25, 2], cd: 120, color: '#ff6a3d' });
+defSkill('bs_forge', 'blacksmith', 'ไฟเตาหลอม', '🔥', 'buff', { b: { atk: 4, aspd: 2 }, dur: 90, sp: [25, 2], cd: 30, color: '#ff6a3d' });
 defSkill('ws_execute', 'whitesmith', 'ประหารเหล็กกล้า', '⚒️', 'atk', { m: [5.0, 0.7], hits: 3, sp: [30, 2], cd: 3, color: '#ffe0b3', fx: 'pillar' });
 defSkill('ws_quake', 'whitesmith', 'ขวานถล่มปฐพี', '🌋', 'aoe', { boom: 1, m: [3.2, 0.45], r: 150, self: true, hits: 3, sp: [42, 3], cd: 6, color: '#ff8f3d', fx: 'quake' });
-defSkill('ws_titan', 'whitesmith', 'พลังไททัน', '💪', 'buff', { b: { atk: 6, def: 3 }, dur: 90, sp: [35, 2], cd: 120, color: '#fff3c4' });
+defSkill('ws_titan', 'whitesmith', 'พลังไททัน', '💪', 'buff', { b: { atk: 6, def: 3 }, dur: 90, sp: [35, 2], cd: 30, color: '#fff3c4' });
 
 const BUFF_TH = { bowPct: 'พลังธนู', critDmg: 'ความแรงคริ', pdmg: 'ดาเมจกายภาพ', mdmg: 'ดาเมจเวท', hit: 'HIT', msp: 'SP สูงสุด', cdr: 'ลดคูลดาวน์สกิล', watk: 'ATK', wmatk: 'MATK', str: 'STR', agi: 'AGI', vit: 'VIT', int: 'INT', luk: 'LUK', matkPct: 'MATK', atk: 'ATK', matk: 'MATK', aspd: 'ความเร็วตี', def: 'DEF', crit: 'คริ', flee: 'หลบ', hpPct: 'HP สูงสุด', atkPct: 'ATK', aspdPct: 'ความเร็วตี', discount: 'ส่วนลดร้าน', dex: 'DEX' };
 const PCT_KEYS = { bowPct: 1, critDmg: 1, pdmg: 1, mdmg: 1, cdr: 1, matkPct: 1, atk: 1, matk: 1, aspd: 1, hpPct: 1, atkPct: 1, aspdPct: 1, discount: 1, crit: 1 };
