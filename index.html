@@ -1755,6 +1755,9 @@ function buffSum() {
   for (const id in P.buffs) { const b = P.buffs[id]; if (b.until <= W.t) continue; const s = SKILLS[id]; for (const k in s.b) o[k] = (o[k] || 0) + s.b[k] * b.lv; }
   return o;
 }
+/* ASPD: 193 (the cap) = 12 attacks per second. attacks/s = 84 / (200 - ASPD) */
+const ASPD_MAX = 193, ASPD_K = 84, ASPD_MIN_MS = 1000 / (ASPD_K / (200 - ASPD_MAX));
+const aspdOf = (ms) => Math.min(ASPD_MAX, Math.round(200 - ASPD_K * ms / 1000));
 function derived(h) {
   h = h || S.hero;
   const J = JOBS[h.job], L = LINES[J.line], tier = J.tier, ti = Math.max(0, tier - 1);
@@ -1775,7 +1778,7 @@ function derived(h) {
   const maxHp = Math.round((70 + 12 * h.level + 0.35 * h.level * h.level) * hpMod * (1 + st.vit / 100) * (1 + ((pa.hpPct || 0) + h.refineA * 2) / 100));
   const maxSp = Math.round((20 + 4 * h.level) * spMod * (1 + st.int / 100) + (pa.msp || 0));
   const def = Math.round(st.vit * 0.5 + h.refineA * 3 + (L.shield ? 5 * (tier + 1) : 0) + (pa.def || 0) + (bu.def || 0));
-  const aspdMs = Math.max(260, (1500 - st.agi * 7 - st.dex * 2) * L.aspd * (w === 'katar' ? 1.08 : w === 'dual' ? 0.95 : 1)) / (1 + ((pa.aspdPct || 0) + (bu.aspd || 0)) / 100);
+  const aspdMs = Math.max(ASPD_MIN_MS, Math.max(260, (1500 - st.agi * 7) * L.aspd * (w === 'katar' ? 1.08 : w === 'dual' ? 0.95 : 1)) / (1 + ((pa.aspdPct || 0) + (bu.aspd || 0)) / 100));
   return {
     st, jb, w, atkType: L.atk, range: L.range,
     atk: Math.round(atk), matk: Math.round(matk), maxHp, maxSp, def, aspdMs,
@@ -7333,7 +7336,7 @@ function offModel(h, map) {
   if (!pool.length) return { ok: false, reason: 'แผนที่นี้ไม่มีมอนให้ล่า' };
   const skills = [];
   for (const id of h.hotbar || []) { const sk = SKILLS[id], lv = (h.skills || {})[id] | 0; if (sk && lv > 0 && (sk.type === 'atk' || sk.type === 'aoe') && sk.m) skills.push({ sk, lv }); }
-  const magic = D.atkType === 'magic', swing = Math.max(0.26, D.aspdMs / 1000), critP = clamp(D.crit, 0, 100) / 100, cdm = 1.5 + (D.critDmg || 0) / 100;
+  const magic = D.atkType === 'magic', swing = Math.max(ASPD_MIN_MS / 1000, D.aspdMs / 1000), critP = clamp(D.crit, 0, 100) / 100, cdm = 1.5 + (D.critDmg || 0) / 100;
   const phys = (mult, t) => { const miss = clamp((t.lv * 1.1 + 12 - D.hit) / 100, 0, 0.6); return D.atk * mult * (critP * cdm + (1 - critP) * (1 - miss) * 100 / (100 + t.def)) * (1 + (D.pdmg || 0) / 100); };
   const mag = (mult, t) => D.matk * mult * (critP * cdm + (1 - critP) * 100 / (100 + t.def * 0.6)) * (1 + (D.mdmg || 0) / 100);
   const spIn = D.maxSp * 0.012 + D.st.int * 0.05, hpReg = D.maxHp * 0.006 + D.st.vit * 0.08;
@@ -8106,7 +8109,7 @@ function panelStats(body) {
   }
   const kv = el('div', { class: 'kv' });
   [['ATK', fmt(D.atk)], ['MATK', fmt(D.matk)], ['DEF', fmt(D.def)], ['HIT', fmt(D.hit)], ['FLEE', fmt(D.flee)], ['CRIT', D.crit.toFixed(1) + '%'],
-   ['ตี/วินาที', (1000 / D.aspdMs).toFixed(2)], ['ลดคูลดาวน์', D.cdr.toFixed(1) + '%'], ['MAX HP', fmt(D.maxHp)], ['MAX SP', fmt(D.maxSp)]]
+   ['ASPD', aspdOf(D.aspdMs) + (aspdOf(D.aspdMs) >= ASPD_MAX ? ' (MAX)' : '')], ['ลดคูลดาวน์', D.cdr.toFixed(1) + '%'], ['MAX HP', fmt(D.maxHp)], ['MAX SP', fmt(D.maxSp)]]
     .forEach(([a, b]) => kv.append(el('div', null, a, el('b', { text: b }))));
   body.append(kv);
   const reset = twoStep(el('button', { class: 'mini warn', text: 'สร้างตัวละครใหม่' }), 'สร้างตัวละครใหม่', 'แตะอีกครั้ง ตัวละครนี้จะหายไป', () => {
