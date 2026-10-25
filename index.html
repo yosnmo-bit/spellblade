@@ -959,6 +959,8 @@ defSkill('as_shade', 'assassin', 'เงาสังหาร', '🌘', 'aoe', {
 defSkill('as_poison', 'assassin', 'อาบยาพิษ', '☠️', 'buff', { b: { atk: 3, crit: 1 }, dur: 90, sp: [25, 2], cd: 30, color: '#a6ff7a' });
 defSkill('ax_doom', 'assassincross', 'มีดเงาโลกันต์', '🌑', 'atk', { m: [5.0, 0.7], hits: 6, sp: [35, 2.5], cd: 3, color: '#c8a2ff', fx: 'slash' });
 defSkill('ax_storm', 'assassincross', 'พายุใบมีด', '🌀', 'aoe', { m: [3.0, 0.45], r: 130, self: true, hits: 3, sp: [40, 3], cd: 6, color: '#e0e0ff', fx: 'quake' });
+defSkill('ax_sonic', 'assassincross', 'Sonic Slash', '⚡', 'combo', { combo: 'sonic', req: 'katar', m: [3.2, 0], hits: 10, proc: 30, sp: [45, 2], cd: 5, color: '#8b3dff', sfx: 'sonicCharge' });
+defSkill('ax_star', 'assassincross', 'Star Slash', '🌟', 'combo', { combo: 'star', req: 'dual', m: [6.4, 0], hits: 5, proc: 30, sp: [55, 3], cd: 5, color: '#a855ff', sfx: 'starCharge' });
 defSkill('ax_edge', 'assassincross', 'คมมรณะ', '🩸', 'buff', { b: { atk: 5, crit: 2 }, dur: 90, sp: [35, 2], cd: 30, color: '#ff5f7e' });
 // Merchant line
 defSkill('me_cleave', 'merchant', 'ขวานผ่าศิลา', '🪓', 'atk', { m: [1.5, 0.3], sp: [6, 0.6], cd: 1.6, color: '#ffc078', fx: 'slash' });
@@ -2145,6 +2147,7 @@ function gainExp(b, j) {
   if (baseUp || jobUp) { save(); renderSheetIfOpen(); }
 }
 function monHit(m) {
+  if (W.t < (P.invT || 0)) return;
   const D = P.D, miss = clamp((D.flee - (m.lv + 25)) / 100, 0, 0.8);
   if (Math.random() < miss) { addNum(P.x, P.y - 54, 'MISS', '#c8d0dc', 11, { dmg: true, tk: 'me', tg: P, oy: -54, dur: 1.2 }); return; }
   const dmg = Math.max(1, Math.round(m.atk * (0.85 + Math.random() * 0.3) * 100 / (100 + D.def)));
@@ -2153,6 +2156,7 @@ function monHit(m) {
   if (P.hp <= 0) playerDie();
 }
 function playerDie() {
+  P.combo = null; P.lockT = 0; P.invT = 0; P.dash = null;
   const h = S.hero;
   P.dead = true; P.hp = 0; P.deadUntil = W.t + (typeof partyMates === 'function' && partyMates(false).length ? 12 : 4); P.target = null; P.queued = null; P.tx = null;
   const loss = Math.round(baseNeed(h.level) * CONFIG.deathPenalty / 100);
@@ -2186,6 +2190,7 @@ function skillRange(sk) {
   if (!sk) return D.range;
   if (sk.type === 'atk') return (sk.dmg === 'magic' || D.atkType !== 'melee') ? 210 : D.range + 8;
   if (sk.type === 'aoe') return sk.self ? Math.max(D.range, sk.r * 0.7) : 210;
+  if (sk.type === 'combo') return sk.combo === 'sonic' ? D.range + 8 : 9999;
   return 9999;
 }
 /* ---------- party support: heals, buffs and revives reach teammates through presence ---------- */
@@ -2235,11 +2240,13 @@ function castSkill(id, fromQueue) {
   const h = S.hero, sk = SKILLS[id], lv = h.skills[id] | 0;
   if (!sk || !lv || sk.type === 'passive' || P.dead) return false;
   if ((P.cds[id] || 0) > W.t) return false;
+  if (W.t < (P.lockT || 0)) return false;   // already in the middle of a combo skill
+  if (sk.req && weaponOf(h.job, h.wstyle) !== sk.req) { toast(sk.req === 'katar' ? 'ต้องสวมอาวุธคาตาร์ถึงจะใช้สกิลนี้ได้' : 'ต้องสวมมีดคู่ถึงจะใช้สกิลนี้ได้'); return false; }
   const cost = spCost(sk, lv);
   if (P.sp < cost) { if (!S.auto) toast('SP ไม่พอ'); return false; }
   const D = P.D;
   let tg = null;
-  if (sk.type === 'atk' || sk.type === 'aoe') {
+  if (sk.type === 'atk' || sk.type === 'aoe' || (sk.type === 'combo' && sk.combo === 'sonic')) {
     tg = (P.target && P.target.state !== 'dead' && P.target.hp > 0) ? P.target : pickTarget();
     if (!tg) { if (!S.auto) toast('ไม่มีเป้าหมาย'); return false; }
     P.target = tg; P.tx = null;
@@ -2305,8 +2312,79 @@ function castSkill(id, fromQueue) {
     if (sk.party) for (const o of supMates()) { sendSup(o, 'b', [id, lv]); addFx({ kind: 'pillar', x: o.x, y: o.y, color: sk.color, dur: 0.6, w: 22 }); if (sk.vfx) addFx({ kind: 'vfx', sheet: sk.vfx, ok: o.key, x: o.x, y: o.y, dur: 1.05 }); }
   } else if (sk.type === 'res') {
     sendSup(resTg, 'r', [0.6]); addFx({ kind: 'pillar', x: resTg.x, y: resTg.y, color: sk.color, dur: 1.2, w: 40 }); addNum(resTg.x, resTg.y - 60, '🕊️ ชุบชีวิต', '#fffbe6', 14, { font: 'th', dur: 1.4 });
+  } else if (sk.type === 'combo') {
+    startCombo(sk, lv, tg, mult);
   }
   return true;
+}
+/* ---------- Assassin Cross combo skills: Sonic Slash (katar) and Star Slash (dual daggers) ---------- */
+let COMBO_SEQ = 0;
+const COMBO_CHARGE = 0.3, SONIC_HITS = 10, SONIC_GAP = 0.1, STAR_R = 120, STAR_DASH = 0.12, STAR_ORDER = [0, 3, 1, 4, 2];   // STAR_ORDER: pentagon corner (from the bottom, going round) for star points 1..5
+function comboEnd(id) { if (P.combo && P.combo.id === id) { P.combo = null; P.lockT = 0; P.invT = 0; P.dash = null; P.atkT = Math.max(P.atkT, 0.25); } }
+// 30% chance per target per cast: Sonic Slash stuns, Star Slash slows. Map bosses and dungeon bosses are immune.
+function comboProc(tg, sk, done) {
+  if (!tg || tg.state === 'dead' || tg.boss || tg.raid || done.has(tg)) return;
+  done.add(tg);
+  if (Math.random() * 100 >= (sk.proc || 0)) return;
+  const type = sk.combo === 'sonic' ? 't' : 's', dur = 1;
+  if (tg.pvp) {   // another player in PvP: the effect is sent to them like frost is
+    NET.pvc = (NET.pvc || []).filter((e) => Date.now() - e[4] < 6000).slice(-9); NET.pvc.push([uid36().slice(-9), tg.pk2, type, dur * 1000, Date.now()]);
+    addNum(tg.x, tg.y - 40 * (tg.size || 1), type === 't' ? '💫 สตั้น' : '❄️ ช้าลง', type === 't' ? '#ffe27a' : '#bfeaff', 12, { font: 'th', dur: 1.2 });
+    if (type === 't') AU.sfx('stun');
+    return;
+  }
+  setMonCC(tg, type, dur);
+  if (type === 's') addNum(tg.x, tg.y - 40 * (tg.size || 1), '❄️ ช้าลง', '#bfeaff', 12, { font: 'th', dur: 1.2 });
+  if (!NET.isHost) { NET.mcc = (NET.mcc || []).filter((e) => Date.now() - e[4] < 6000).slice(-19); NET.mcc.push([uid36().slice(-9), tg.uid, type, Math.round(dur * 1000), Date.now()]); }
+}
+function starCut(A, B, mult, sk, done) {
+  const k = 1.3, ax = A.x, ay = A.y * k, dx = B.x - A.x, dy = B.y * k - ay, L2 = dx * dx + dy * dy || 1;
+  for (const m of pvpPool()) {
+    if (m.state === 'dead' || m.hp <= 0) continue;
+    const px = m.x, py = m.y * k, u = clamp(((px - ax) * dx + (py - ay) * dy) / L2, 0, 1), s = m.size || 1;
+    if (Math.hypot(px - (ax + dx * u), py - (ay + dy * u)) > 48 + s * 10) continue;
+    applyHit(m, rollPhys(mult, m), 1); addFx({ kind: 'burst', x: m.x, y: m.y - 14 * s, color: '#c084ff', dur: 0.3 }); comboProc(m, sk, done);
+  }
+}
+function startCombo(sk, lv, tg, mult) {
+  const id = ++COMBO_SEQ, map = W.map, CH = COMBO_CHARGE;
+  const alive = () => P.combo && P.combo.id === id && !P.dead && W.map === map;
+  const total = sk.combo === 'sonic' ? CH + SONIC_HITS * SONIC_GAP + 0.1 : CH + 5 * STAR_DASH + 0.15;
+  const done = new Set();
+  P.combo = { id, kind: sk.combo }; P.lockT = W.t + total; P.walking = false; P.queued = null;
+  if (sk.combo === 'star') P.invT = W.t + total + 0.05;   // immortal for the whole skill
+  addFx({ kind: 'darkAura', x: P.x, y: P.y, dur: CH + 0.25 });
+  addFx({ kind: 'ring', x: P.x, y: P.y, r: 54, color: '#7b2cff', dur: CH + 0.2 });
+  if (sk.combo === 'sonic') {
+    let cur = tg;
+    for (let i = 0; i < SONIC_HITS; i++) later(CH + i * SONIC_GAP, () => {
+      if (!alive()) return;
+      if (!cur || cur.state === 'dead' || cur.hp <= 0) { cur = pickTarget(); if (!cur || Math.hypot(cur.x - P.x, cur.y - P.y) > skillRange(sk) + 60) { comboEnd(id); return; } }
+      const s = cur.size || 1; P.dir = cur.x >= P.x ? 1 : -1; P.swingT = W.t; P.target = cur;
+      applyHit(cur, rollPhys(mult, cur), 1); comboProc(cur, sk, done);
+      addFx({ kind: 'slash', x: cur.x + (Math.random() - 0.5) * 14, y: cur.y - 14 * s, color: i % 2 ? '#d9a8ff' : '#8b3dff', dur: 0.2, dir: i % 2 ? 1 : -1, big: true });
+      AU.sfx('sonicHit');
+    });
+    later(CH + SONIC_HITS * SONIC_GAP + 0.08, () => comboEnd(id));
+  } else {
+    const x0 = P.x, y0 = P.y, b = bounds(), R = STAR_R;
+    const pt = STAR_ORDER.map((k) => { const a = Math.PI / 2 + k * TAU / 5; return { x: clamp(x0 + Math.cos(a) * R, b.x0, b.x1), y: clamp(y0 - R + Math.sin(a) * R, b.y0, b.y1) }; });
+    pt[0] = { x: x0, y: y0 }; pt.push(pt[0]);   // 1 -> 2 -> 3 -> 4 -> 5 -> back to 1
+    later(CH, () => { if (alive()) addFx({ kind: 'ghost', x: x0, y: y0, dur: total - CH + 0.15 }); });   // shadow clone left on point 1
+    for (let i = 0; i < 5; i++) {
+      const A = pt[i], B = pt[i + 1], t0 = CH + i * STAR_DASH;
+      later(t0, () => {
+        if (!alive()) return;
+        P.dash = { x1: A.x, y1: A.y, x2: B.x, y2: B.y, t0: W.t, dur: STAR_DASH }; P.dir = B.x >= A.x ? 1 : -1; P.swingT = W.t;
+        AU.sfx('starSlash');
+        addFx({ kind: 'starTrail', x1: A.x, y1: A.y, x2: B.x, y2: B.y, dur: total - t0 + 0.5, rv: STAR_DASH });
+        addFx({ kind: 'slash', x: (A.x + B.x) / 2, y: (A.y + B.y) / 2 - 14, color: '#d9a8ff', dur: 0.25, dir: P.dir, big: true });
+      });
+      later(t0 + STAR_DASH, () => { if (alive()) starCut(A, B, mult, sk, done); });
+    }
+    later(CH + 5 * STAR_DASH + 0.02, () => { if (alive()) { P.x = x0; P.y = y0; P.dash = null; } });
+    later(total, () => comboEnd(id));
+  }
 }
 const POT = {
   hp: { f: 'potHp', nm: 'ยาแดง', hp: 0.3, cd: 1.5, ic: '🧪', col: '#e2484f', ds: 'ฟื้น HP 30%' },
@@ -2428,7 +2506,9 @@ function update(dt) {
   P.hp = Math.min(D.maxHp, P.hp + (D.maxHp * 0.006 + D.st.vit * 0.08) * dt);
   P.sp = Math.min(D.maxSp, P.sp + (D.maxSp * 0.012 + D.st.int * 0.05) * dt);
   P.atkT -= dt;
+  if (P.dash) { const d = P.dash, k = clamp((W.t - d.t0) / d.dur, 0, 1); P.x = d.x1 + (d.x2 - d.x1) * k; P.y = d.y1 + (d.y2 - d.y1) * k; if (k >= 1) P.dash = null; }
   if (ccActive()) { P.walking = false; return; }
+  if (W.t < (P.lockT || 0)) { P.walking = false; npcTick(); pvpSync(); fxTick(); botsTick(dt); return; }   // busy with a combo skill: no walking, no auto attack
   if (P.target && (P.target.state === 'dead' || P.target.hp <= 0 || !(W.mons.includes(P.target) || (W.pvp && W.pvp.includes(P.target))))) { P.target = null; P.queued = null; }
   const walkHold = S.auto && P.tx != null && !P.target && W.t - (P.txAt || 0) < 10;   // walking by hand/follow: don't grab a target yet
   const fLock = PARTY.follow && W.t - (PARTY.ftgT || 0) < 0.8;   // target is dictated by the party leader
@@ -4520,6 +4600,34 @@ const FX2O = {
     fxGlow(ctx, x, y, u * 0.34, '#ffe9a0', 1); fxGlow(ctx, x, y, u * 0.16, '#ffffff', 1);
   }
 };
+Object.assign(FX2O, {
+  // black-purple charge aura around the caster
+  darkAura(ctx, f, p, t, proj) {
+    const { a, u } = fxAt(proj, f.x, f.y), fade = p < 0.15 ? p / 0.15 : p > 0.8 ? (1 - p) / 0.2 : 1, cy = a.y - u * 0.7;
+    fxGlow(ctx, a.x, cy, u * 1.5, '#12001f', 0.6 * fade);
+    ctx.globalCompositeOperation = 'lighter';
+    fxGlow(ctx, a.x, cy, u * 1.1, '#7b2cff', 0.45 * fade);
+    ctx.lineWidth = Math.max(2, u * 0.06);
+    for (let k = 0; k < 3; k++) { const q = (p * 1.7 + k / 3) % 1, r = u * (1.5 - 1.1 * q); ctx.strokeStyle = rgba('#b04bff', fade * (0.2 + 0.6 * q)); ctx.beginPath(); ctx.ellipse(a.x, a.y - u * 0.05, r, r * 0.4, 0, 0, TAU); ctx.stroke(); }
+    for (let k = 0; k < 8; k++) { const an = t * 5 + k * TAU / 8, r = u * (0.55 + 0.25 * Math.sin(t * 7 + k)); fxSpark(ctx, a.x + Math.cos(an) * r, cy + Math.sin(an) * r * 0.9, u * 0.12, k % 2 ? '#d9a8ff' : '#8b3dff', fade * 0.9); }
+  },
+  // purple light line along one edge of the star; it is drawn out as the dash passes
+  starTrail(ctx, f, p, t, proj) {
+    const A = proj(f.x1, f.y1, 0.6), B = proj(f.x2, f.y2, 0.6), rev = clamp(p * f.dur / (f.rv || 0.12), 0, 1), fade = p > 0.6 ? (1 - p) / 0.4 : 1;
+    const ex = A.x + (B.x - A.x) * rev, ey = A.y + (B.y - A.y) * rev;
+    ctx.globalCompositeOperation = 'lighter'; ctx.lineCap = 'round';
+    ctx.strokeStyle = rgba('#7b2cff', 0.55 * fade); ctx.lineWidth = 11; ctx.beginPath(); ctx.moveTo(A.x, A.y); ctx.lineTo(ex, ey); ctx.stroke();
+    ctx.strokeStyle = rgba('#e3c2ff', 0.95 * fade); ctx.lineWidth = 3; ctx.beginPath(); ctx.moveTo(A.x, A.y); ctx.lineTo(ex, ey); ctx.stroke();
+    fxGlow(ctx, ex, ey, 16, '#c084ff', 0.8 * fade);
+  },
+  // shadow clone left standing on star point 1
+  ghost(ctx, f, p, t, proj) {
+    const { a, u } = fxAt(proj, f.x, f.y), fade = p < 0.08 ? p / 0.08 : p > 0.85 ? (1 - p) / 0.15 : 1, al = Math.min(1, 0.7 * fade * (0.88 + 0.12 * Math.sin(t * 25)));
+    ctx.shadowColor = '#8b3dff'; ctx.shadowBlur = 14; ctx.fillStyle = rgba('#140826', al); ctx.strokeStyle = rgba('#a855ff', al); ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.ellipse(a.x, a.y - u * 0.7, u * 0.3, u * 0.55, 0, 0, TAU); ctx.fill(); ctx.stroke();
+    ctx.beginPath(); ctx.arc(a.x, a.y - u * 1.4, u * 0.2, 0, TAU); ctx.fill(); ctx.stroke();
+  }
+});
 
 /* ---------- ground parts (drawn in the 3D pass) ---------- */
 const FX2G_RAW = {
@@ -4561,6 +4669,7 @@ function fxIntake() {
 const monFrozen = (m) => (m.frzUntil || 0) > W.t || (!NET.isHost && !!m.frzV);
 const monSlowed = (m) => (m.slowUntil || 0) > W.t || (!NET.isHost && !!m.slwV);
 function setMonCC(m, type, dur) {
+  if (type === 't') { if (!m.boss && !m.raid && (m.stunImm || 0) <= W.t) { m.holdUntil = W.t + dur; m.stunImm = W.t + dur + 3; m.moving = false; AU.sfx('stun'); addNum(m.x, m.y - 40 * (m.size || 1), '💫 สตั้น', '#ffe27a', 12, { font: 'th', dur: 1.2 }); } return; }
   if (type === 'f' && !m.boss && !m.raid && (m.frzImm || 0) <= W.t) { m.frzUntil = W.t + dur; m.frzImm = W.t + dur + 3; m.slowUntil = Math.max(m.slowUntil || 0, W.t + dur + 2); m.moving = false; return; }
   m.slowUntil = Math.max(m.slowUntil || 0, W.t + (type === 's' ? dur : 3));
 }
@@ -4578,6 +4687,7 @@ function ccIntake() {
     if (NET.isHost && o.mcc) for (const e of o.mcc) if (!seen.has(e[0])) { seen.add(e[0]); const m = W.mons.find((x) => x.uid === e[1] && x.state !== 'dead'); if (m) setMonCC(m, e[2], e[3] / 1000); }
     if (isPvp() && o.pvc) for (const e of o.pvc) if (e[1] === NET.me && !seen.has(e[0])) { seen.add(e[0]); const d = e[3] / 1000;
       if (e[2] === 'f' && (P.frzImm || 0) <= W.t && !P.dead) { P.ccType = 'freeze'; P.ccUntil = W.t + d; P.frzImm = W.t + d + 3; P.slowUntil = Math.max(P.slowUntil || 0, W.t + d + 2); P.tx = null; toast('🧊 ถูก ' + o.name + ' แช่แข็ง'); }
+      else if (e[2] === 't') { if ((P.stunImm || 0) <= W.t && !P.dead) { applyCC('stun', d); P.stunImm = W.t + d + 3; AU.sfx('stun'); } }
       else P.slowUntil = Math.max(P.slowUntil || 0, W.t + d); }
   }
   if (seen.size > 400) NET.mccSeen = new Set([...seen].slice(-200));
@@ -4716,6 +4826,12 @@ const AU = (() => {
     buff(t) { tone('sawtooth', 220, t, 0.55, 0.1, { to: 880, lp: 2200 }); tone('sine', 440, t, 0.6, 0.09, { to: 1320 }); },
     boom(t) { tone('sine', 92, t, 0.55, 0.62, { to: 34 }); noise(t, 0.55, 0.45, 'lowpass', 900, 110); },
     slash(t) { noise(t, 0.17, 0.34, 'bandpass', 900, 4200, 1.5); tone('triangle', 1450, t + 0.05, 0.32, 0.07); },
+    sonicCharge(t) { tone('sine', 500, t, 0.24, 0.12, { to: 3200 }); tone('sawtooth', 900, t + 0.04, 0.2, 0.05, { to: 3800, lp: 5200 }); tone('square', 2600, t + 0.22, 0.14, 0.07, { to: 700, lp: 4200 }); noise(t + 0.2, 0.12, 0.16, 'bandpass', 5000, 1200, 2); },   // ฟี้ด-จิ้ว
+    starCharge(t) { noise(t, 0.34, 0.2, 'bandpass', 300, 2600, 1.2); tone('sine', 140, t, 0.34, 0.14, { to: 520 }); tone('triangle', 280, t + 0.02, 0.32, 0.06, { to: 1040, lp: 2400 }); },   // วืออ
+    starSlash(t) { noise(t, 0.12, 0.34, 'bandpass', 3800, 700, 1.1); tone('triangle', 1100, t, 0.09, 0.06, { to: 400 }); },   // ฟึ้บ
+    stun(t) { tone('square', 180, t, 0.12, 0.16, { to: 70, lp: 900 }); noise(t, 0.08, 0.25, 'lowpass', 1200, 200); SFX.dizzy(t + 0.1); },   // กึก! แล้วมึนงง
+    dizzy(t) { tone('sine', 700, t, 0.7, 0.1, { vib: 1, to: 380 }); tone('triangle', 350, t, 0.7, 0.07, { vib: 1, to: 220 }); [1318, 1568, 1318, 1568].forEach((f, i) => tone('sine', f, t + 0.08 + i * 0.13, 0.22, 0.07, { r: 0.22 })); },   // วิ้งๆๆ มึนหัว
+    sonicHit(t) { noise(t, 0.06, 0.2, 'bandpass', 3200, 1400, 2); tone('square', 1800 + Math.random() * 400, t, 0.04, 0.04, { to: 900, lp: 3500 }); },
     meteor(t) { tone('sine', 1500, t, 0.36, 0.08, { to: 240 }); SFX.boom(t + 0.33); },
     levelup(t) { [523, 659, 784, 1047].forEach((f, i) => { tone('square', f, t + i * 0.09, 0.18, 0.08, { lp: 3200 }); tone('triangle', f * 2, t + i * 0.09, 0.2, 0.045); }); tone('square', 1319, t + 0.38, 0.55, 0.09, { lp: 3200 }); },
     jobup(t) { [784, 988, 1175].forEach((f, i) => tone('triangle', f, t + i * 0.07, 0.24, 0.09)); },
@@ -4771,6 +4887,7 @@ const AU = (() => {
     return true;
   };
   A.skillSfx = (sk) => {
+    if (sk.sfx) return sk.sfx;
     if (sk.type === 'heal') return 'heal';
     if (sk.type === 'buff') return 'buff';
     if (sk.fx === 'meteor') return 'meteor';
@@ -6270,7 +6387,7 @@ function teleTick() {
     }
     AU.sfx(tl.type === 'slam' ? 'slam' : tl.type === 'breath' ? 'iceblast' : tl.type === 'meteor' ? 'meteorhit' : 'boom');
     if (tl.type !== 'breath') R3.shake(0.35, tl.type === 'roar' ? 0.08 : 0.12);
-    if (P.dead || !P.D) continue;
+    if (P.dead || !P.D || W.t < (P.invT || 0)) continue;
     if (!tl.cs.some((c) => Math.hypot(P.x - c[0], P.y - c[1]) <= c[2] + 10)) continue;
     const s = TELE_FX[tl.type];
     const dmg = Math.max(1, Math.round(tl.atk * s[0] * (tl.enr ? 1.25 : 1) * (0.9 + Math.random() * 0.2) * 100 / (100 + P.D.def)));
@@ -7122,7 +7239,7 @@ function pvpHit(tg, res, hits) {
   });
 }
 function pvpTakeHit(dmg, crit, o) {
-  if (P.dead || !isPvp()) return;
+  if (P.dead || !isPvp() || W.t < (P.invT || 0)) return;
   const D = P.D || derived(), f = Math.max(1, Math.round(dmg * 100 / (100 + D.def) * PVP_SCALE));
   P.hp -= f; P.hurtT = W.t; AU.sfx('hurt');
   addNum(P.x, P.y - 52, fmt(f), '#ff5a4a', crit ? 17 : 13, Object.assign({ dmg: true, tk: 'me', tg: P, oy: -52, dur: NUM_LIFE }, crit ? { pop: true } : null));
@@ -7495,6 +7612,7 @@ function skillDesc(sk, lv) {
     case 'aoe': return (sk.dmg === 'magic' ? 'เวทวงกว้าง ' : 'โจมตีวงกว้าง ') + pct(sk.m[0] + sk.m[1] * lv) + (sk.self ? ' รอบตัว' : ' รอบเป้าหมาย');
     case 'heal': return 'ฟื้น HP ' + pct(sk.h[0] + sk.h[1] * lv) + ' + ตามพลังเวท' + (sk.zone ? ' ฮีลหมู่วงกว้าง ' + sk.zone.dur + ' วิ (ตัวเองและเพื่อนที่ยืนในวง)' : sk.party ? ' (ตัวเองหรือเพื่อนในปาร์ตี้ที่เลือดน้อยสุด คิดจาก HP สูงสุดของผู้ใช้สกิล)' : '');
     case 'buff': return bt(sk.b) + ' นาน ' + sk.dur + ' วิ' + (sk.party ? ' (ตัวเองและเพื่อนในปาร์ตี้)' : '');
+    case 'combo': return 'ดาเมจรวม ' + pct((sk.m[0] + sk.m[1] * lv) * sk.hits) + ' (' + sk.hits + ' ครั้ง) ' + (sk.combo === 'sonic' ? 'ฟันเร็วสูง โอกาส ' + sk.proc + '% สตั้นเป้าหมาย ต้องสวมคาตาร์' : 'พุ่งฟันเป็นรูปดาว 5 แฉก อมตะระหว่างใช้สกิล โอกาส ' + sk.proc + '% ทำให้ช้า ต้องสวมมีดคู่') + ' (ไม่ได้ผลกับบอส)';
     case 'res': return 'ชุบชีวิตเพื่อนในปาร์ตี้ที่ล้มอยู่ใกล้ๆ 1 คน ฟื้นด้วย HP 60%';
     case 'passive': return bt(sk.p);
   }
