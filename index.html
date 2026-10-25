@@ -2319,7 +2319,7 @@ function castSkill(id, fromQueue) {
 }
 /* ---------- Assassin Cross combo skills: Sonic Slash (katar) and Star Slash (dual daggers) ---------- */
 let COMBO_SEQ = 0;
-const COMBO_CHARGE = 0.3, SONIC_HITS = 10, SONIC_GAP = 0.1, STAR_R = 200, STAR_DASH = 0.12, STAR_ORDER = [0, 3, 1, 4, 2];   // STAR_ORDER: pentagon corner (from the bottom, going round) for star points 1..5
+const COMBO_CHARGE = 0.3, SONIC_HITS = 10, SONIC_GAP = 0.1, STAR_R = 120, STAR_DASH = 0.12, STAR_ORDER = [0, 3, 1, 4, 2];   // STAR_ORDER: pentagon corner (from the bottom, going round) for star points 1..5
 function comboEnd(id) { if (P.combo && P.combo.id === id) { P.combo = null; P.lockT = 0; P.invT = 0; P.dash = null; P.atkT = Math.max(P.atkT, 0.25); } }
 // 30% chance per target per cast: Sonic Slash stuns, Star Slash slows. Map bosses and dungeon bosses are immune.
 function comboProc(tg, sk, done) {
