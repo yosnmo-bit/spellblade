@@ -2343,9 +2343,12 @@ function update(dt) {
   P.atkT -= dt;
   if (ccActive()) { P.walking = false; return; }
   if (P.target && (P.target.state === 'dead' || P.target.hp <= 0 || !(W.mons.includes(P.target) || (W.pvp && W.pvp.includes(P.target))))) { P.target = null; P.queued = null; }
+  const walkHold = S.auto && P.tx != null && !P.target && W.t - (P.txAt || 0) < 10;   // walking by hand/follow: don't grab a target yet
+  const fLock = PARTY.follow && W.t - (PARTY.ftgT || 0) < 0.8;   // target is dictated by the party leader
   if (S.auto) {
-    if (!P.target) P.target = pickTarget();
-    else if (!P.queued && W.t > (P.reT || 0)) {
+    if (walkHold) { /* keep walking */ }
+    else if (!P.target) P.target = pickTarget();
+    else if (!P.queued && !fLock && W.t > (P.reT || 0)) {
       // re-check twice a second: switch away from a far target when something is closer or is hitting us
       P.reT = W.t + 0.5;
       const cur = P.target, dc = Math.hypot(cur.x - P.x, cur.y - P.y), me = myKey(), curOnMe = cur.tgt === me && cur.state === 'chase';
@@ -2355,7 +2358,7 @@ function update(dt) {
       }
     }
     autoAct();
-  }
+  } else if (PARTY.follow && P.target) autoAct();   // following the leader: use skills on the leader's target
   let moving = false;
   if (P.target) {
     const tg = P.target, d = Math.hypot(tg.x - P.x, tg.y - P.y);
@@ -5370,7 +5373,7 @@ function readPresence(p) {
     bk: arr(pr.bk, 8), dq: pr.dq == null ? null : int(pr.dq, 0, 0, 2), dro: pr.dro == null ? null : int(pr.dro, 0, 0, 1e6),
     da: Array.isArray(pr.da) && typeof pr.da[0] === 'string' ? [pr.da[0].slice(0, 40), int(pr.da[1], 0, 0, 1e6)] : null,
     pl: Array.isArray(pr.pl) && typeof pr.pl[0] === 'string' ? [pr.pl[0].slice(0, 40), int(pr.pl[1], 0, 0, 1e9)] : null,
-    rq: typeof pr.rq === 'string' ? pr.rq.slice(0, 24) : '',
+    rq: typeof pr.rq === 'string' ? pr.rq.slice(0, 24) : '', tu: pr.tu == null ? -1 : int(pr.tu, -1, -1, 1e9),
     rj: (Array.isArray(pr.rj) ? pr.rj : []).filter((x) => typeof x === 'string').slice(0, 8).map((x) => x.slice(0, 40)),
     kk: (Array.isArray(pr.kk) ? pr.kk : []).filter((x) => typeof x === 'string').slice(0, 8).map((x) => x.slice(0, 40)),
     rc: Array.isArray(pr.rc) ? [String(pr.rc[0] || '').slice(0, 20), String(pr.rc[1] || '').slice(0, 12), pr.rc[2] ? 1 : 0, String(pr.rc[3] || '').slice(0, 80)] : null,
@@ -5599,6 +5602,7 @@ function onlineTick(dt) {
     if (isDg()) { pr.bk = NET.bk; pr.dq = DG.state; pr.dro = DG.round || 0; }
   }
   Object.assign(pr, partyPresence());
+  if (PARTY.key && isLeader() && !isPvp() && P.target && P.target.uid != null && P.target.state !== 'dead' && P.target.hp > 0) pr.tu = P.target.uid;   // leader's current target, followed by members
   if (isDg() && DG.ask && isLeader()) pr.da = DG.ask;
   if (isDg() && DG.rs) pr.rs = [Math.round(DG.rs.dmg), Math.round(DG.rs.heal), Math.round(DG.rs.taken)];
   pvpPresence(pr);
@@ -6785,7 +6789,14 @@ function partyFollowTick() {
   }
   priestAssist();
   const d = Math.hypot(L.x - P.x, L.y - P.y);
-  if (d > 150 || (d > 72 && !P.target)) { P.target = null; P.queued = null; P.npc = null; P.tx = L.x + (P.x < L.x ? -44 : 44); P.ty = L.y + 30; }
+  // same target as the leader: attack it with basic attacks and skills (all jobs)
+  const lt = L.tu != null && L.tu >= 0 && d <= 520 ? W.mons.find((m) => m.uid === L.tu && m.state !== 'dead' && m.hp > 0) : null;
+  if (lt) {
+    PARTY.ftgT = W.t;
+    if (P.target !== lt) { P.target = lt; P.queued = null; P.tx = null; P.npc = null; }
+    return;
+  }
+  if (d > 150 || (d > 72 && !P.target)) { P.target = null; P.queued = null; P.npc = null; P.tx = L.x + (P.x < L.x ? -44 : 44); P.ty = L.y + 30; P.txAt = W.t; }
 }
 
 // leader is inside a dungeon room (reconnected or newly joined member): walk in after them
@@ -7674,7 +7685,7 @@ $('#world').addEventListener('pointerdown', (e) => {
     const b = bounds();
     P.target = null; P.queued = null; P.tx = clamp(x, b.x0, b.x1); P.ty = clamp(y, b.y0, b.y1);
     addFx({ kind: 'tap', x: P.tx, y: P.ty, color: '#ffffff', dur: 0.35 });
-    if (S.auto) { setAuto(false); toast('ปิดออโต้แล้ว เดินเอง'); }
+    P.txAt = W.t;   // auto stays on: it pauses while walking and resumes on arrival
   }
 });
 
@@ -7731,7 +7742,7 @@ $('#mmCv').addEventListener('click', (e) => {
   P.queued = null;
   if (boss) { P.target = boss; P.tx = null; toast('เล็งเป้า ' + boss.name); }
   else { P.target = null; P.tx = x; P.ty = y; addFx({ kind: 'tap', x, y, color: '#ffffff', dur: 0.35 }); }
-  if (S.auto && !boss) { setAuto(false); toast('ปิดออโต้แล้ว เดินไปจุดที่เลือก'); }
+  if (!boss) P.txAt = W.t;   // auto stays on: it pauses while walking and resumes on arrival
 });
 
 /* ---------- sheet panels ---------- */
