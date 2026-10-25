@@ -5305,6 +5305,7 @@ function renderEquip() {
       it.n > 1 && it.kind !== 'pass' ? el('button', { class: 'mini', text: 'ขายทั้งหมด', onclick: () => sellItem(it.k, it.n) }) : null));
   }
   body.append(idet);
+  body.append(el('div', { class: 'acts', style: 'justify-content:flex-end;margin:8px 0' }, el('button', { class: 'mini', text: 'ขายวัตถุดิบทั้งหมด', onclick: sellAllLoot })));
   const g = el('div', { class: 'grid5' });
   for (const t of tiles) {
     const rr = t.it && t.it.kind === 'gear' ? t.it.r || 0 : 0;
@@ -5316,7 +5317,7 @@ function renderEquip() {
     g.append(b);
   }
   for (let i = tiles.length; i < invMax(h) + 2; i++) g.append(el('div', { class: 'tile empty' }));
-  body.append(g, el('div', { class: 'acts' }, el('button', { class: 'mini', text: 'ขายวัตถุดิบทั้งหมด', onclick: sellAllLoot })));
+  body.append(g);
   body.scrollTop = st;
 }
 function drawEquipPreview(now) {
