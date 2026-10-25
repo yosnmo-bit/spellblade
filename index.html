@@ -1642,8 +1642,14 @@ const S = {
   players: [], boardReady: false, sheet: null, draft: null, draftDirty: false, hb: []
 };
 const W = { w: 360, h: 640, dpr: 1, map: null, mapSig: '', ground: null, mons: [], fx: [], nums: [], pend: [], t: 0, uid: 1 };
+const WORLD_BASE = { w: 1152, h: 1920 }, FIELD_GROW = 1.25;   // field maps are 25% wider/taller than before
 const WORLD = { w: 1152, h: 1920 };
-const WSCALE = (WORLD.w * WORLD.h) / (720 * 1200);   // area vs the original 720x1200 maps
+let WSCALE = (WORLD.w * WORLD.h) / (720 * 1200);   // area vs the original 720x1200 maps
+function setWorldFor(map) {
+  const big = !!(map && !map.town && !map.dg && !map.pvp), k = big ? FIELD_GROW : 1;
+  WORLD.w = Math.round(WORLD_BASE.w * k); WORLD.h = Math.round(WORLD_BASE.h * k);
+  WSCALE = (WORLD.w * WORLD.h) / (720 * 1200);
+}
 const monCount = (map) => Math.round(map.count * 4);
 S.zoom = num(lsGet('spellblade_zoom'), 1.15, 0.8, 1.8);
 try { S.autoSel = JSON.parse(lsGet('spellblade_autosel') || '{}') || {}; } catch (e) { S.autoSel = {}; }
@@ -1788,7 +1794,7 @@ function enterMap(id, silent, dmap) {
   if (dmap) map = dmap;
   else { S.hero.mapId = id; map = currentMap(); S.hero.mapId = map.id; }
   dgReset();
-  W.map = map; W.mapSig = JSON.stringify(map);
+  W.map = map; W.mapSig = JSON.stringify(map); setWorldFor(map);
   W.mons = []; W.fx = []; W.nums = []; W.pend = [];
   buildGround();
   const b = bounds();
@@ -1796,7 +1802,8 @@ function enterMap(id, silent, dmap) {
   NET.mapT = Date.now(); NET.kd = []; NET.hostRef = null; NET.dmg.clear(); NET.dmgT.clear(); NET.dmgBase.clear();
   const hostThere = activeOthers().some((o) => o.map === map.id && isLive(o));
   NET.isHost = !hostThere;
-  if (!hostThere) for (let i = 0; i < monCount(map); i++) spawnMon();
+  buildSpawns(map);
+  if (!hostThere) { if (W.spawns.length) fillSpawns(); else for (let i = 0; i < monCount(map); i++) spawnMon(); }
   updAutoBadge(); bossEnterMap(map);
   addFx({ kind: 'ring', x: P.x, y: P.y, r: 46, color: '#9fe3ff', dur: 0.7 });
   if (!silent) { toast(map.name + '  Lv ' + map.min + '–' + map.max); AU.sfx('warp'); }
@@ -1810,6 +1817,71 @@ function makeMon(tpl, ti, x, y) {
     atk: tpl.atk, def: tpl.def, bexp: tpl.bexp, jexp: tpl.jexp, gold: tpl.gold, aggro: tpl.aggro, boss: tpl.boss, raid: !!tpl.raid, mdl: tpl.mdl || '', size,
     x, y, dir: Math.random() < 0.5 ? -1 : 1, state: 'idle', wx: x, wy: y, idleT: Math.random() * 2, atkT: 1.2, hitT: 0, lungeT: 0,
     angry: false, tgt: null, atkN: 0, seed: Math.random() * 10, alpha: 0, moving: false, dieT: 0 };
+}
+/* ---------- fixed clustered spawn points: groups of 4-6 of the same type, spread over the map ---------- */
+function spawnRng(str) { let h = 2166136261; for (let i = 0; i < str.length; i++) { h ^= str.charCodeAt(i); h = Math.imul(h, 16777619); } let a = h >>> 0; return () => { a = (a + 0x6D2B79F5) | 0; let t = Math.imul(a ^ (a >>> 15), 1 | a); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; }
+function buildSpawns(map) {
+  W.spawns = [];
+  if (!map || map.town || map.dg || !map.monsters || !map.monsters.length) return;
+  const types = map.monsters.map((t, i) => [t, i]).filter(([t]) => !t.boss);
+  if (!types.length) return;
+  const b = bounds(), R = spawnRng(map.id + '#spawns#' + WORLD.w + 'x' + WORLD.h);   // same layout on every client, so host hand-over keeps the spots
+  const total = Math.max(types.length * 4, Math.round(monCount(map) * (map.dg ? 1 : 1.25)));
+  const gpt = Math.max(1, Math.round(total / types.length / 5));
+  const order = []; for (let g = 0; g < gpt; g++) for (const [, ti] of types) order.push(ti);
+  const sx = WORLD.w / 2, sy = WORLD.h * (map.dg ? 0.74 : 0.62), mg = 70, centers = [];
+  for (const ti of order) {
+    let best = null, bd = -1;
+    for (let k = 0; k < 40; k++) {
+      const x = b.x0 + mg + R() * (b.x1 - b.x0 - mg * 2), y = b.y0 + mg + R() * (b.y1 - b.y0 - mg * 2);
+      if (Math.hypot(x - sx, y - sy) < 170) continue;
+      let d = 1e9; for (const c of centers) d = Math.min(d, Math.hypot(x - c.x, y - c.y) * (c.ti === ti ? 0.7 : 1));
+      if (d > bd) { bd = d; best = { x, y }; }
+    }
+    if (!best) best = { x: b.x0 + mg + R() * (b.x1 - b.x0 - mg * 2), y: b.y0 + mg + R() * (b.y1 - b.y0 - mg * 2) };
+    centers.push({ x: best.x, y: best.y, ti });
+  }
+  centers.forEach((c, g) => {
+    const n = 4 + ((R() * 3) | 0), pts = [];
+    for (let k = 0; k < n; k++) {
+      let p = null;
+      for (let t = 0; t < 30; t++) {
+        const a = R() * TAU, r = 14 + R() * 46, x = clamp(c.x + Math.cos(a) * r, b.x0, b.x1), y = clamp(c.y + Math.sin(a) * r * 0.85, b.y0, b.y1);
+        if (pts.every((q) => Math.hypot(q.x - x, q.y - y) > 30)) { p = { x, y }; break; }
+        p = { x, y };
+      }
+      pts.push(p);
+    }
+    for (const p of pts) W.spawns.push({ ti: c.ti, x: p.x, y: p.y, g, pend: false });
+  });
+}
+function spawnAtSlot(i) {
+  const map = W.map, sl = W.spawns && W.spawns[i]; if (!map || !sl) return null;
+  const tpl = map.monsters[sl.ti]; if (!tpl) return null;
+  const b = bounds(), m = makeMon(tpl, sl.ti, sl.x, sl.y);
+  const a = Math.random() * TAU, r = 35 + Math.random() * 50;
+  m.slot = i; m.hx = sl.x; m.hy = sl.y;
+  m.holdUntil = W.t + 1.5;   // stands still at the spawn point for 1.5s, then walks out
+  m.idleT = 0; m.wx = clamp(sl.x + Math.cos(a) * r, b.x0, b.x1); m.wy = clamp(sl.y + Math.sin(a) * r * 0.8, b.y0, b.y1);
+  W.mons.push(m); return m;
+}
+function fillSpawns() {
+  if (!W.spawns) return;
+  for (let i = 0; i < W.spawns.length; i++) {
+    const sl = W.spawns[i]; if (sl.pend) continue;
+    if (W.mons.some((m) => m.slot === i && m.state !== 'dead')) continue;
+    spawnAtSlot(i);
+  }
+}
+function assignSlots() {   // after host hand-over: tie mirrored monsters back to their home spots
+  if (!W.spawns) return;
+  const used = new Set(); for (const m of W.mons) if (m.slot != null && m.state !== 'dead') used.add(m.slot);
+  for (const m of W.mons) {
+    if (m.slot != null || m.state === 'dead' || m.boss) continue;
+    let bi = -1, bd = 1e9;
+    W.spawns.forEach((s, i) => { if (s.ti !== m.ti || used.has(i)) return; const d = Math.hypot(s.x - m.x, s.y - m.y); if (d < bd) { bd = d; bi = i; } });
+    if (bi >= 0) { used.add(bi); m.slot = bi; m.hx = W.spawns[bi].x; m.hy = W.spawns[bi].y; }
+  }
 }
 function spawnMon() {
   const map = W.map; if (!map || !map.monsters.length) return;
@@ -2004,7 +2076,12 @@ function killMon(m, killer) {
   NET.kdSeq++; NET.kd.push([NET.kdSeq, m.uid, m.ti, k]); if (NET.kd.length > 8) NET.kd.shift();
   processKill(m, k, m.ti);
   if (m.boss && !m.raid) bossKilled(m, k);
-  later(3 + Math.random() * 3, () => { W.mons = W.mons.filter((x) => x !== m); if (NET.isHost && !m.boss) spawnMon(); });
+  const sl = m.slot != null && W.spawns ? W.spawns[m.slot] : null; if (sl) sl.pend = true;
+  later(3, () => {
+    W.mons = W.mons.filter((x) => x !== m);
+    if (sl) { sl.pend = false; if (NET.isHost && !m.boss && W.spawns && W.spawns[m.slot] === sl) spawnAtSlot(m.slot); }
+    else if (NET.isHost && !m.boss && !(W.spawns && W.spawns.length)) spawnMon();
+  });
 }
 function processKill(m, killer, ti) {
   const h = S.hero, R = CONFIG.rates, tpl = W.map && W.map.monsters[ti != null ? ti : m.ti];
@@ -2305,6 +2382,7 @@ function updateMons(dt) {
     m.hitT = Math.max(0, m.hitT - dt); m.lungeT = Math.max(0, m.lungeT - dt);
     if (m.castUntil && W.t < m.castUntil) { m.moving = false; continue; }
     if ((m.frzUntil || 0) > W.t) { m.moving = false; continue; }
+    if ((m.holdUntil || 0) > W.t) { m.moving = false; continue; }
     const sf = (m.slowUntil || 0) > W.t ? 0.45 : 1;
     let tg = m.tgt ? pl.find((p) => p.key === m.tgt) : null;
     if (!tg && m.tgt) { m.tgt = null; m.angry = false; if (m.state === 'chase') m.state = 'idle'; }
@@ -2323,8 +2401,12 @@ function updateMons(dt) {
     else if (m.idleT > 0) m.idleT -= dt;
     else {
       const dx = m.wx - m.x, dy = m.wy - m.y, d = Math.hypot(dx, dy);
-      if (d < 3) { m.idleT = 1 + Math.random() * 3; m.wx = clamp(m.x + (Math.random() - 0.5) * 160, b.x0, b.x1); m.wy = clamp(m.y + (Math.random() - 0.5) * 120, b.y0, b.y1); }
-      else { const k = Math.min(d, 24 * dt * sf) / d; m.x += dx * k; m.y += dy * k; m.dir = dx >= 0 ? 1 : -1; m.moving = true; }
+      if (d < 3) {
+        m.idleT = 1 + Math.random() * 3;
+        if (m.hx != null) { const a = Math.random() * TAU, r = Math.random() * 85; m.wx = clamp(m.hx + Math.cos(a) * r, b.x0, b.x1); m.wy = clamp(m.hy + Math.sin(a) * r * 0.8, b.y0, b.y1); }   // stay around the home spot
+        else { m.wx = clamp(m.x + (Math.random() - 0.5) * 160, b.x0, b.x1); m.wy = clamp(m.y + (Math.random() - 0.5) * 120, b.y0, b.y1); }
+      }
+      else { const k = Math.min(d, (d > 140 ? 55 : 24) * dt * sf) / d; m.x += dx * k; m.y += dy * k; m.dir = dx >= 0 ? 1 : -1; m.moving = true; }
     }
     m.x = clamp(m.x, b.x0, b.x1); m.y = clamp(m.y, b.y0, b.y1);
   }
@@ -5465,8 +5547,8 @@ function adoptMirror() {
   W.uid = Math.max(W.uid, mx + 1);
   for (const m of W.mons) if (m.state !== 'dead' && m.hp <= 0) killMon(m, myKey());
   if (!W.map) return;
-  const alive = W.mons.filter((m) => m.state !== 'dead' && !m.boss).length;
-  for (let i = alive; i < monCount(W.map); i++) spawnMon();
+  if (W.spawns && W.spawns.length) { assignSlots(); for (const s of W.spawns) s.pend = false; fillSpawns(); }
+  else { const alive = W.mons.filter((m) => m.state !== 'dead' && !m.boss).length; for (let i = alive; i < monCount(W.map); i++) spawnMon(); }
 }
 function applyMirror(o) {
   const ms = o.ms || [], tp = o.tp || [], map = W.map, b = bounds(), seen = new Set();
@@ -5855,6 +5937,8 @@ function panelSound(body) {
   body.append(el('p', { class: 'note', text: 'โมเดล 3D: ตัวละคร อาวุธ และโครงกระดูกจาก KayKit โดย Kay Lousberg / มอนสเตอร์ หมู่บ้าน และต้นไม้จาก Quaternius (ทั้งหมด CC0) / เอฟเฟกต์ระฆังสกิลบัฟจาก PIPOYA (pipoya.net) / เอฟเฟกต์สายฟ้า ระเบิด ไฟ น้ำแข็ง และเสาแสงดรอปของ ดัดแปลงจาก Binbun3D (bun3d.com, CC0) ถ้าเครื่องช้า สลับกลับไปใช้แบบเดิมได้ (มอนและต้นไม้จะกลับเป็นแบบเดิมด้วย)' }));
 }
 /* =================== BOSS RESPAWN TIMERS =================== */
+const BOSS_SENSE = 380;   // world units: the boss only shows on the minimap inside this range
+const bossNear = (m) => Math.hypot(m.x - P.x, m.y - P.y) <= BOSS_SENSE;
 const BOSS = { all: {}, local: {}, loaded: false, sub: false, seen: {}, warned: {}, annT: 0, curMap: null, first: true };
 const nowMs = () => Date.now() + (window.__srvOff || 0);
 function bossTpls(map) { return (map && !map.dg ? map.monsters : []).map((t, i) => [t, i]).filter(([t]) => t.boss && !t.raid); }
@@ -5918,7 +6002,14 @@ function bossTick() {
     const here = W.mons.some((m) => m.boss && m.id === t.id && m.state !== 'dead');
     if (NET.isHost && !here && now >= (s.next || 0)) {
       const b = bounds();
-      W.mons.push(makeMon(t, ti, clamp(WORLD.w / 2 + (Math.random() - 0.5) * 120, b.x0, b.x1), clamp(WORLD.h * 0.35 + (Math.random() - 0.5) * 80, b.y0, b.y1)));
+      const pl = mapPlayers(); let bx = WORLD.w / 2, by = WORLD.h * 0.35, bestD = -1;   // random spot every time, away from players
+      for (let k = 0; k < 30; k++) {
+        const x = b.x0 + 80 + Math.random() * (b.x1 - b.x0 - 160), y = b.y0 + 80 + Math.random() * (b.y1 - b.y0 - 160);
+        let dm = 1e9; for (const p of pl) dm = Math.min(dm, Math.hypot(p.x - x, p.y - y));
+        if (dm >= 450) { bx = x; by = y; break; }
+        if (dm > bestD) { bestD = dm; bx = x; by = y; }
+      }
+      W.mons.push(makeMon(t, ti, clamp(bx, b.x0, b.x1), clamp(by, b.y0, b.y1)));
       if (!s.alive) bossWrite(W.map.id, t.id, { next: 0, alive: true, by: '', at: now });
     }
     if (!s.alive && s.next > now) {
@@ -5946,7 +6037,7 @@ function renderBossBar() {
   if (sig === box._sig && !box.hidden) return;
   box._sig = sig; box.hidden = false; box.textContent = '';
   for (const [t, L] of lines) {
-    const b = el('button', { class: 'bossrow' + (L.alive ? ' alive' : ''), onclick: () => { const m = W.mons.find((x) => x.boss && x.id === t.id && x.state !== 'dead'); if (m) { P.target = m; P.tx = null; toast('เล็งเป้า ' + t.name); } } },
+    const b = el('button', { class: 'bossrow' + (L.alive ? ' alive' : ''), onclick: () => { const m = W.mons.find((x) => x.boss && x.id === t.id && x.state !== 'dead'); if (m && bossNear(m)) { P.target = m; P.tx = null; toast('เล็งเป้า ' + t.name); } else if (m) toast('ยังไม่พบ ' + t.name + ' — ลองสำรวจแมพดู'); } },
       el('span', { text: '👑 ' + t.name }), el('b', { class: 'px', text: L.text }));
     box.append(b);
   }
@@ -7764,7 +7855,7 @@ function drawMinimap(now) {
     if (pm) mmDot(g, o.x * sx, o.y * sy, 3 * d, '#4dff6e', '#0b2a12', d);
     else mmDot(g, o.x * sx, o.y * sy, 2 * d, '#8fd0ff', 'rgba(0,0,0,.6)', d * 0.8);
   }
-  for (const m of W.mons) if (m.boss && m.state !== 'dead') {
+  for (const m of W.mons) if (m.boss && m.state !== 'dead' && bossNear(m)) {
     const x = m.x * sx, y = m.y * sy, pr = (5 + Math.sin(now * 5) * 1.5) * d;
     g.beginPath(); g.arc(x, y, pr + 2 * d, 0, TAU); g.strokeStyle = 'rgba(255,70,50,' + (0.5 + Math.sin(now * 5) * 0.3) + ')'; g.lineWidth = 1.5 * d; g.stroke();
     mmDot(g, x, y, 3.4 * d, '#ff3b2f', '#fff', d);
@@ -7778,7 +7869,7 @@ $('#mmCv').addEventListener('click', (e) => {
   if (!S.hero || !W.map || P.dead) return;
   const r = e.currentTarget.getBoundingClientRect(), b = bounds();
   const x = clamp((e.clientX - r.left) / r.width * WORLD.w, b.x0, b.x1), y = clamp((e.clientY - r.top) / r.height * WORLD.h, b.y0, b.y1);
-  const boss = W.mons.find((m) => m.boss && m.state !== 'dead' && Math.hypot(m.x - x, m.y - y) < 40);
+  const boss = W.mons.find((m) => m.boss && m.state !== 'dead' && bossNear(m) && Math.hypot(m.x - x, m.y - y) < 40);
   P.queued = null;
   if (boss) { P.target = boss; P.tx = null; toast('เล็งเป้า ' + boss.name); }
   else { P.target = null; P.tx = x; P.ty = y; addFx({ kind: 'tap', x, y, color: '#ffffff', dur: 0.35 }); }
