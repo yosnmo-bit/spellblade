@@ -622,6 +622,60 @@ body.lg-on .selwrap .btn-main{max-width:260px}
 .alx-t b{position:absolute;right:3px;bottom:1px;font:700 9px "Silkscreen",monospace;color:#fff;text-shadow:0 1px 2px #000}
 .alx-t.miss{border-color:#555a70;background:#2b2c3d}.alx-t.miss .alx-tp{filter:grayscale(1) brightness(.5)}
 .alx-t.sel{outline:3px solid #ffd983;outline-offset:1px}
+
+/* ===== BRIGHT THEME: one colour tone for every panel ===== */
+.sheet,.mcard,.eqbox{--panel:#EAF6FF;--panel-2:#D7ECFF;--ink:#17375E;--ink-soft:#4F77A3;--line:#8CC4F4;--chip:#FFFFFF;--accent:#FF9F1C;--accent-ink:#B85C00;--good:#10A05A;--bad:#E5484D;--title-a:#5BBBFF;--title-b:#2A89F0;color:var(--ink)}
+.sheet,.eqbox{background:linear-gradient(180deg,#F5FBFF 0%,#DCEEFF 100%);border-color:#6FB5EE;box-shadow:0 -8px 30px rgba(30,100,180,.35)}
+.sheet .sheet-title,.mcard .sheet-title,.eqbox .sheet-title{background:linear-gradient(180deg,#63C0FF,#2D8DF2);color:#fff;border-bottom:2px solid #1F73CF;text-shadow:0 1px 0 rgba(0,60,140,.45);border-radius:15px 15px 0 0}
+.sheet .sheet-title button,.eqbox .sheet-title button{background:linear-gradient(180deg,#FFB86B,#FF8A1F);border:1px solid #FFD9A6;color:#fff;box-shadow:0 2px 0 #B85C00}
+.sheet .mini,.sheet .chip,.mcard .mini,.eqbox .mini{background:linear-gradient(180deg,#FFFFFF,#DDEEFF);border:1px solid #8CC4F4;color:var(--ink);box-shadow:0 2px 0 #9CC8EC,inset 0 1px 0 #fff}
+.sheet .mini.pri,.eqbox .mini.pri{background:linear-gradient(180deg,#6CC5FF,#2B8DF2);border-color:#2A7FDB;color:#fff;box-shadow:0 2px 0 #1D66B8;text-shadow:0 1px 0 rgba(0,50,120,.4)}
+.sheet .mini.on,.sheet .chip.on,.eqbox .mini.on{background:linear-gradient(180deg,#FFE27A,#FFA928);color:#5A3100;border-color:#FFC857;box-shadow:0 2px 0 #C47A00}
+.sheet .mini.warn,.eqbox .mini.warn{color:#D93A3F}
+.sheet .btn-main,.mcard .btn-main{background:linear-gradient(180deg,#6CC5FF,#2B8DF2);border:1px solid #2A7FDB;box-shadow:0 4px 0 #1D66B8,inset 0 1px 0 rgba(255,255,255,.5);color:#fff}
+.sheet .list-row,.sheet .pts,.sheet .kv div,.sheet .opt,.sheet .albrow,.sheet .dgcard,.sheet .invdet,.sheet .wm-card,.eqbox .eqdet,.eqbox .invdet,.eqbagR{background:rgba(255,255,255,.8);border:1px solid #A9D3F5;box-shadow:0 2px 0 rgba(60,130,200,.18)}
+.sheet .tile,.eqbox .tile{background:linear-gradient(180deg,#FFFFFF,#E6F3FF);border-color:#A9D3F5;box-shadow:0 2px 0 #B5D6F2,inset 0 1px 0 #fff}
+.sheet .tile.rar,.eqbox .tile.rar{background:linear-gradient(160deg,color-mix(in srgb,var(--rc) 28%,#fff),#fff);box-shadow:0 2px 0 #B5D6F2,inset 0 0 0 1px var(--rc),0 0 8px color-mix(in srgb,var(--rc) 45%,transparent)}
+.eqbox .tile.empty{background:rgba(255,255,255,.4);box-shadow:none}
+.eqbox .eqslot{background:linear-gradient(180deg,#FFFFFF,#E3F1FF);border:1px solid #9CCBF0;box-shadow:0 3px 0 #A9CFEE,inset 0 1px 0 #fff}
+.eqbox .eqslot.sel{border-color:#FF9F1C;box-shadow:0 3px 0 #C47A00,0 0 0 2px #FF9F1C}
+.eqbox .eqslot.rar{border-color:var(--rc);box-shadow:0 3px 0 #A9CFEE,inset 0 0 0 1px var(--rc),0 0 10px color-mix(in srgb,var(--rc) 45%,transparent)}
+.eqbox .eqcv{background:radial-gradient(circle at 50% 80%,#BFE4FF 0%,#7DBDF3 55%,#4F97E0 100%);border:2px solid #8CC4F4}
+.sheet .seg{border-color:#8CC4F4;box-shadow:0 3px 0 #A9CFEE}.sheet .seg button{background:linear-gradient(180deg,#fff,#DDEEFF);color:var(--ink)}.sheet .seg button[aria-pressed="true"]{background:linear-gradient(180deg,#FFE27A,#FFA928);color:#5A3100}
+.sheet input[type=text],.sheet input[type=number],.sheet select,.sheet textarea{background:#fff;border:1px solid #8CC4F4;color:var(--ink)}
+.sheet .npcsay{background:#FFF3D6;border-color:#FFC857}
+.dgx-r{background:linear-gradient(180deg,#fff,#E3F1FF);border-color:#9CCBF0;box-shadow:0 3px 0 #A9CFEE}
+.wm-box{border-color:#6FB5EE;background:#CFE8FF;box-shadow:0 4px 0 #A9CFEE}
+/* inventory: character + equipment on the left, items on the right */
+#eqTabs{display:none}
+.eqgold{display:flex;align-items:center;justify-content:space-between;gap:6px;padding:7px 10px;border-radius:12px;background:linear-gradient(180deg,#FFF4C9,#FFE08A);border:1px solid #FFC857;box-shadow:0 2px 0 #D9A02B;font-weight:800;color:#6B4200;margin:4px 0 6px}
+.eqgold small{font-weight:700;color:#8A5A12}
+.eqcats{display:flex;gap:5px;overflow-x:auto;padding:2px 0 6px;scrollbar-width:none}.eqcats::-webkit-scrollbar{display:none}
+.eqcat{flex:none;padding:5px 10px;border-radius:999px;border:1px solid #8CC4F4;background:linear-gradient(180deg,#fff,#DDEEFF);color:var(--ink);font-weight:700;font-size:.76rem;box-shadow:0 2px 0 #9CC8EC}
+.eqcat[aria-pressed="true"]{background:linear-gradient(180deg,#6CC5FF,#2B8DF2);color:#fff;border-color:#2A7FDB;box-shadow:0 2px 0 #1D66B8}
+.eqbagR .grid5{grid-template-columns:repeat(3,1fr)}
+.eqbagL .wide{width:100%}
+.plate{position:relative}.plate .dot{position:absolute;top:-5px;left:-5px;min-width:17px;height:17px;border-radius:9px;background:#e8473a;color:#fff;font:700 8px/17px "Silkscreen",monospace;padding:0 3px;text-align:center}
+/* status panel */
+.sheet-wrap.stat .sheet{max-height:60%}
+.stp{display:flex;gap:10px;align-items:center;margin-bottom:6px}
+.stp canvas{width:62px;height:62px;border-radius:50%;border:3px solid #fff;background:radial-gradient(circle,#BFE4FF,#7DBDF3);box-shadow:0 2px 0 #9CC8EC;flex:none}
+.stp .in{flex:1;min-width:0}.stp b{font-size:1.05rem}.stp small{display:block;color:var(--ink-soft)}
+.stbar{display:grid;grid-template-columns:38px 1fr auto;gap:6px;align-items:center;font-size:.68rem;margin:3px 0;font-weight:700}
+.stbar .bt{height:10px;border-radius:6px;background:#CFE3F5;overflow:hidden;box-shadow:inset 0 1px 2px rgba(0,50,100,.25)}
+.stbar .bt i{display:block;height:100%;border-radius:6px}
+.stbar.hp i{background:linear-gradient(#9BE86A,#34B84A)}.stbar.sp i{background:linear-gradient(#8ED0FF,#2F8CF0)}.stbar.bx i{background:linear-gradient(#FFE27A,#F5A623)}.stbar.jx i{background:linear-gradient(#D7A8FF,#8E5CF0)}
+.sttabs{display:flex;gap:6px;margin:8px 0}.sttabs button{flex:1;padding:8px 6px}
+.strow2{display:grid;grid-template-columns:44px 1fr auto auto;gap:6px;align-items:center;padding:5px 8px;border-radius:14px;background:rgba(255,255,255,.85);border:1px solid #A9D3F5;margin-bottom:5px;box-shadow:0 2px 0 rgba(60,130,200,.15)}
+.strow2 .n{font:700 .78rem "Silkscreen",monospace;color:var(--title-b)}
+.strow2 .v{font-weight:800;font-size:1.02rem}.strow2 .v em{font-style:normal;color:var(--good);font-size:.8rem;margin-left:3px}.strow2 .v u{text-decoration:none;color:#E5821B;font-size:.8rem;margin-left:3px}
+.strow2 .c{font-size:.64rem;color:var(--ink-soft);text-align:right;min-width:34px}
+.strow2 .pm{display:flex;gap:6px}
+.pmb{width:38px;height:38px;border-radius:50%;border:1px solid #2A7FDB;background:linear-gradient(180deg,#6CC5FF,#2B8DF2);color:#fff;font:800 1.35rem/1 system-ui;box-shadow:0 3px 0 #1D66B8;padding:0;touch-action:none;-webkit-user-select:none;user-select:none}
+.pmb.m{background:linear-gradient(180deg,#FFD08A,#FF9A2E);border-color:#E58511;box-shadow:0 3px 0 #B85C00}
+.pmb:disabled{opacity:.35;box-shadow:none}.pmb:active{transform:translateY(2px)}
+.stfoot{display:flex;align-items:center;gap:8px;margin-top:6px}.stfoot .pts2{flex:1;font-weight:700}.stfoot .pts2 b{color:#E5821B;font-size:1.1rem}
+.stv{display:grid;grid-template-columns:repeat(2,1fr);gap:6px}.stv div{display:flex;justify-content:space-between;padding:9px 12px;border-radius:12px;background:rgba(255,255,255,.85);border:1px solid #A9D3F5;color:var(--ink-soft);font-weight:700;font-size:.84rem}.stv b{color:var(--ink)}
 </style>
 </head>
 <body>
@@ -672,7 +726,7 @@ body.lg-on .selwrap .btn-main{max-width:260px}
     <canvas id="world"></canvas>
     <div class="hud-top">
       <div class="plate">
-        <canvas id="avatar"></canvas>
+        <canvas id="avatar"></canvas><span class="dot" id="dotStat" hidden></span>
         <div class="plate-in">
           <div class="nm" id="hName"></div>
           <div class="jb" id="hJob"></div>
@@ -695,7 +749,6 @@ body.lg-on .selwrap .btn-main{max-width:260px}
       <div class="money"><span id="goldT"></span><small id="saveT"></small></div>
       <button class="sbtn mtog" id="menuTog" aria-expanded="false" aria-controls="sideMenu"><span id="menuTogI">☰</span><small id="menuTogT">เมนู</small><span class="dot" id="dotMenu" hidden>!</span></button>
       <div class="side" id="sideMenu">
-      <button class="sbtn" data-panel="stats"><span>👤</span><small>สถานะ</small><span class="dot" id="dotStat" hidden></span></button>
       <button class="sbtn" data-panel="skills"><span>✨</span><small>สกิล</small><span class="dot" id="dotSkill" hidden></span></button>
       <button class="sbtn" data-panel="bag"><span>🎒</span><small>กระเป๋า</small></button>
       <button class="sbtn" data-panel="job" id="btnJob"><span>🎖️</span><small>อาชีพ</small></button>
@@ -4333,6 +4386,7 @@ void main(){
     const F = R3.focus, zf = F ? 0.6 : 1, Dz = F ? D * zf : D;
     let [px, pz] = L2W(P.x, P.y), tz = pz - 0.5;
     if (F) { const [nx, nz] = L2W(F.x, F.y), halfW = Dz * ty * aspect, panel = Math.min(0.6, 420 / Math.max(1, W.w)); px = nx + halfW * 2 * (0.5 - (1 - panel) / 2); tz = nz - 0.15; }
+    if (R3.statCam && !F) { const k2 = Dz * ty / Math.sin(elev) * 0.5, y2 = R3.yaw || 0; px += k2 * Math.sin(y2); tz += k2 * Math.cos(y2); }   // status panel open: close-up, hero kept above the panel
     if (R3.camSnap || R3.cx == null) { R3.cx = px; R3.cz = tz; R3.camSnap = false; }
     R3.cd = R3.cd == null ? Dz : R3.cd + (Dz - R3.cd) * Math.min(1, dt * 4);
     const k = Math.min(1, dt * 6); R3.cx += (px - R3.cx) * k; R3.cz += (tz - R3.cz) * k;
@@ -5739,7 +5793,8 @@ function renderEquip() {
   if (!EQ.open || !S.hero) return;
   const h = S.hero, body = $('#eqBody'), st = body.scrollTop, D = derived();
   body.textContent = '';
-  const mode = EQ.mode || 'eq';
+  const mode = 'bag';   // one combined view: character + gear on the left, items on the right
+  EQ.cat = EQ.cat || 'all';
   for (const t of document.querySelectorAll('#eqTabs .tab3d')) t.setAttribute('aria-selected', String(t.dataset.m === mode));
   { const tt = $('#eqTtl'); if (tt) tt.textContent = mode === 'bag' ? 'กระเป๋า' : 'ตัวละคร'; }
   const SL = ['head', 'face', 'mouth', 'weapon', 'off'], SR = ['armor', 'wings', 'shoes', 'ring1', 'ring2'];
@@ -5759,7 +5814,9 @@ function renderEquip() {
     const grid = el('div', { class: 'eqslotgrid' });
     for (let i = 0; i < 5; i++) { grid.append(slotBtn(h, SL[i])); grid.append(slotBtn(h, SR[i])); }
     invHost = el('div', { class: 'eqbagR' });
-    body.append(el('div', { class: 'eqbag' }, el('div', { class: 'eqbagL' }, EQ.cv, el('div', { class: 'eqname', text: h.name }), grid), invHost));
+    const stBtn = el('button', { class: 'mini pri wide', text: '📊 สถานะ' + (h.statPts >= 2 ? ' (' + h.statPts + ')' : ''), onclick: () => { closeEquip(); openPanel('stats'); } });
+    body.append(el('div', { class: 'eqbag' }, el('div', { class: 'eqbagL' }, EQ.cv, el('div', { class: 'eqname', text: h.name }), el('div', { class: 'eqjob', text: jobName(h.job) + ' Lv ' + h.level }), stBtn, grid), invHost));
+    if (wsBlock) body.append(wsBlock);
   }
   // selected slot detail
   const key = EQ.sel, inf = slotInfo(h, key), n = sockets(h, key), acc = accepts(h, key), det = el('div', { class: 'eqdet' });
@@ -5794,7 +5851,10 @@ function renderEquip() {
   // inventory
   const tiles = Object.keys(POT).filter((kd) => kd === 'hp' || kd === 'sp' || (h[POT[kd].f] || 0) > 0).map((kd) => ({ k: 'P:' + kd, pot: kd, icon: POT[kd].ic, n: h[POT[kd].f] || 0, nm: POT[kd].nm, blue: kd === 'sp' }));
   for (const it of h.inv) tiles.push({ k: it.k, icon: it.kind === 'card' ? '🃏' : it.kind === 'gear' ? GEAR[it.id].ic : it.kind === 'key' ? '🗝️' : it.kind === 'ore' ? ORE[it.id].ic : it.kind === 'pass' ? '🎫' : it.k === 'L:salt' ? '🧂' : (ARCH_ICON[it.ar] || '📦'), n: it.n, nm: it.nm, it });
-  invHost.append(el('div', { class: 'sub', id: 'eqInv', text: 'กระเป๋า ' + h.inv.length + '/' + invMax(h) + ((h.mail || []).length ? '   📬 รอเข้ากระเป๋า ' + h.mail.length + ' ชิ้น' : '') }));
+  const CATS = [['all', 'ทั้งหมด'], ['gear', '⚔️ อุปกรณ์'], ['pot', '🧪 ยา'], ['card', '🃏 การ์ด'], ['mat', '🪨 วัตถุดิบ'], ['misc', '📦 อื่นๆ']];
+  const tileCat = (t) => t.pot ? 'pot' : !t.it ? 'misc' : t.it.kind === 'gear' ? 'gear' : t.it.kind === 'card' ? 'card' : (t.it.kind === 'ore' || (t.it.kind !== 'key' && t.it.kind !== 'pass' && t.it.k !== 'L:salt')) ? 'mat' : 'misc';
+  invHost.append(el('div', { class: 'eqgold', id: 'eqInv' }, el('span', { text: '🪙 ' + fmt(h.gold) + ' G' }), el('small', { text: '🎒 ' + h.inv.length + '/' + invMax(h) + ((h.mail || []).length ? '  📬 ' + h.mail.length : '') })),
+    el('div', { class: 'eqcats' }, ...CATS.map(([c, lb]) => el('button', { class: 'eqcat', 'aria-pressed': String(EQ.cat === c), text: lb, onclick: () => { EQ.cat = c; renderEquip(); } }))));
   const sel = tiles.find((t) => t.k === EQ.invSel), idet = el('div', { class: 'invdet' });
   if (!sel) idet.append(el('p', { class: 'note', style: 'margin:0', text: 'แตะไอเทมเพื่อดูรายละเอียด การ์ดดรอปจากมอนทุกตัว ' + CONFIG.cardChance + '% และแต่ละใบใส่ได้เฉพาะช่องของมัน' }));
   else if (!sel.it) {
@@ -5842,8 +5902,9 @@ function renderEquip() {
   }
   if (EQ.focus !== 'slot') body.append(idet);
   invHost.append(el('div', { class: 'acts', style: 'justify-content:flex-end;margin:8px 0' }, el('button', { class: 'mini', text: 'ขายวัตถุดิบทั้งหมด', onclick: sellAllLoot })));
+  const shown = EQ.cat === 'all' ? tiles : tiles.filter((t) => tileCat(t) === EQ.cat);
   const g = el('div', { class: 'grid5' });
-  for (const t of tiles) {
+  for (const t of shown) {
     const rr = t.it && t.it.kind === 'gear' ? t.it.r || 0 : 0;
     const b = el('button', { class: 'tile' + (EQ.invSel === t.k ? ' sel' : '') + (t.it && t.it.kind === 'card' ? ' card' : '') + (rr >= 1 ? ' rar' : ''), style: rr >= 1 ? '--rc:' + rarCol(rr) : null, 'aria-label': t.nm + ' ' + t.n },
       el('span', { text: t.icon, style: t.blue ? 'filter:hue-rotate(200deg)' : null }), t.it && t.it.kind === 'gear' ? null : el('b', { text: String(t.n) }),
@@ -5852,7 +5913,7 @@ function renderEquip() {
     b.addEventListener('click', () => { EQ.invSel = t.k; EQ.focus = 'item'; renderEquip(); });
     g.append(b);
   }
-  for (let i = tiles.length; i < invMax(h) + 2; i++) g.append(el('div', { class: 'tile empty' }));
+  for (let i = shown.length; i < (EQ.cat === 'all' ? invMax(h) + 2 : Math.max(9, Math.ceil(shown.length / 3) * 3)); i++) g.append(el('div', { class: 'tile empty' }));
   invHost.append(g);
   body.scrollTop = st; fitEqCv();
 }
@@ -8211,7 +8272,7 @@ function hudText() {
   dk.hidden = h.skillPts < 1; dk.textContent = h.skillPts;
   $('#btnJob').classList.toggle('glow', canJobChange(h));
   renderPartyHud(); renderChatFeed(); renderChatDot(); renderBossBar(); renderOnlineDot(); renderBuffBar();
-  $('#dotMenu').hidden = !(menuFolded() && (!$('#dotStat').hidden || !$('#dotSkill').hidden || !$('#dotOnline').hidden || $('#btnJob').classList.contains('glow')));
+  $('#dotMenu').hidden = !(menuFolded() && (!$('#dotSkill').hidden || !$('#dotOnline').hidden || $('#btnJob').classList.contains('glow')));
 }
 function hud() {
   const h = S.hero, D = P.D, tier = JOBS[h.job].tier;
@@ -8455,6 +8516,8 @@ function openPanel(name) {
   if (name === 'rank' || name === 'gm') loadPlayers();
   if (name === 'bag' || name === 'equip') { openEquip(name === 'bag' ? 'bag' : 'eq'); return; }
   if (!PANELS[name]) return;
+  if (name === 'stats') { STX.pend = {}; STX.tab = 'up'; statCamOn(); } else statCamOff();
+  $('#sheetWrap').classList.toggle('stat', name === 'stats');
   S.sheet = name; $('#sheetTitle').textContent = PANELS[name][0];
   { const npc = name.startsWith('npc_') && typeof NPCS === 'object' ? NPCS.find((n) => 'npc_' + n.id === name) : null; $('#sheetWrap').classList.toggle('side', !!npc); document.body.classList.toggle('npctalk', !!npc); R3.focus = npc || null; }
   if (name === 'gm' && !S.draftDirty) S.draft = clone(CONFIG);
@@ -8465,8 +8528,8 @@ function renderSheet() {
   const body = $('#sheetBody'), st = body.scrollTop;
   body.textContent = ''; PANELS[S.sheet][1](body); body.scrollTop = st;
 }
-function renderSheetIfOpen() { if (S.sheet && S.sheet !== 'gm' && !$('#sheetWrap').hidden) renderSheet(); }
-function closeSheet() { $('#sheetWrap').hidden = true; S.sheet = null; $('#sheetWrap').classList.remove('side'); document.body.classList.remove('npctalk'); R3.focus = null; }
+function renderSheetIfOpen() { if (S.sheet === 'stats' && STX.holding) return; if (S.sheet && S.sheet !== 'gm' && !$('#sheetWrap').hidden) renderSheet(); }
+function closeSheet() { statCamOff(); $('#sheetWrap').classList.remove('stat'); $('#sheetWrap').hidden = true; S.sheet = null; $('#sheetWrap').classList.remove('side'); document.body.classList.remove('npctalk'); R3.focus = null; }
 $('#sheetClose').addEventListener('click', closeSheet);
 $('#sheetWrap').addEventListener('pointerdown', (e) => { if (e.target === e.currentTarget) closeSheet(); });
    // the sheet is redrawn often (online list, timers): keep the "tap again" state outside the button
@@ -8509,33 +8572,74 @@ function resetStats() {
   addFx({ kind: 'ring', x: P.x, y: P.y, r: 60, color: '#9fd0ff', dur: 0.7 }); addNum(P.x, P.y - 74, 'รีเซ็ตสเตตัส', '#9fd0ff', 14, { font: 'th', pop: true, dur: 1.3 });
   AU.sfx('levelup'); toast('รีเซ็ตแล้ว ได้แต้มสเตตัสคืน ' + fmt(h.statPts) + ' แต้ม'); S.dirty = true; save(); hudText(); drawAvatar(); renderSheet();
 }
+const STX = { tab: 'up', pend: {}, holding: false };
+function statCamOn() { if (S.zoomBak == null) S.zoomBak = S.zoom; S.zoom = 0.8; R3.statCam = true; }
+function statCamOff() { if (S.zoomBak != null) { S.zoom = S.zoomBak; S.zoomBak = null; } R3.statCam = false; }
+function paintAvatar(cv, sz) {
+  const h = S.hero, d = Math.min(2, window.devicePixelRatio || 1); cv.width = sz * d; cv.height = sz * d;
+  const c = cv.getContext('2d'); c.setTransform(d, 0, 0, d, 0, 0); c.clearRect(0, 0, sz, sz);
+  if (!R3.snap(c, sz, sz, h.look, h.job, h.wstyle, 'head', eqVis(h), h.eq && h.eq.weapon && h.eq.weapon.id)) drawHero(c, sz / 2, sz * 86 / 54, 1.42 * sz / 54, h.look, h.job, { noShadow: true, t: 0.3, wstyle: h.wstyle });
+}
+function holdRepeat(btn, fn) {   // press = 1 step, hold = repeats and speeds up
+  let t1 = 0, t2 = 0, n = 0;
+  const stop = () => { clearTimeout(t1); clearInterval(t2); t1 = t2 = 0; STX.holding = false; };
+  btn.addEventListener('pointerdown', (e) => { e.preventDefault(); if (btn.disabled) return; STX.holding = true; n = 0; fn(1); t1 = setTimeout(() => { t2 = setInterval(() => { n++; if (btn.disabled) { stop(); return; } fn(n > 14 ? 5 : n > 6 ? 2 : 1); }, 80); }, 320); });
+  for (const ev of ['pointerup', 'pointerleave', 'pointercancel']) btn.addEventListener(ev, stop);
+  btn.addEventListener('contextmenu', (e) => e.preventDefault());
+}
+const stPendCost = (h) => { let t = 0; for (const k of STATS) for (let i = 0; i < (STX.pend[k] || 0); i++) t += statCost(h.stats[k] + i); return t; };
 function panelStats(body) {
-  const h = S.hero, D = derived();
-  body.append(el('div', { class: 'ph' }, el('span', { class: 't', text: h.name }), el('span', { class: 'muted', text: jobName(h.job) + '  Base ' + h.level + '  Job ' + h.jobLv })));
-  body.append(el('div', { class: 'pts' }, 'แต้มสเตตัสคงเหลือ ', el('b', { text: String(h.statPts) }), el('span', { class: 'muted', text: '  ตัวเลขสีเขียวคือโบนัสจาก Job Lv และอุปกรณ์' })));
-  body.append(el('p', { class: 'note', text: 'สเตตัสสูงสุด ' + STAT_MAX + ' ต่อตัว  ตั้งแต่ ' + STAT_STEEP + ' ขึ้นไปราคาแต้มแพงขึ้น: จาก ' + STAT_STEEP + ' ไป ' + STAT_MAX + ' ใช้ ' + fmt(statRangeCost(STAT_STEEP, STAT_MAX)) + ' แต้มต่อสเตตัส' }));
-  for (const k of STATS) {
-    const v = h.stats[k], bonus = D.st[k] - v, cost = statCost(v), can = h.statPts >= cost && v < STAT_MAX;
-    body.append(el('div', { class: 'srow' },
-      el('div', null, el('div', { class: 'n', text: k.toUpperCase() }), el('div', { class: 'd', text: STAT_INFO[k] + (v >= STAT_MAX ? ' (เต็มแล้ว)' : ' (ใช้ ' + cost + ' แต้ม)') })),
-      el('div', { class: 'v' }, String(v), bonus > 0 ? el('em', { text: '+' + bonus }) : null),
-      el('div', { class: 'btns' },
-        el('button', { class: 'mini pri', text: '+1', disabled: !can, 'aria-label': 'เพิ่ม ' + k.toUpperCase() + ' 1', onclick: () => addStat(k, 1) }),
-        el('button', { class: 'mini', text: '+5', disabled: !can, 'aria-label': 'เพิ่ม ' + k.toUpperCase() + ' 5', onclick: () => addStat(k, 5) }),
-        el('button', { class: 'mini', text: '+10', disabled: !can, 'aria-label': 'เพิ่ม ' + k.toUpperCase() + ' 10', onclick: () => addStat(k, 10) }))));
+  const h = S.hero, D = derived(), tier = JOBS[h.job].tier;
+  const cv = el('canvas'); paintAvatar(cv, 62);
+  const bar = (cls, lab, pct, txt) => el('div', { class: 'stbar ' + cls }, el('span', { text: lab }), el('div', { class: 'bt' }, el('i', { style: 'width:' + clamp(pct, 0, 1) * 100 + '%' })), el('span', { text: txt }));
+  const bx = h.level >= CONFIG.maxBase ? 1 : h.exp / baseNeed(h.level), jx = h.jobLv >= jobCap(tier) ? 1 : h.jobExp / jobNeed(h.jobLv, tier);
+  body.append(el('div', { class: 'stp' }, cv, el('div', { class: 'in' }, el('b', { text: h.name }), el('small', { text: jobName(h.job) }),
+    bar('hp', 'HP', P.hp / D.maxHp, fmt(P.hp) + '/' + fmt(D.maxHp)), bar('sp', 'SP', P.sp / D.maxSp, fmt(P.sp) + '/' + fmt(D.maxSp)),
+    bar('bx', 'Base', bx, 'Lv ' + h.level + ' (' + Math.floor(clamp(bx, 0, 1) * 100) + '%)'), bar('jx', 'Job', jx, 'Lv ' + h.jobLv + ' (' + Math.floor(clamp(jx, 0, 1) * 100) + '%)'))));
+  body.append(el('div', { class: 'sttabs' },
+    el('button', { class: 'mini' + (STX.tab === 'up' ? ' on' : ''), text: '📊 อัพสเตตัส', onclick: () => { STX.tab = 'up'; renderSheet(); } }),
+    el('button', { class: 'mini' + (STX.tab === 'val' ? ' on' : ''), text: '📈 ค่าสถานะ', onclick: () => { STX.tab = 'val'; renderSheet(); } })));
+  if (STX.tab === 'val') {
+    const g = el('div', { class: 'stv' });
+    [['ATK', fmt(D.atk)], ['MATK', fmt(D.matk)], ['DEF', fmt(D.def)], ['HIT', fmt(D.hit)], ['FLEE', fmt(D.flee)], ['CRIT', D.crit.toFixed(1) + '%'],
+     ['ASPD', aspdOf(D.aspdMs) + (aspdOf(D.aspdMs) >= ASPD_MAX ? ' (MAX)' : '')], ['ลดคูลดาวน์', D.cdr.toFixed(1) + '%'], ['MAX HP', fmt(D.maxHp)], ['MAX SP', fmt(D.maxSp)]]
+      .forEach(([a, b]) => g.append(el('div', null, el('span', { text: a }), el('b', { text: b }))));
+    body.append(g);
+    const rc = CONFIG.statReset || 0, used = STATS.some((k) => h.stats[k] > 1);
+    const rs = el('button', { class: 'mini', text: '↺ รีเซ็ตสเตตัส' + (rc ? ' (' + fmt(rc) + ' G)' : ''), disabled: !used });
+    twoStep(rs, rs.textContent, 'แตะอีกครั้ง คืนแต้มทั้งหมด', resetStats);
+    const nw = twoStep(el('button', { class: 'mini warn', text: 'สร้างตัวละครใหม่' }), 'สร้างตัวละครใหม่', 'แตะอีกครั้ง ตัวละครนี้จะหายไป', () => { closeSheet(); S.hero = null; W.map = null; lsSet(LS_SAVE + (S.uid || ''), ''); setAuto(false); setupCreate(); });
+    body.append(el('div', { class: 'acts', style: 'margin-top:10px' }, rs, nw));
+    return;
   }
-  const kv = el('div', { class: 'kv' });
-  [['ATK', fmt(D.atk)], ['MATK', fmt(D.matk)], ['DEF', fmt(D.def)], ['HIT', fmt(D.hit)], ['FLEE', fmt(D.flee)], ['CRIT', D.crit.toFixed(1) + '%'],
-   ['ASPD', aspdOf(D.aspdMs) + (aspdOf(D.aspdMs) >= ASPD_MAX ? ' (MAX)' : '')], ['ลดคูลดาวน์', D.cdr.toFixed(1) + '%'], ['MAX HP', fmt(D.maxHp)], ['MAX SP', fmt(D.maxSp)]]
-    .forEach(([a, b]) => kv.append(el('div', null, a, el('b', { text: b }))));
-  body.append(kv);
-  const reset = twoStep(el('button', { class: 'mini warn', text: 'สร้างตัวละครใหม่' }), 'สร้างตัวละครใหม่', 'แตะอีกครั้ง ตัวละครนี้จะหายไป', () => {
-    closeSheet(); S.hero = null; W.map = null; lsSet(LS_SAVE + (S.uid || ''), ''); setAuto(false); setupCreate();
+  const rows = [];
+  const ptsEl = el('b'), okBtn = el('button', { class: 'mini pri', text: 'ยืนยัน' }), autoBtn = el('button', { class: 'mini', text: 'จัดอัตโนมัติ', onclick: () => { STX.pend = {}; autoAlloc(); } });
+  const upd = () => {
+    const left = h.statPts - stPendCost(h);
+    for (const r of rows) {
+      const k = r.k, pend = STX.pend[k] || 0, v = h.stats[k] + pend, bonus = D.st[k] - h.stats[k], cost = statCost(v);
+      r.v.textContent = String(v);
+      if (pend) r.v.append(el('u', { text: '(+' + pend + ')' })); if (bonus > 0) r.v.append(el('em', { text: '+' + bonus }));
+      r.c.textContent = v >= STAT_MAX ? 'เต็ม' : cost + ' แต้ม';
+      r.plus.disabled = v >= STAT_MAX || left < cost; r.minus.disabled = pend <= 0;
+    }
+    ptsEl.textContent = String(left); const sp = stPendCost(h);
+    okBtn.disabled = sp === 0; okBtn.textContent = 'ยืนยัน' + (sp ? ' (' + sp + ')' : ''); autoBtn.disabled = h.statPts < 2;
+  };
+  for (const k of STATS) {
+    const plus = el('button', { class: 'pmb', text: '+', 'aria-label': 'เพิ่ม ' + k.toUpperCase() }), minus = el('button', { class: 'pmb m', text: '−', 'aria-label': 'ลด ' + k.toUpperCase() });
+    const v = el('div', { class: 'v' }), c = el('div', { class: 'c' });
+    holdRepeat(plus, (n) => { for (let i = 0; i < n; i++) { const cur = h.stats[k] + (STX.pend[k] || 0); if (cur >= STAT_MAX || h.statPts - stPendCost(h) < statCost(cur)) break; STX.pend[k] = (STX.pend[k] || 0) + 1; } upd(); });
+    holdRepeat(minus, (n) => { STX.pend[k] = Math.max(0, (STX.pend[k] || 0) - n); upd(); });
+    rows.push({ k, v, c, plus, minus });
+    body.append(el('div', { class: 'strow2' }, el('div', { class: 'n', text: k.toUpperCase() }), v, c, el('div', { class: 'pm' }, minus, plus)));
+  }
+  okBtn.addEventListener('click', () => {
+    for (const k of STATS) for (let i = 0; i < (STX.pend[k] || 0); i++) { const c = statCost(h.stats[k]); if (h.statPts < c || h.stats[k] >= STAT_MAX) break; h.statPts -= c; h.stats[k]++; }
+    STX.pend = {}; P.D = derived(); S.dirty = true; hudText(); renderSheet(); toast('บันทึกสเตตัสแล้ว');
   });
-  const rc = CONFIG.statReset || 0, used = STATS.some((k) => h.stats[k] > 1);
-  const rs = el('button', { class: 'mini', text: '↺ รีเซ็ตสเตตัส' + (rc ? ' (' + fmt(rc) + ' G)' : ''), disabled: !used });
-  twoStep(rs, rs.textContent, 'แตะอีกครั้ง คืนแต้มทั้งหมด', resetStats);
-  body.append(el('div', { class: 'acts' }, el('button', { class: 'mini pri', text: 'จัดสเตตัสอัตโนมัติ', disabled: h.statPts < 2, onclick: autoAlloc }), rs, reset));
+  body.append(el('div', { class: 'stfoot' }, el('div', { class: 'pts2' }, 'แต้มคงเหลือ ', ptsEl), autoBtn, okBtn));
+  upd();
 }
 
 /* skills */
