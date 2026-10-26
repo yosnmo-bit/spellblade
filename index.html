@@ -4193,8 +4193,8 @@ void main(){
     const sh = R3.shakeUntil > performance.now() ? R3.shakeAmp : 0;
     const tgt = [R3.cx + (Math.random() - 0.5) * sh, 0, R3.cz + (Math.random() - 0.5) * sh];
     const Dc = R3.cd || D;
-    const yw = R3.yaw || 0, hd = Dc * Math.cos(elev);
-    E.setCam([tgt[0] + hd * Math.sin(yw), Dc * Math.sin(elev), tgt[2] + hd * Math.cos(yw)], tgt, fovy, aspect, 0.5, D * 4);
+    const yw = R3.yaw || 0, ev = R3.pitch || elev, hd = Dc * Math.cos(ev);   // yaw = spin around the hero, pitch = camera height angle
+    E.setCam([tgt[0] + hd * Math.sin(yw), Dc * Math.sin(ev), tgt[2] + hd * Math.cos(yw)], tgt, fovy, aspect, 0.5, D * 4);
     E.fogR = [D * 1.08, D * 2.0];
   };
   function ccVis(E, X, Z, type, t) {
@@ -7956,15 +7956,16 @@ function setAuto(v) { S.auto = v; if (v) { P.aax = P.x; P.aay = P.y; } $('#autoB
 function setZoom(z) { S.zoom = clamp(z, 0.8, 1.8); lsSet('spellblade_zoom', S.zoom.toFixed(2)); }
 const PTR = new Map(); let pinch = null, TAP = null;
 R3.yaw = Number(lsGet('spellblade_yaw')) || 0;
+R3.pitch = clamp(Number(lsGet('spellblade_pitch')) || 54 * Math.PI / 180, 0.3, 1.5);
 $('#world').addEventListener('pointerdown', (e) => { PTR.set(e.pointerId, { x: e.clientX, y: e.clientY }); if (PTR.size === 2) { TAP = null; const [a, b] = [...PTR.values()]; pinch = { d: Math.max(20, Math.hypot(a.x - b.x, a.y - b.y)), z: S.zoom }; } });
 $('#world').addEventListener('pointermove', (e) => { if (!PTR.has(e.pointerId)) return;
   if (TAP && TAP.id === e.pointerId && PTR.size === 1) {
-    const dx = e.clientX - TAP.lx;
-    if (!TAP.moved && Math.hypot(e.clientX - TAP.x, e.clientY - TAP.y) > 10) { TAP.moved = true; TAP.lx = e.clientX; return; }
-    if (TAP.moved) { R3.yaw = ((R3.yaw || 0) - dx * 0.008) % TAU; TAP.lx = e.clientX; }
+    const dx = e.clientX - TAP.lx, dy = e.clientY - TAP.ly;
+    if (!TAP.moved && Math.hypot(e.clientX - TAP.x, e.clientY - TAP.y) > 10) { TAP.moved = true; TAP.lx = e.clientX; TAP.ly = e.clientY; return; }
+    if (TAP.moved) { R3.yaw = ((R3.yaw || 0) - dx * 0.008) % TAU; R3.pitch = clamp((R3.pitch || 0.94) + dy * 0.006, 0.3, 1.5); TAP.lx = e.clientX; TAP.ly = e.clientY; }
   }
   PTR.set(e.pointerId, { x: e.clientX, y: e.clientY }); if (pinch && PTR.size >= 2) { const [a, b] = [...PTR.values()]; setZoom(pinch.z * pinch.d / Math.max(20, Math.hypot(a.x - b.x, a.y - b.y))); } });
-for (const ev of ['pointerup', 'pointercancel', 'pointerleave']) $('#world').addEventListener(ev, (e) => { PTR.delete(e.pointerId); if (PTR.size < 2) pinch = null; if (TAP && TAP.id === e.pointerId) { if (TAP.moved) lsSet('spellblade_yaw', (R3.yaw || 0).toFixed(3)); if (ev === 'pointerup' && !TAP.moved) { const t = TAP; TAP = null; worldTap(t.cx, t.cy, t.rect); } TAP = null; } });
+for (const ev of ['pointerup', 'pointercancel', 'pointerleave']) $('#world').addEventListener(ev, (e) => { PTR.delete(e.pointerId); if (PTR.size < 2) pinch = null; if (TAP && TAP.id === e.pointerId) { if (TAP.moved) { lsSet('spellblade_yaw', (R3.yaw || 0).toFixed(3)); lsSet('spellblade_pitch', (R3.pitch || 0.94).toFixed(3)); } if (ev === 'pointerup' && !TAP.moved) { const t = TAP; TAP = null; worldTap(t.cx, t.cy, t.rect); } TAP = null; } });
 $('#world').addEventListener('wheel', (e) => { e.preventDefault(); setZoom(S.zoom * (1 + e.deltaY * 0.0012)); }, { passive: false });
 S.autoRange = num(lsGet('spellblade_autorange'), 1, 0.05, 1);   // share of the map the auto walk circle covers (1 = whole map)
 const AUTO_RANGES = [[1, 'ทั้งแมพ'], [0.5, '50%'], [0.25, '25%'], [0.1, '10%']];
@@ -8066,7 +8067,7 @@ $('#world').addEventListener('pointerdown', (e) => {
   if (!S.hero || P.dead) return;
   e.preventDefault();
   if (PTR.size >= 2) { TAP = null; return; }
-  TAP = { id: e.pointerId, x: e.clientX, y: e.clientY, lx: e.clientX, cx: e.clientX, cy: e.clientY, moved: false, rect: e.currentTarget.getBoundingClientRect() };
+  TAP = { id: e.pointerId, x: e.clientX, y: e.clientY, lx: e.clientX, ly: e.clientY, cx: e.clientX, cy: e.clientY, moved: false, rect: e.currentTarget.getBoundingClientRect() };
 });
 function worldTap(cx, cy, r) {
   if (!S.hero || P.dead) return;
