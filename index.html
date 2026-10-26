@@ -678,6 +678,30 @@ body.lg-on .selwrap .btn-main{max-width:260px}
 .pmb:disabled{opacity:.35;box-shadow:none}.pmb:active{transform:translateY(2px)}
 .stfoot{display:flex;align-items:center;gap:8px;margin-top:6px}.stfoot .pts2{flex:1;font-weight:700}.stfoot .pts2 b{color:#E5821B;font-size:1.1rem}
 .stv{display:grid;grid-template-columns:repeat(2,1fr);gap:6px}.stv div{display:flex;justify-content:space-between;padding:9px 12px;border-radius:12px;background:rgba(255,255,255,.85);border:1px solid #A9D3F5;color:var(--ink-soft);font-weight:700;font-size:.84rem}.stv b{color:var(--ink)}
+
+/* skill screen: full-screen blurred, job flags, icon grid, detail popup */
+.sheet-wrap.skl{justify-content:stretch;background:rgba(8,10,16,.55);-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px)}
+.sheet-wrap.skl .sheet{max-width:none;max-height:none;height:100%;margin:0;border-radius:0;border:0;box-shadow:none;background:rgba(18,20,28,.55);padding-top:env(safe-area-inset-top,0px)}
+.sheet-wrap.skl .sheet-body{flex:1}
+.jban{display:flex;align-items:center;margin:14px 0 8px;height:46px}
+.jflag{position:relative;z-index:1;display:flex;flex-direction:column;align-items:center;justify-content:center;min-width:86px;height:56px;padding:2px 12px 12px;background:var(--lc);color:#fff;font-size:.8rem;clip-path:polygon(0 0,100% 0,100% 100%,50% 84%,0 100%);box-shadow:0 2px 6px rgba(0,0,0,.4)}
+.jflag .ji{font-size:1.1rem;line-height:1}.jflag b{font-size:.78rem;line-height:1.1;text-align:center}
+.jstrip{flex:1;height:100%;margin-left:-8px;display:flex;align-items:center;justify-content:center;font-size:1.7rem;background:linear-gradient(90deg,var(--lc),transparent 85%);opacity:.9;border-radius:0 8px 8px 0}
+.skgrid{display:grid;grid-template-columns:repeat(5,1fr);gap:10px 6px;padding:4px 2px 10px}
+.skt{position:relative;display:flex;flex-direction:column;align-items:center;gap:2px;background:none;border:0;padding:0;color:var(--ink);min-width:0;cursor:pointer}
+.skic{width:100%;max-width:62px;aspect-ratio:1;border-radius:12px;display:grid;place-items:center;font-size:1.7rem;background:radial-gradient(circle at 35% 28%,rgba(255,255,255,.55),transparent 50%),var(--c,#567);border:2px solid rgba(255,255,255,.75);box-shadow:0 0 8px rgba(255,255,255,.25);filter:grayscale(.85) brightness(.7)}
+.skic.on{filter:none}.skic.rnd{border-radius:50%}
+.skic.big{width:56px;flex:0 0 56px;font-size:1.9rem}
+.sknm{font-size:.62rem;line-height:1.15;text-align:center;color:var(--ink-soft);max-width:100%;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+.sklv{font-size:.66rem;font-weight:700;color:#cfe}.sklv.max{color:#ffd36b}
+.skdot{position:absolute;top:-2px;right:6%;width:11px;height:11px;border-radius:50%;background:#5fe08a;border:2px solid #0b0d14;box-shadow:0 0 6px #5fe08a}
+.skpw{position:absolute;inset:0;z-index:5;display:flex;align-items:center;justify-content:center;padding:16px;background:rgba(0,0,0,.5)}
+.skpop{width:100%;max-width:400px;max-height:88%;overflow:auto;padding:14px;border-radius:16px;background:linear-gradient(180deg,#2b2860,#1a1840);border:1px solid #6c64d0;box-shadow:0 10px 30px rgba(0,0,0,.6)}
+.skph{display:flex;align-items:center;gap:10px;margin-bottom:8px}.skpt{flex:1;min-width:0;display:flex;flex-direction:column}.skpt b{font-size:1.05rem}.skpt small{color:#cfe}
+.skx{width:30px;height:30px;border-radius:50%;border:1px solid rgba(255,255,255,.4);background:rgba(255,255,255,.14);color:#fff;padding:0}
+.skrow{padding:7px 0;border-top:1px solid rgba(255,255,255,.1);font-size:.84rem}.skrow span{display:block;font-size:.7rem;color:#9fb4d0;margin-bottom:1px}
+.skpf{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:10px;font-size:.84rem}
+.skplus{min-width:96px;padding:10px 16px;font-size:1.15rem;font-weight:800}
 </style>
 </head>
 <body>
@@ -8521,7 +8545,7 @@ function openPanel(name) {
   if (name === 'bag' || name === 'equip') { openEquip(name === 'bag' ? 'bag' : 'eq'); return; }
   if (!PANELS[name]) return;
   if (name === 'stats') { STX.pend = {}; STX.tab = 'up'; statCamOn(); } else statCamOff();
-  $('#sheetWrap').classList.toggle('stat', name === 'stats');
+  $('#sheetWrap').classList.toggle('stat', name === 'stats'); $('#sheetWrap').classList.toggle('skl', name === 'skills'); SKX.sel = null;
   S.sheet = name; $('#sheetTitle').textContent = PANELS[name][0];
   { const npc = name.startsWith('npc_') && typeof NPCS === 'object' ? NPCS.find((n) => 'npc_' + n.id === name) : null; $('#sheetWrap').classList.toggle('side', !!npc); document.body.classList.toggle('npctalk', !!npc); R3.focus = npc || null; }
   if (name === 'gm' && !S.draftDirty) S.draft = clone(CONFIG);
@@ -8530,10 +8554,11 @@ function openPanel(name) {
 function renderSheet() {
   if (!S.sheet) return;
   const body = $('#sheetBody'), st = body.scrollTop;
+  document.querySelectorAll('#sheetWrap > .skpw').forEach((n) => n.remove());
   body.textContent = ''; PANELS[S.sheet][1](body); body.scrollTop = st;
 }
 function renderSheetIfOpen() { if (S.sheet === 'stats' && STX.holding) return; if (S.sheet && S.sheet !== 'gm' && !$('#sheetWrap').hidden) renderSheet(); }
-function closeSheet() { statCamOff(); $('#sheetWrap').classList.remove('stat'); $('#sheetWrap').hidden = true; S.sheet = null; $('#sheetWrap').classList.remove('side'); document.body.classList.remove('npctalk'); R3.focus = null; }
+function closeSheet() { document.querySelectorAll('#sheetWrap > .skpw').forEach((n) => n.remove()); $('#sheetWrap').classList.remove('skl'); statCamOff(); $('#sheetWrap').classList.remove('stat'); $('#sheetWrap').hidden = true; S.sheet = null; $('#sheetWrap').classList.remove('side'); document.body.classList.remove('npctalk'); R3.focus = null; }
 $('#sheetClose').addEventListener('click', closeSheet);
 $('#sheetWrap').addEventListener('pointerdown', (e) => { if (e.target === e.currentTarget) closeSheet(); });
    // the sheet is redrawn often (online list, timers): keep the "tap again" state outside the button
@@ -8665,34 +8690,64 @@ function resetSkills() {
   recalcPoints(h); P.D = derived(); AU.sfx('card');
   S.dirty = true; save(); renderHotbar(); hudText(); renderSheet(); toast('รีแต้มสกิลแล้ว');
 }
+const SKX = { sel: null };
+const LINE_COL = { novice: '#7d8794', sword: '#d9473b', acolyte: '#2fa77a', magician: '#7b4fd6', archer: '#d9a21b', thief: '#a63fc4', merchant: '#c97a2b' };
+function skillDetail(sk) {
+  const h = S.hero, D = P.D || derived(), lv = h.skills[sk.id] || 0;
+  const pct = (v) => Math.round(v * 100) + '%';
+  const rows = [];
+  rows.push(['ผลของสกิล', lv ? skillDesc(sk, lv) : 'ยังไม่ได้เรียน'], ['ขั้นต่อไป (Lv ' + Math.min(sk.maxLv, lv + 1) + ')', lv >= sk.maxLv ? 'เลเวลสูงสุดแล้ว' : skillDesc(sk, lv + 1)]);
+  if (sk.m && (sk.type === 'atk' || sk.type === 'aoe' || sk.type === 'combo')) {
+    const base = sk.dmg === 'magic' ? D.matk : D.atk, one = (l) => Math.round((sk.m[0] + sk.m[1] * l) * base * (sk.hits > 1 && sk.type !== 'combo' ? sk.hits : 1));
+    const hits = sk.type === 'combo' ? sk.hits : 1;
+    rows.push(['ดาเมจโดยประมาณ', (lv ? fmt(one(lv) * hits) : '-') + (lv < sk.maxLv ? '  →  ' + fmt(one(lv + 1) * hits) : '') + ' (ไม่รวมป้องกัน/คริ)']);
+  }
+  if (sk.type !== 'passive') rows.push(['ใช้ SP / คูลดาวน์', spCost(sk, Math.max(1, lv)) + ' SP · ' + sk.cd + ' วิ' + (D.cdr ? ' (เหลือ ' + (Math.round(sk.cd * (1 - D.cdr / 100) * 10) / 10) + ' วิ)' : '')]);
+  return rows;
+}
+function skillPopup() {
+  const h = S.hero, sk = SKILLS[SKX.sel]; if (!sk) { SKX.sel = null; return null; }
+  const lv = h.skills[sk.id] || 0, can = h.skillPts > 0 && lv < sk.maxLv;
+  const ic = el('div', { class: 'skic big' + (sk.type === 'passive' ? ' rnd' : '') + (lv ? ' on' : ''), text: sk.icon }); ic.style.setProperty('--c', sk.color);
+  const card = el('div', { class: 'skpop' },
+    el('div', { class: 'skph' }, ic, el('div', { class: 'skpt' }, el('b', { text: sk.name }), el('small', { text: 'Lv ' + lv + ' / ' + sk.maxLv + (sk.type === 'passive' ? ' · ติดตัวถาวร' : '') })),
+      el('button', { class: 'skx', text: '✕', 'aria-label': 'ปิด', onclick: () => { SKX.sel = null; renderSheet(); } })),
+    ...skillDetail(sk).map(([k, v]) => el('div', { class: 'skrow' }, el('span', { text: k }), el('div', { text: v, style: 'white-space:pre-line' }))));
+  if (lv && sk.type !== 'passive') {
+    const sl = el('div', { class: 'slots' }, 'ช่องสกิล ');
+    for (let i = 0; i < 8; i++) { const on = h.hotbar[i] === sk.id; sl.append(el('button', { class: 'mini' + (on ? ' on' : ''), text: String(i + 1), 'aria-pressed': String(on), onclick: () => assignSlot(sk.id, i) })); }
+    card.append(sl);
+  }
+  card.append(el('div', { class: 'skpf' }, el('span', { text: 'แต้มสกิลคงเหลือ ' + h.skillPts }),
+    el('button', { class: 'mini pri skplus', text: lv ? '+' : 'เรียน +', disabled: !can, 'aria-label': 'เพิ่มเลเวล ' + sk.name, onclick: () => learnSkill(sk.id) })));
+  return el('div', { class: 'skpw', onpointerdown: (e) => { if (e.target === e.currentTarget) { SKX.sel = null; renderSheet(); } } }, card);
+}
 function panelSkills(body) {
   const h = S.hero;
   const spent = Object.values(h.skills || {}).reduce((a, b) => a + b, 0);
   const rbtn = twoStep(el('button', { class: 'mini', text: '🔄 รีแต้มสกิล', disabled: !spent, style: 'margin-left:auto' }), '🔄 รีแต้มสกิล', 'แตะอีกครั้งเพื่อยืนยัน', () => resetSkills());
   body.append(el('div', { class: 'pts', style: 'display:flex;align-items:center;gap:6px;flex-wrap:wrap' }, el('span', {}, 'แต้มสกิลคงเหลือ ', el('b', { text: String(h.skillPts) }), el('span', { class: 'muted', text: '  ได้ 1 แต้มทุก Job Lv' })), rbtn));
-  body.append(el('p', { class: 'note', text: 'สกิลในช่อง 1–8 จะอยู่ที่แถบล่าง (แถวบน 1–4 แถวล่าง 5–8) และโหมดออโต้จะใช้ให้เองตามลำดับช่อง' }));
+  body.append(el('p', { class: 'note', text: 'แตะที่ไอคอนสกิลเพื่อดูรายละเอียดและกด + เพื่ออัพ สกิลในช่อง 1–8 จะอยู่ที่แถบล่าง และโหมดออโต้จะใช้ให้เองตามลำดับช่อง' }));
   for (const jid of chainOf(h.job)) {
     const list = Object.values(SKILLS).filter((s) => s.job === jid);
     if (!list.length) continue;
-    body.append(el('div', { class: 'sub', text: jobName(jid) }));
+    const J = JOBS[jid], col = LINE_COL[J.line] || '#7d8794';
+    const flag = el('div', { class: 'jflag' }, el('span', { class: 'ji', text: J.icon }), el('b', { text: jobName(jid) }));
+    body.append(el('div', { class: 'jban', style: '--lc:' + col }, flag, el('div', { class: 'jstrip' }, el('span', { text: J.icon }))));
+    const grid = el('div', { class: 'skgrid' });
     for (const sk of list) {
-      const lv = h.skills[sk.id] || 0;
-      const ic = el('div', { class: 'ic', text: sk.icon }); ic.style.setProperty('--c', sk.color);
-      let ds = lv ? 'ตอนนี้: ' + skillDesc(sk, lv) : 'Lv 1: ' + skillDesc(sk, 1);
-      if (lv && lv < sk.maxLv) ds += '\nถัดไป: ' + skillDesc(sk, lv + 1);
-      const bd = el('div', { class: 'bd' },
-        el('div', { class: 'nm2', text: sk.name + '  Lv ' + lv + '/' + sk.maxLv }),
-        el('div', { class: 'ds', text: ds, style: 'white-space:pre-line' }),
-        el('div', { class: 'meta', text: sk.type === 'passive' ? 'ติดตัวถาวร' : 'SP ' + spCost(sk, Math.max(1, lv)) + '  คูลดาวน์ ' + sk.cd + ' วิ' + (P.D && P.D.cdr ? ' (ลดเหลือ ' + (Math.round(sk.cd * (1 - P.D.cdr / 100) * 10) / 10) + ' วิ)' : '') }));
-      if (lv && sk.type !== 'passive') {
-        const sl = el('div', { class: 'slots' }, 'ช่อง ');
-        for (let i = 0; i < 8; i++) { const on = h.hotbar[i] === sk.id; sl.append(el('button', { class: 'mini' + (on ? ' on' : ''), text: String(i + 1), 'aria-pressed': String(on), onclick: () => assignSlot(sk.id, i) })); }
-        bd.append(sl);
-      }
-      body.append(el('div', { class: 'card' }, ic, bd,
-        el('button', { class: 'mini pri', text: lv ? '+1' : 'เรียน', disabled: h.skillPts <= 0 || lv >= sk.maxLv, 'aria-label': 'เพิ่มเลเวล ' + sk.name, onclick: () => learnSkill(sk.id) })));
+      const lv = h.skills[sk.id] || 0, can = h.skillPts > 0 && lv < sk.maxLv;
+      const t = el('button', { class: 'skt', 'aria-label': sk.name, onclick: () => { SKX.sel = sk.id; renderSheet(); } },
+        el('div', { class: 'skic' + (sk.type === 'passive' ? ' rnd' : '') + (lv ? ' on' : ''), text: sk.icon, style: '--c:' + sk.color }),
+        el('small', { class: 'sknm', text: sk.name }),
+        el('small', { class: 'sklv' + (lv >= sk.maxLv ? ' max' : ''), text: lv >= sk.maxLv ? 'MAX' : 'Lv ' + lv + '/' + sk.maxLv }));
+      if (can) t.append(el('i', { class: 'skdot' }));
+      grid.append(t);
     }
+    body.append(grid);
   }
+  const pop = SKX.sel ? skillPopup() : null;
+  if (pop) $('#sheetWrap').append(pop);
 }
 
 /* job */
