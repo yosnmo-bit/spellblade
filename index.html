@@ -8694,13 +8694,24 @@ function wmPath(i, j) {
 }
 const escX = (t) => String(t).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]);
 function wmMap(id) { return id === 'village' ? TOWN : CONFIG.maps.find((m) => m.id === id); }
+// maps added in the game data (GM / config) that have no fixed spot fill the "coming soon" slots, lowest level first; any left over are listed under the map
+function wmRegions() {
+  const fixed = new Set(WM_REG.filter((g) => g.id).map((g) => g.id));
+  const ex = (CONFIG.maps || []).filter((m) => m && m.id && !fixed.has(m.id) && !m.pvp && !m.dg && !m.town).sort((p, q) => p.min - q.min);
+  const reg = WM_REG.map((g) => Object.assign({}, g)), slots = reg.filter((g) => !g.id).sort((p, q) => q.r - p.r);   // lower slot (Lv 100-118) first, then the top one
+  if (ex.length === 1 && ex[0].min >= 125 && slots.length > 1) slots.reverse();
+  const rest = [];
+  ex.forEach((m, i) => { if (slots[i]) { slots[i].id = m.id; delete slots[i].lock; } else rest.push(m); });
+  return { reg, rest };
+}
 function panelMap(body) {
   const h = S.hero;
   const here = isTown() ? 'village' : W.map ? W.map.id : '';
-  if (!WM.sel || !WM_REG.some((g) => g.id === WM.sel)) WM.sel = WM_REG.some((g) => g.id === here) ? here : 'village';
+  const { reg: REG, rest: REST } = wmRegions();
+  if (!WM.sel || !(REG.some((g) => g.id === WM.sel) || REST.some((m) => m.id === WM.sel))) WM.sel = (REG.some((g) => g.id === here) || REST.some((m) => m.id === here)) ? here : 'village';
   body.append(el('p', { class: 'note', text: 'แตะเขตบนแผนที่เพื่อดูข้อมูล แล้วกดปุ่ม "เข้า" เพื่อเดินทาง ตายแล้วจะกลับมาเกิดที่หมู่บ้าน' }));
   let defs = '', gs = '';
-  WM_REG.forEach((g, n) => {
+  REG.forEach((g, n) => {
     const d = wmPath(g.c, g.r), cs = [WM_V[g.c][g.r], WM_V[g.c + 1][g.r], WM_V[g.c + 1][g.r + 1], WM_V[g.c][g.r + 1]];
     const x0 = Math.min(...cs.map((q) => q[0])) - 30, x1 = Math.max(...cs.map((q) => q[0])) + 30, y0 = Math.min(...cs.map((q) => q[1])) - 30, y1 = Math.max(...cs.map((q) => q[1])) + 30;
     const cx = cs.reduce((a, q) => a + q[0], 0) / 4, cy = cs.reduce((a, q) => a + q[1], 0) / 4;
@@ -8727,6 +8738,7 @@ function panelMap(body) {
   box.innerHTML = '<svg viewBox="-6 -6 812 612" role="img" aria-label="แผนที่โลก"><defs>' + defs + '<pattern id="wmHatch" width="16" height="16" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="6" height="16" fill="rgba(255,255,255,.06)"/></pattern></defs>' + gs + '</svg>';
   box.querySelectorAll('[data-m]').forEach((g) => g.addEventListener('click', () => { WM.sel = g.getAttribute('data-m'); renderSheet(); }));
   body.append(box);
+  if (REST.length) body.append(el('div', { class: 'acts', style: 'flex-wrap:wrap;margin:8px 0' }, ...REST.map((x) => el('button', { class: 'mini' + (WM.sel === x.id ? ' pri' : ''), text: (here === x.id ? '📍 ' : '') + x.name + ' Lv ' + x.min + '–' + x.max, onclick: () => { WM.sel = x.id; renderSheet(); } }))));
   // selected region card
   const m = wmMap(WM.sel), isT = WM.sel === 'village', hereSel = here === WM.sel, low = !isT && h.level < m.min - 5;
   const card = el('div', { class: 'wm-card' }, el('div', { class: 'wm-ch' }, el('b', { text: isT ? TOWN.name + '  (เมือง)' : m.name }), el('span', { class: 'rchip', style: '--rc:#8576f5', text: isT ? 'ปลอดภัย' : 'Lv ' + m.min + '–' + m.max })));
