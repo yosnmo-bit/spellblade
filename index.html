@@ -1805,6 +1805,7 @@ function buffSum() {
 /* ASPD: 193 (the cap) = 12 attacks per second. attacks/s = 84 / (200 - ASPD) */
 const ASPD_MAX = 193, ASPD_K = 84, ASPD_MIN_MS = 1000 / (ASPD_K / (200 - ASPD_MAX));
 const aspdOf = (ms) => Math.min(ASPD_MAX, Math.round(200 - ASPD_K * ms / 1000));
+const PVP_HP = 5;   // everyone has 5x HP inside a PVP arena (own hero only)
 function derived(h) {
   h = h || S.hero;
   const J = JOBS[h.job], L = LINES[J.line], tier = J.tier, ti = Math.max(0, tier - 1);
@@ -1828,7 +1829,7 @@ function derived(h) {
   const aspdMs = Math.max(ASPD_MIN_MS, Math.max(260, (1500 - st.agi * 7) * L.aspd * (w === 'katar' ? 1.08 : w === 'dual' ? 0.95 : 1)) / (1 + ((pa.aspdPct || 0) + (bu.aspd || 0)) / 100));
   return {
     st, jb, w, atkType: L.atk, range: L.range,
-    atk: Math.round(atk), matk: Math.round(matk), maxHp, maxSp, def, aspdMs,
+    atk: Math.round(atk), matk: Math.round(matk), maxHp: Math.round(maxHp * ((W.map && W.map.pvp && h === S.hero) ? PVP_HP : 1)), maxSp, def, aspdMs,
     hit: h.level + st.dex + 10 + (pa.hit || 0), flee: h.level + st.agi + L.flee + (pa.flee || 0) + (bu.flee || 0),
     crit: st.luk * 0.3 + L.crit + (w === 'katar' ? 8 : 0) + (pa.crit || 0) + (bu.crit || 0),
     discount: Math.min(40, pa.discount || 0), pdmg: pa.pdmg || 0, mdmg: pa.mdmg || 0, critDmg: pa.critDmg || 0,
@@ -1847,7 +1848,9 @@ function enterMap(id, silent, dmap) {
   if (dmap) map = dmap;
   else { S.hero.mapId = id; map = currentMap(); S.hero.mapId = map.id; }
   dgReset();
+  const wasPvp = !!(W.map && W.map.pvp);
   W.map = map; W.mapSig = JSON.stringify(map); setWorldFor(map);
+  if (wasPvp !== !!map.pvp) { P.D = derived(); P.hp = wasPvp ? P.D.maxHp : Math.min(P.hp, P.D.maxHp); }
   W.mons = []; W.fx = []; W.nums = []; W.pend = [];
   buildGround();
   const b = bounds();
@@ -2468,17 +2471,22 @@ function autoPotTick() {
 function usePot(kind, quiet) {
   const h = S.hero, D = P.D, pt = POT[kind];
   if (!pt || P.dead) return false;
-  if (pt.hp && isPvp()) { if (!quiet) toast('ใช้ยาฟื้นเลือดไม่ได้ในสนาม PVP'); return false; }
-  const cdl = ((P.potCd || (P.potCd = {}))[kind] || 0) - W.t;
-  if (cdl > 0) { if (!quiet) toast(pt.nm + ' ใช้ได้อีกใน ' + cdl.toFixed(1) + ' วิ'); return false; }
+  const pv = isPvp();
+  const pc = P.potCd || (P.potCd = {}), pcd = P.pvCd || (P.pvCd = { hp: 0, sp: 0 });
+  // in PVP all HP potions share one cooldown and all SP potions share another
+  const cdl = pv ? Math.max(pt.hp ? pcd.hp - W.t : 0, pt.sp ? pcd.sp - W.t : 0) : (pc[kind] || 0) - W.t;
+  if (cdl > 0) { if (!quiet) toast(pt.nm + ' ใช้ได้อีกใน ' + cdl.toFixed(1) + ' วิ' + (pv ? ' (สนาม PVP)' : '')); return false; }
   if ((h[pt.f] || 0) <= 0) { if (!quiet) toast(pt.nm + 'หมด ซื้อได้ที่ร้าน'); return false; }
   const needHp = pt.hp && P.hp < D.maxHp, needSp = pt.sp && P.sp < D.maxSp;
   if (!needHp && !needSp) { if (!quiet) toast((pt.hp && pt.sp ? 'HP และ SP' : pt.hp ? 'HP' : 'SP') + ' เต็มอยู่แล้ว'); return false; }
   h[pt.f]--;
-  if (pt.hp) { const a = Math.round(D.maxHp * pt.hp); P.hp = Math.min(D.maxHp, P.hp + a); addNum(P.x, P.y - 54, '+' + fmt(a), '#7dff9a', pt.hp >= 0.75 ? 16 : 14, pt.hp >= 0.75 ? { pop: true } : undefined); }
-  if (pt.sp) { const a = Math.round(D.maxSp * pt.sp); P.sp = Math.min(D.maxSp, P.sp + a); addNum(P.x, P.y - (pt.hp ? 72 : 54), '+' + fmt(a), '#8fc0ff', pt.sp >= 0.75 ? 16 : 14, pt.sp >= 0.75 ? { pop: true } : undefined); }
+  const pm = pv ? PVP_POT : 1;   // PVP: potions heal only 60%
+  if (pt.hp) { const a = Math.round(D.maxHp * pt.hp * pm); P.hp = Math.min(D.maxHp, P.hp + a); addNum(P.x, P.y - 54, '+' + fmt(a), '#7dff9a', pt.hp >= 0.75 ? 16 : 14, pt.hp >= 0.75 ? { pop: true } : undefined); }
+  if (pt.sp) { const a = Math.round(D.maxSp * pt.sp * pm); P.sp = Math.min(D.maxSp, P.sp + a); addNum(P.x, P.y - (pt.hp ? 72 : 54), '+' + fmt(a), '#8fc0ff', pt.sp >= 0.75 ? 16 : 14, pt.sp >= 0.75 ? { pop: true } : undefined); }
   if (kind === 'all') addFx({ kind: 'pillar', x: P.x, y: P.y, color: '#ffe27a', dur: 0.8, w: 30 });
-  P.potCd[kind] = W.t + (pt.cd || 0); S.dirty = true; AU.sfx('potion'); return true;
+  if (pv) { if (pt.hp) pcd.hp = W.t + PVP_POT_CD.hp; if (pt.sp) pcd.sp = W.t + PVP_POT_CD.sp; pc[kind] = W.t + (pt.sp && !pt.hp ? PVP_POT_CD.sp : PVP_POT_CD.hp); }
+  else pc[kind] = W.t + (pt.cd || 0);
+  S.dirty = true; AU.sfx('potion'); return true;
 }
 function autoAct() {
   if (W.t < P.nextAuto) return;
@@ -5677,6 +5685,8 @@ function readPresence(p) {
     lb: (Array.isArray(pr.lb) ? pr.lb : []).slice(-4).filter((e) => Array.isArray(e) && typeof e[0] === 'string' && LOOT_COL[e[3]]).map((e) => [e[0].slice(0, 12), num(e[1], 0.5, 0, 1), num(e[2], 0.5, 0, 1), e[3], num(e[4], 0, 0, 1e15)]),
     mcc: (Array.isArray(pr.mcc) ? pr.mcc : []).slice(-20).filter((e) => Array.isArray(e) && typeof e[0] === 'string' && (e[2] === 'f' || e[2] === 's')).map((e) => [e[0].slice(0, 12), int(e[1], -1, -1, 1e9), e[2], int(e[3], 0, 0, 5000)]),
     pvc: (Array.isArray(pr.pvc) ? pr.pvc : []).slice(-10).filter((e) => Array.isArray(e) && typeof e[0] === 'string' && typeof e[1] === 'string' && (e[2] === 'f' || e[2] === 's')).map((e) => [e[0].slice(0, 12), e[1].slice(0, 40), e[2], int(e[3], 0, 0, 3000)]),
+    pvm: Array.isArray(pr.pvm) ? [int(pr.pvm[0], 0, 0, 1e9), int(pr.pvm[1], 0, 0, 1e6)] : null,
+    pva: (Array.isArray(pr.pva) ? pr.pva : []).slice(-24).filter((e) => typeof e === 'string').map((e) => e.slice(0, 12)),
     pkd: Array.isArray(pr.pkd) ? [int(pr.pkd[0], 0, 0, 1e6), int(pr.pkd[1], 0, 0, 1e6)] : null,
     kb: Array.isArray(pr.kb) ? [String(pr.kb[0] || '').slice(0, 40), num(pr.kb[1], 0, 0, 1e15)] : null,
     pvh: (Array.isArray(pr.pvh) ? pr.pvh : []).slice(-20).filter((e) => Array.isArray(e) && typeof e[0] === 'string' && typeof e[1] === 'string').map((e) => [e[0].slice(0, 12), e[1].slice(0, 40), int(e[2], 1, 1, 1e8), e[3] ? 1 : 0]),
@@ -5880,7 +5890,7 @@ function onlineTick(dt) {
   const room = ONLINE.room; if (!room) return;
   if (P.swingT !== ONLINE.lastSwing) { ONLINE.lastSwing = P.swingT; ONLINE.swc++; }
   const now = performance.now();
-  if (now - ONLINE.lastSend < (NET.isHost ? Math.min(window.__NET_RATE || 160, 400) : (window.__NET_RATE || 160))) return;   // host streams monsters, so it sends a bit faster
+  if (now - ONLINE.lastSend < (isPvp() ? 150 : NET.isHost ? Math.min(window.__NET_RATE || 160, 400) : (window.__NET_RATE || 160))) return;   // host streams monsters, so it sends a bit faster
   const h = S.hero, D = P.D || derived();
   const pr = { v: 1, n: h.name, j: h.job, l: h.level, jl: h.jobLv, m: W.map.id,
     x: Math.round(P.x / WORLD.w * 1000) / 1000, y: Math.round(P.y / WORLD.h * 1000) / 1000,
@@ -7281,6 +7291,8 @@ function partyPresence() {
 /* =================== PVP rooms: open arena, invites, player-vs-player damage =================== */
 const PVP = { room: '', k: 0, d: 0, inv: {}, offer: null, offSeen: new Set(), hitSeen: new Map(), kSeen: new Set(), kb: null };
 const PVP_SCALE = 0.5, PVP_RESPAWN = 5, PVP_HEAL = 0.7;
+const PVP_POT = 0.6, PVP_POT_CD = { hp: 4, sp: 6 };   // PVP potions: 60% strength, shared cooldowns (seconds)
+const PVPX = { pend: [] };   // my hits on other players not yet confirmed by them (for instant HP-bar prediction)
 const isPvp = () => !!(W.map && W.map.pvp);
 const pvpPool = () => (isPvp() ? (W.pvp || []) : W.mons);
 function pvpMap(rid) { return { id: ('pvp:' + rid).slice(0, 40), name: '⚔️ สนาม PVP', theme: 'village', min: 1, max: 999, count: 0, monsters: [], pvp: true }; }
@@ -7304,11 +7316,17 @@ function pvpInvite(o) { PVP.inv[o.key] = Date.now(); toast('📨 ส่งคำ
 function pvpSync() {
   if (!isPvp()) { if (W.pvp && W.pvp.length) W.pvp = []; return; }
   const list = W.pvp || (W.pvp = []), seen = new Set();
+  if (PVPX.pend.length) { const t0 = Date.now(); PVPX.pend = PVPX.pend.filter((e) => t0 - e[3] < 4000); }
   for (const o of othersHere()) {
     if (!isLive(o) || (PARTY.key && o.pk === PARTY.key)) continue; seen.add(o.key);
     let m = list.find((x) => x.pk2 === o.key);
     if (!m) { m = { uid: 'pv_' + o.key, pvp: true, pk2: o.key, id: 'pvp', ti: -1, arch: 'blob', color: '#ff5a5a', atk: 0, def: 0, maxHp: 100, size: 1, alpha: 1, hitT: 0, lungeT: 0, boss: false, raid: false }; list.push(m); }
-    m.name = o.name; m.lv = o.lv; m.x = o.x; m.y = o.y; m.hp = o.dead ? 0 : Math.max(1, o.hp); m.state = o.dead ? 'dead' : 'idle';
+    m.name = o.name; m.lv = o.lv; m.x = o.x; m.y = o.y; let hpPct = o.hp;
+    if (!o.dead && o.pvm && o.pvm[0] > 0 && PVPX.pend.length) {   // subtract my hits they have not confirmed yet
+      let loss = 0; for (const e of PVPX.pend) if (e[1] === o.key && !(o.pva || []).includes(e[0])) loss += Math.max(1, Math.round(e[2] * 100 / (100 + o.pvm[1]) * PVP_SCALE));
+      hpPct = o.hp - loss / o.pvm[0] * 100;
+    }
+    m.hp = o.dead ? 0 : Math.max(0.5, Math.min(100, hpPct)); m.state = o.dead ? 'dead' : 'idle';
     m.X = (m.x - WORLD.w / 2) / R3.U; m.Z = (m.y - WORLD.h / 2) / R3.U;
   }
   W.pvp = list.filter((m) => seen.has(m.pk2));
@@ -7320,26 +7338,31 @@ function pvpHit(tg, res, hits) {
   for (let i = 0; i < hits; i++) later(i * 0.075, () => {
     if (tg.state === 'dead') return;
     NET.pvh = (NET.pvh || []).filter((e) => Date.now() - e[4] < 6000).slice(-19);
-    NET.pvh.push([uid36().slice(-9), tg.pk2, per, res.crit ? 1 : 0, Date.now()]);
+    const hid = uid36().slice(-9), t1 = Date.now();
+    NET.pvh.push([hid, tg.pk2, per, res.crit ? 1 : 0, t1]);
+    PVPX.pend.push([hid, tg.pk2, per, t1]); if (PVPX.pend.length > 60) PVPX.pend.shift();
+    ONLINE.lastSend = 0;   // send right away instead of waiting for the next tick
     if (res.crit) myCrit(tg, per, i, res.magic); else { AU.sfx('hit'); addNum(tg.x, tg.y - 32 * s, fmt(per), '#ffffff', 11, { pop: true, tk: tg.uid, dur: NUM_LIFE, dmg: true, tg, oy: -32 * s }); }
   });
 }
 function pvpTakeHit(dmg, crit, o) {
   if (P.dead || !isPvp() || W.t < (P.invT || 0)) return;
   const D = P.D || derived(), f = Math.max(1, Math.round(dmg * 100 / (100 + D.def) * PVP_SCALE));
-  P.hp -= f; P.hurtT = W.t; AU.sfx('hurt');
+  P.hp -= f; P.hurtT = W.t; AU.sfx('hurt'); ONLINE.lastSend = 0;
   addNum(P.x, P.y - 52, fmt(f), '#ff5a4a', crit ? 17 : 13, Object.assign({ dmg: true, tk: 'me', tg: P, oy: -52, dur: NUM_LIFE }, crit ? { pop: true } : null));
   if (P.hp <= 0) pvpDie(o);
 }
 function pvpDie(o) {
   P.dead = true; P.hp = 0; P.deadUntil = W.t + PVP_RESPAWN; P.target = null; P.queued = null; P.tx = null;
-  PVP.d++; PVP.kb = [o.key, Date.now()]; $('#dead').hidden = false; AU.sfx('death');
+  PVP.d++; PVP.kb = [o.key, Date.now()]; $('#dead').hidden = false; AU.sfx('death'); ONLINE.lastSend = 0;
   toast('💀 ถูก ' + o.name + ' ล้ม  เกิดใหม่ใน ' + PVP_RESPAWN + ' วิ'); renderPvpBar();
 }
 function pvpRespawnSpot() { P.x = WORLD.w / 2 + (Math.random() * 400 - 200); P.y = WORLD.h / 2 + (Math.random() * 400 - 200); }
 function pvpPresence(pr) {
   if (!isPvp()) return;
   pr.pkd = [PVP.k, PVP.d];
+  { const D = P.D || derived(); pr.pvm = [Math.round(D.maxHp), Math.round(D.def)]; }   // my max HP / DEF so attackers can predict the bar
+  { const now = Date.now(), ids = []; for (const [id, t] of PVP.hitSeen) if (now - t < 3500) ids.push(id); if (ids.length) pr.pva = ids.slice(-24); }   // hits I have applied
   const hv = (NET.pvh || []).filter((e) => Date.now() - e[4] < 6000); NET.pvh = hv; if (hv.length) pr.pvh = hv.map((e) => e.slice(0, 4));
   if (P.dead && PVP.kb) pr.kb = PVP.kb;
   const iv = Object.entries(PVP.inv).filter(([, t]) => Date.now() - t < 60000).slice(-6); if (iv.length) pr.pvi = iv.map(([k, t]) => [k, PVP.room, t]);
@@ -7390,7 +7413,7 @@ function panelPvp(body) {
   for (const o of out) { const sent = Date.now() - (PVP.inv[o.key] || 0) < 60000;
     body.append(el('div', { class: 'list-row' }, el('div', { class: 'grow' }, el('div', { class: 'nm2', text: o.name }), el('div', { class: 'ds', text: jobName(o.job) + '  Lv ' + o.lv + '  ·  ' + mapName(o.map) })),
       el('button', { class: 'mini' + (sent ? '' : ' pri'), text: sent ? 'เชิญแล้ว' : 'เชิญ', disabled: sent || String(o.map).startsWith('dg:'), onclick: () => pvpInvite(o) }))); }
-  body.append(el('p', { class: 'note', text: 'ดาเมจระหว่างผู้เล่นคิดหลัง DEF ของผู้ถูกตี และลดเหลือ ' + Math.round(PVP_SCALE * 100) + '%  ใช้ยาฟื้นเลือดไม่ได้  สกิลฮีลได้ ' + Math.round(PVP_HEAL * 100) + '%  ตายแล้วเกิดใหม่ในสนามใน ' + PVP_RESPAWN + ' วินาที' }));
+  body.append(el('p', { class: 'note', text: 'ดาเมจระหว่างผู้เล่นคิดหลัง DEF ของผู้ถูกตี และลดเหลือ ' + Math.round(PVP_SCALE * 100) + '%  เลือดเพิ่ม ' + PVP_HP + ' เท่า  ยา HP/SP ฟื้นได้ ' + Math.round(PVP_POT * 100) + '% (คูลดาวน์ยา HP ' + PVP_POT_CD.hp + ' วิ, ยา SP ' + PVP_POT_CD.sp + ' วิ)  สกิลฮีลได้ ' + Math.round(PVP_HEAL * 100) + '%  ตายแล้วเกิดใหม่ในสนามใน ' + PVP_RESPAWN + ' วินาที' }));
   body.append(el('button', { class: 'btn-main', style: 'background:linear-gradient(#c0505a,#8e2f38)', text: '🚪 ออกจากสนาม', onclick: () => { closeSheet(); pvpLeave(); } }));
 }
 /* =================== OFFLINE FARMING ===================
