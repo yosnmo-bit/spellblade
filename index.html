@@ -545,6 +545,83 @@ body.lg-on .selwrap .btn-main{max-width:260px}
 #offBody .gfrow{align-items:center}
 #offBody{max-height:76vh;overflow-y:auto;padding-bottom:0}
 #offBody>.btn-main{position:sticky;bottom:0;margin-top:10px;box-shadow:0 -10px 14px var(--panel)}
+/* ===== night-purple 3D-minimal theme for every menu sheet ===== */
+.sheet,.mcard{--panel:#1c1a3c;--panel-2:#2a2756;--ink:#efecff;--ink-soft:#b3afe0;--line:#413d78;--chip:#2c2960;--accent:#f0b24a;--accent-ink:#f4c877;--good:#5ad28c;--bad:#ff8068;--title-a:#5b4fc4;--title-b:#3b32a0;color:var(--ink)}
+.sheet{background:radial-gradient(130% 55% at 50% 0%,#3d3794 0%,#231f52 42%,#14122e 100%);border-color:#4b46a0;box-shadow:0 -8px 30px rgba(0,0,0,.45)}
+.mcard{background:radial-gradient(130% 70% at 50% 0%,#3d3794 0%,#231f52 50%,#14122e 100%);border-color:#4b46a0}
+.sheet .sheet-title,.mcard .sheet-title{background:linear-gradient(180deg,rgba(255,255,255,.12),rgba(255,255,255,0));border-bottom:1px solid rgba(255,255,255,.08);padding:9px 10px 9px 16px;font-size:1.04rem}
+.sheet .sheet-title button{width:32px;height:32px;border-radius:50%;border:1px solid rgba(255,255,255,.4);background:rgba(255,255,255,.14);color:#fff;padding:0;box-shadow:0 2px 0 rgba(0,0,0,.35)}
+.sheet .mini,.sheet .chip,.mcard .mini{border-radius:11px;background:linear-gradient(180deg,#3d3987,#2b2860);border:1px solid #514ca8;color:var(--ink);box-shadow:0 2px 0 #15122f,inset 0 1px 0 rgba(255,255,255,.14);transition:transform .07s,box-shadow .07s}
+.sheet .mini:active,.sheet .chip:active{transform:translateY(2px);box-shadow:0 0 0 #15122f}
+.sheet .mini.pri{background:linear-gradient(180deg,#8576f5,#5144c8);border-color:#9d92ff;color:#fff}
+.sheet .mini.on,.sheet .chip.on{background:linear-gradient(180deg,#ffd983,#f0a93a);color:#3a2306;border-color:#ffe6ae}
+.sheet .mini.warn{color:var(--bad)}
+.sheet .mini:disabled,.sheet .chip:disabled{opacity:.5;box-shadow:none}
+.sheet .btn-main,.mcard .btn-main{background:linear-gradient(180deg,#8576f5,#4d40c2);border:1px solid #9d92ff;box-shadow:0 4px 0 #15122f,inset 0 1px 0 rgba(255,255,255,.3);transition:transform .07s,box-shadow .07s}
+.sheet .btn-main:active{transform:translateY(3px);box-shadow:0 1px 0 #15122f}
+.sheet .list-row{padding:10px 12px;margin:0 0 7px;border-radius:14px;background:rgba(0,0,0,.2);border:1px solid var(--line);box-shadow:0 3px 0 rgba(0,0,0,.25)}
+.sheet .pts,.sheet .opt,.sheet .albrow,.sheet .dgcard,.sheet .invdet{border:1px solid var(--line);box-shadow:0 3px 0 rgba(0,0,0,.22)}
+.sheet .pts,.sheet .kv div,.sheet .albrow,.sheet .dgcard,.sheet .opt{background:rgba(0,0,0,.22)}
+.sheet .opt{border-radius:14px}
+.sheet .npcsay{background:rgba(240,178,74,.12);border-color:rgba(240,178,74,.4)}.sheet .npcsay b{color:var(--accent-ink)}
+.sheet .tile{background:linear-gradient(180deg,#38347c,#2a2758);border-color:#4d48a6;box-shadow:0 2px 0 #15122f,inset 0 1px 0 rgba(255,255,255,.16)}
+.sheet .seg{border-color:#514ca8;border-radius:12px;box-shadow:0 3px 0 #15122f}
+.sheet .seg button{background:linear-gradient(180deg,#3d3987,#2b2860);color:var(--ink)}
+.sheet .seg button[aria-pressed="true"]{background:linear-gradient(180deg,#ffd983,#f0a93a);color:#3a2306}
+.sheet input[type=text],.sheet input[type=number],.sheet select,.sheet textarea{background:rgba(0,0,0,.28);border:1px solid var(--line);border-radius:10px;color:var(--ink)}
+/* ===== dungeon list/detail ===== */
+.dgx{display:grid;grid-template-columns:112px minmax(0,1fr);gap:10px;margin-top:6px}
+.dgx-list{display:flex;flex-direction:column;gap:8px}
+.dgx-item{position:relative;display:flex;flex-direction:column;align-items:flex-start;gap:2px;min-height:62px;padding:8px 8px 8px 8px;border-radius:13px;border:1px solid #514ca8;background-size:cover;background-position:center;color:#fff;text-align:left;box-shadow:0 3px 0 #15122f,inset 0 1px 0 rgba(255,255,255,.15);overflow:hidden}
+.dgx-item .nm{font-weight:700;font-size:.8rem;line-height:1.2;max-width:100%;z-index:1}.dgx-item small{font-size:.66rem;opacity:.85;z-index:1}
+.dgx-item .dgx-ip{position:absolute;right:-6px;bottom:-8px;width:50px;height:50px;object-fit:contain;opacity:.95}.dgx-item .dgx-ip.ph{font-size:1.6rem;text-align:center;line-height:50px}
+.dgx-item.on{border-color:#ffd983;box-shadow:0 3px 0 #15122f,0 0 0 2px #f0b24a,0 0 16px rgba(240,178,74,.4);transform:translateX(3px)}
+.dgx-detail{min-width:0;display:flex;flex-direction:column;gap:8px}
+.dgx-ban{position:relative;height:132px;border-radius:14px;border:1px solid #514ca8;background-size:cover;background-position:center;overflow:hidden;box-shadow:0 3px 0 #15122f}
+.dgx-bt{position:absolute;left:10px;top:8px;right:10px;display:flex;flex-direction:column;align-items:flex-start;gap:4px;z-index:1}.dgx-bt b{font-size:1.02rem;text-shadow:0 2px 4px rgba(0,0,0,.7)}
+.dgx-ban .dgdiff{padding:1px 8px;border-radius:999px;font-size:.7rem;font-weight:700}
+.dgx-bp{position:absolute;right:2px;bottom:-6px;width:112px;height:112px;object-fit:contain;filter:drop-shadow(0 4px 6px rgba(0,0,0,.5))}.dgx-bp.ph{font-size:3.4rem;text-align:center;line-height:112px}
+.dgx-sub{font-weight:700;font-size:.82rem;color:var(--accent-ink);margin-top:2px}
+.dgx-rw{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+.dgx-r{display:flex;flex-direction:column;align-items:center;padding:6px 2px 5px;border-radius:11px;background:linear-gradient(180deg,#38347c,#2a2758);border:1px solid #4d48a6;box-shadow:0 2px 0 #15122f,inset 0 1px 0 rgba(255,255,255,.16)}
+.dgx-r .ic{font-size:1.4rem;line-height:1.1}.dgx-r b{font-size:.78rem;color:var(--accent-ink)}.dgx-r small{font-size:.62rem;color:var(--ink-soft);text-align:center;line-height:1.15}
+.dgx-info{font-size:.76rem;color:var(--ink-soft);display:flex;flex-direction:column;gap:3px}
+.dgx-foot{display:flex;flex-direction:column;gap:6px;margin-top:2px}.dgx-foot small{font-size:.66rem;color:var(--ink-soft)}
+.dgx-go{align-self:flex-end;min-width:130px;padding:11px 22px;border-radius:999px;border:1px solid #ffe6ae;background:linear-gradient(180deg,#ffd983,#f0a93a);color:#3a2306;font-weight:800;font-size:1.02rem;box-shadow:0 4px 0 #9a6414,inset 0 1px 0 rgba(255,255,255,.6);transition:transform .07s,box-shadow .07s}
+.dgx-go:active{transform:translateY(3px);box-shadow:0 1px 0 #9a6414}.dgx-go:disabled{filter:grayscale(.7) brightness(.8);box-shadow:0 2px 0 #3a3a3a}
+/* ===== world map ===== */
+.wm-box{border-radius:16px;overflow:hidden;border:1px solid #514ca8;background:#120f2e;box-shadow:0 4px 0 #15122f}
+.wm-box svg{display:block;width:100%;height:auto}
+.wm-r{cursor:pointer}.wm-r.lock{cursor:default}
+.wm-b{fill:none;stroke:rgba(255,255,255,.55);stroke-width:4;stroke-linejoin:round}
+.wm-r.sel .wm-b{stroke:#ffd983;stroke-width:8;filter:drop-shadow(0 0 8px rgba(240,178,74,.9))}
+.wm-n{font:800 31px "Bai Jamjuree","Noto Sans Thai",sans-serif;fill:#fff;stroke:rgba(14,12,40,.85);stroke-width:7px;paint-order:stroke}
+.wm-l{font:700 24px "Bai Jamjuree","Noto Sans Thai",sans-serif;fill:#ffe9b8;stroke:rgba(14,12,40,.85);stroke-width:6px;paint-order:stroke}
+.wm-i{font-size:54px}.wm-pin{font-size:40px}
+.wm-r.here .wm-n{fill:#ffd983}
+.wm-card{margin-top:10px;padding:10px 12px;border-radius:14px;background:rgba(0,0,0,.24);border:1px solid var(--line);box-shadow:0 3px 0 rgba(0,0,0,.22);display:flex;flex-direction:column;gap:6px}
+.wm-ch{display:flex;align-items:center;justify-content:space-between;gap:8px}.wm-ch b{font-size:1.02rem}
+.wm-mons{display:flex;gap:8px;overflow-x:auto;padding-bottom:2px}
+.wm-m{display:flex;flex-direction:column;align-items:center;width:62px;flex:none}.wm-m small{font-size:.62rem;text-align:center;color:var(--ink-soft);line-height:1.15}
+.wm-mp{width:50px;height:50px;object-fit:contain}.wm-mp.ph{font-size:1.7rem;text-align:center;line-height:50px}
+/* ===== card album ===== */
+.alx{display:grid;grid-template-columns:minmax(0,172px) minmax(0,1fr);gap:10px;height:min(64vh,540px);margin-top:4px}
+.alx-l{overflow-y:auto;min-width:0;padding-bottom:6px}
+.alx-card{position:relative;aspect-ratio:3/4;border-radius:14px;border:3px solid color-mix(in srgb,var(--c) 70%,#fff);background:radial-gradient(circle at 50% 42%,color-mix(in srgb,var(--c) 38%,#fff),color-mix(in srgb,var(--c) 75%,#1c1a3c));box-shadow:0 4px 0 #15122f,0 0 18px color-mix(in srgb,var(--c) 45%,transparent);overflow:hidden}
+.alx-cn{position:absolute;top:6px;left:6px;right:6px;padding:3px 4px;border-radius:9px;background:rgba(20,18,50,.74);color:#fff;font-size:.74rem;font-weight:700;text-align:center;z-index:1}
+.alx-cp{position:absolute;left:6%;bottom:8%;width:88%;height:auto;aspect-ratio:1/1;object-fit:contain;filter:drop-shadow(0 4px 5px rgba(0,0,0,.45))}.alx-cp.ph{font-size:4rem;text-align:center;top:34%;bottom:auto;line-height:1}
+.alx-card.miss .alx-cp{filter:grayscale(1) brightness(.55)}
+.alx-cs{position:absolute;left:6px;bottom:6px;padding:1px 7px;border-radius:999px;background:rgba(20,18,50,.74);color:#fff;font-size:.66rem;z-index:1}
+.alx-own{margin:8px 0 2px;font-weight:700;font-size:.82rem;text-align:center}
+.alx-sec{margin:8px 0 2px;font-weight:700;font-size:.74rem;color:var(--accent-ink);text-align:left}
+.alx-fx{font-size:.74rem;text-align:left;line-height:1.35}.alx-fx.dim{color:var(--ink-soft);font-size:.68rem}
+.alx-g{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;align-content:start;overflow-y:auto;padding:2px}
+.alx-t{position:relative;aspect-ratio:1;padding:0;border-radius:11px;border:2px solid color-mix(in srgb,var(--c) 80%,#fff);background:radial-gradient(circle at 50% 40%,color-mix(in srgb,var(--c) 35%,#fff),color-mix(in srgb,var(--c) 70%,#1c1a3c));box-shadow:0 2px 0 #15122f;overflow:hidden}
+.alx-t .alx-tp{position:absolute;inset:6% 6% 4%;width:88%;height:90%;object-fit:contain}.alx-t .alx-tp.ph{inset:auto;position:static;font-size:1.4rem;line-height:2.2}
+.alx-t .alx-ts{position:absolute;left:2px;top:1px;font-size:.62rem;background:rgba(20,18,50,.7);border-radius:7px;padding:0 3px}
+.alx-t b{position:absolute;right:3px;bottom:1px;font:700 9px "Silkscreen",monospace;color:#fff;text-shadow:0 1px 2px #000}
+.alx-t.miss{border-color:#555a70;background:#2b2c3d}.alx-t.miss .alx-tp{filter:grayscale(1) brightness(.5)}
+.alx-t.sel{outline:3px solid #ffd983;outline-offset:1px}
 </style>
 </head>
 <body>
@@ -624,7 +701,6 @@ body.lg-on .selwrap .btn-main{max-width:260px}
       <button class="sbtn" data-panel="job" id="btnJob"><span>🎖️</span><small>อาชีพ</small></button>
       <button class="sbtn" data-panel="map"><span>🗺️</span><small>แผนที่</small></button>
       <button class="sbtn" data-panel="dungeon"><span>🏰</span><small>ดันเจี้ยน</small></button>
-      <button class="sbtn" data-panel="shop"><span>🔨</span><small>ร้าน</small></button>
       <button class="sbtn" data-panel="market"><span>🏪</span><small>ตลาด</small></button>
       <button class="sbtn" data-panel="pvp"><span>⚔️</span><small>PVP</small></button>
 <button class="sbtn" data-panel="offline"><span>💤</span><small>ฟามออฟไลน์</small></button>
@@ -4465,6 +4541,17 @@ void main(){
     const z = Math.max(w, h); ctx2d.drawImage(cv, (w - z) / 2, (h - z) / 2, z, z);
     return true;
   };
+  // portrait of a monster template (used by the dungeon list, world map and card album)
+  R3.mobSnap = function (ctx2d, w, h, tpl) {
+    if (!R3.on) return false;
+    const E = R3.th, cv = R3.thCv;
+    E.setCam([0.2, 0.95, 3.1], [0, 0.55, 0], 0.55, 1, 0.1, 30); E.fogR = [50, 60]; E.amb = [0.62, 0.64, 0.72];
+    E.begin(cv.width, cv.height, [0, 0, 0, 0]);
+    const m = { id: tpl.id, arch: tpl.arch, mdl: tpl.mdl || '', color: tpl.color, size: tpl.boss ? 1.1 : 1, alpha: 1, X: 0, Z: 0, _fa: 0.5, state: 'idle', moving: false, atkN: 0, hitT: 0, seed: 1 };
+    E.push(); drawMon(E, m, 0.6); E.pop();
+    const z = Math.max(w, h); ctx2d.drawImage(cv, (w - z) / 2, (h - z) / 2, z, z);
+    return true;
+  };
 })();
 /* =================== Effect pack: recreated from Binbun3D VFX (CC0) =================== *
  * loot beams by rarity, sky lightning, ground / air / big explosions, fire cast circle,   *
@@ -6627,6 +6714,32 @@ function renderRaidBar(dt) {
 }
 
 /* ---------- dungeon panel ---------- */
+/* ---------- art helpers for the menus: terrain thumbnails + monster portraits ---------- */
+const ART = { ground: {}, port: {}, tries: {}, retry: 0 };
+function groundArt(theme, w, h, seed) {
+  const k = theme + '|' + w + 'x' + h + '|' + seed;
+  if (ART.ground[k] === undefined) { try { ART.ground[k] = renderGround(theme, w, h, 1, seed, { flat: true }).toDataURL('image/jpeg', 0.7); } catch (e) { ART.ground[k] = ''; } }
+  return ART.ground[k];
+}
+function monPortrait(tpl) {
+  if (!tpl) return '';
+  const k = tpl.id + '|' + (tpl.mdl || '');
+  if (ART.port[k]) return ART.port[k];
+  if (!R3.on || !R3.mobSnap) return '';
+  try {
+    const c = document.createElement('canvas'); c.width = c.height = 168; const g = c.getContext('2d');
+    if (R3.mobSnap(g, 168, 168, tpl)) {
+      const d = g.getImageData(0, 0, 168, 168).data; let a = 0; for (let i = 3; i < d.length; i += 64) a += d[i];
+      if (a > 20000) { ART.port[k] = c.toDataURL('image/png'); return ART.port[k]; }
+    }
+  } catch (e) { /* fall through to the emoji */ }
+  ART.tries[k] = (ART.tries[k] || 0) + 1;   // the model may still be loading: look again shortly
+  if (ART.tries[k] < 4 && !ART.retry) ART.retry = setTimeout(() => { ART.retry = 0; renderSheetIfOpen(); }, 700);
+  return '';
+}
+const portEl = (tpl, fb, cls) => { const u = monPortrait(tpl); return u ? el('img', { class: cls || 'port', src: u, alt: '' }) : el('span', { class: (cls || 'port') + ' ph', text: fb || '👾' }); };
+const DGX = { sel: '' };
+function dgBossTpl(dg) { try { const dm = dgMap(dg, 'art'); return dm.monsters[dm.monsters.length - 1]; } catch (e) { return null; } }
 function panelDungeon(body) {
   const h = S.hero;
   if (isDg()) {
@@ -6637,22 +6750,33 @@ function panelDungeon(body) {
   }
   const ps = partySize(), cp = CONFIG.party, okP = ps >= cp.min;
   body.append(el('div', { class: 'dgparty' + (okP ? ' ok' : '') }, el('b', { text: (okP ? '✅ ' : '⚠️ ') + 'ปาร์ตี้ออนไลน์ ' + ps + '/' + cp.max + ' คน' }),
-    el('small', { text: 'ต้องมาเป็นปาร์ตี้ ' + cp.min + '–' + cp.max + ' คน ชวนเพื่อนได้ที่ปุ่ม 👥 ผู้เล่น' })));
-  body.append(el('p', { class: 'note', text: 'หัวหน้าปาร์ตี้ 👑 กดเข้า ระบบจะให้สมาชิกทุกคนกดยืนยัน ถ้ามีคนไม่มีกุญแจจะเข้าไม่ได้ ยืนยันครบแล้วทุกคนเข้าห้องพร้อมกัน แต่ละคนใช้กุญแจของตัวเอง 1 ดอก ทุกคนในปาร์ตี้เข้าห้องเดียวกัน บอสเลือดเพิ่มตามจำนวนคน ของดรอปสุ่มแยกให้ทุกคน อาวุธมี 6 แบบตามสายอาชีพ โอกาสเท่ากันทุกสาย ได้ไม่ตรงอาชีพก็ลงขายตลาดได้' }));
-  for (const dg of CONFIG.dungeons) {
-    if (!dg.on) continue;
-    const kc = keyCount(), low = h.level < dg.minLv, tot = dg.rar.reduce((a, b) => a + b, 0) || 1;
-    const chips = el('div', { class: 'rchips' });
-    dg.rar.forEach((w, i) => { if (w > 0) chips.append(el('span', { class: 'rchip', style: '--rc:' + RAR[i + 1].col, text: RAR[i + 1].nm + ' ' + Math.round(w / tot * 100) + '%' })); });
-    body.append(el('div', { class: 'dgcard', style: '--dc:' + DIFF_COL[dg.diff] },
-      el('div', { class: 'dgtop' }, el('b', { text: '🏰 ' + dg.name }), el('span', { class: 'dgdiff', text: DIFF_TH[dg.diff] })),
-      el('div', { class: 'ds', text: 'บอส: ' + dg.boss + '  Lv.' + dg.bossLv + '   เข้าได้ Lv.' + dg.minLv + '+' }),
-      el('div', { class: 'meta', text: 'สกิลบอส: ' + dg.skills.map((s) => DG_SKILL_TH[s]).join(' · ') }),
-      el('div', { class: 'meta', text: 'ดรอปชุด' + (DG_SETS[dg.id] ? DG_SETS[dg.id].nm : '') + ': อาวุธ 6 สายอาชีพ + คาตาร์ 30%  เกราะ 20%  รองเท้า 17%  แหวน 17%  โล่ 16%' }),
-      chips,
-      el('div', { class: 'dgkey' }, el('span', { text: '🗝️ กุญแจดันเจี้ยน  มี ' + kc + ' ดอก' }), el('small', { text: 'ใช้ได้ทุกดันเจี้ยน ดรอปจากมอนทุกแผนที่ ' + CONFIG.keyChance + '% บอสแผนที่ 1–2 ดอก' })),
-      el('button', { class: 'mini pri', text: low ? 'ต้อง Lv.' + dg.minLv : kc < 1 ? 'ไม่มีกุญแจ' : !okP ? 'ต้องมีปาร์ตี้ ' + cp.min + ' คนขึ้นไป' : hasMates() && !isLeader() ? 'รอหัวหน้าปาร์ตี้กดเข้า' : hasMates() ? '👑 เรียกปาร์ตี้เข้าดัน (ใช้กุญแจคนละ 1)' : 'เข้าดันเจี้ยน (ใช้กุญแจ 1)', disabled: low || kc < 1 || !okP || P.dead || (hasMates() && !isLeader()), onclick: () => enterDungeon(dg.id) })));
+    el('small', { text: 'ต้องมาเป็นปาร์ตี้ ' + cp.min + '–' + cp.max + ' คน ชวนเพื่อนได้ที่ปุ่ม 👥 ผู้เล่น  หัวหน้า 👑 กดเข้า สมาชิกทุกคนต้องกดยืนยันและมีกุญแจคนละ 1 ดอก' })));
+  const list = CONFIG.dungeons.filter((d) => d.on);
+  if (!list.some((d) => d.id === DGX.sel)) { const f = list.filter((d) => h.level >= d.minLv).pop() || list[0]; DGX.sel = f ? f.id : ''; }
+  const dg = list.find((d) => d.id === DGX.sel); if (!dg) return;
+  const L = el('div', { class: 'dgx-list' });
+  for (const d of list) {
+    const bt = dgBossTpl(d), u = groundArt(d.theme, 240, 90, d.id);
+    L.append(el('button', { class: 'dgx-item' + (d.id === DGX.sel ? ' on' : ''), style: '--dc:' + DIFF_COL[d.diff] + ';background-image:linear-gradient(90deg,rgba(14,12,40,.2),rgba(14,12,40,.86))' + (u ? ',url(' + u + ')' : ''), onclick: () => { DGX.sel = d.id; renderSheet(); } },
+      portEl(bt, '👹', 'dgx-ip'), el('span', { class: 'nm', text: d.name }), el('small', { text: 'Lv.' + d.minLv + '+' + (h.level < d.minLv ? ' 🔒' : '') })));
   }
+  const kc = keyCount(), low = h.level < dg.minLv, tot = dg.rar.reduce((x, y) => x + y, 0) || 1, bt = dgBossTpl(dg), set = DG_SETS[dg.id] ? DG_SETS[dg.id].nm : '';
+  const chips = el('div', { class: 'rchips' });
+  dg.rar.forEach((w, i) => { if (w > 0) chips.append(el('span', { class: 'rchip', style: '--rc:' + RAR[i + 1].col, text: RAR[i + 1].nm + ' ' + Math.round(w / tot * 100) + '%' })); });
+  const rw = el('div', { class: 'dgx-rw' });
+  for (const [ic, nm, pc] of [['🗡️', 'อาวุธ' + set, '30%'], ['🧥', 'เกราะ', '20%'], ['👢', 'รองเท้า', '17%'], ['💍', 'แหวน', '17%'], ['🛡️', 'โล่', '16%'], ['🃏', 'การ์ดบอส', CONFIG.dgBossCard + '%']])
+    rw.append(el('div', { class: 'dgx-r' }, el('span', { class: 'ic', text: ic }), el('b', { text: pc }), el('small', { text: nm })));
+  const bgU = groundArt(dg.theme, 380, 210, dg.id);
+  const ban = el('div', { class: 'dgx-ban', style: 'background-image:linear-gradient(180deg,rgba(14,12,40,.1),rgba(14,12,40,.82))' + (bgU ? ',url(' + bgU + ')' : '') },
+    el('div', { class: 'dgx-bt' }, el('b', { text: dg.name }), el('span', { class: 'dgdiff', style: 'background:' + DIFF_COL[dg.diff] + ';color:#241406', text: DIFF_TH[dg.diff] })), portEl(bt, '👹', 'dgx-bp'));
+  const label = low ? 'ต้อง Lv.' + dg.minLv : kc < 1 ? 'ไม่มีกุญแจ' : !okP ? 'ต้องมีปาร์ตี้ ' + cp.min + ' คน' : hasMates() && !isLeader() ? 'รอหัวหน้ากดเข้า' : hasMates() ? '👑 เรียกปาร์ตี้เข้า' : 'เข้า';
+  const go = el('button', { class: 'dgx-go', text: label, disabled: low || kc < 1 || !okP || P.dead || (hasMates() && !isLeader()), onclick: () => enterDungeon(dg.id) });
+  const det = el('div', { class: 'dgx-detail' }, ban,
+    el('div', { class: 'dgx-sub', text: 'ของดรอป  ชุด' + set }), rw, chips,
+    el('div', { class: 'dgx-info' }, el('div', { text: '👹 บอส ' + dg.boss + '  Lv.' + dg.bossLv }), el('div', { text: '⚔️ สกิลบอส: ' + dg.skills.map((x) => DG_SKILL_TH[x]).join(' · ') }),
+      el('div', { text: '🗝️ กุญแจดันเจี้ยน มี ' + kc + ' ดอก (ดรอปจากมอนทุกแผนที่ ' + CONFIG.keyChance + '%)' })),
+    el('div', { class: 'dgx-foot' }, el('small', { text: 'บอสเลือดเพิ่มตามจำนวนคน ของดรอปสุ่มแยกให้ทุกคน อาวุธ 6 สายอาชีพ โอกาสเท่ากัน' }), go));
+  body.append(el('div', { class: 'dgx' }, L, det));
 }
 
 /* ---------- auras ---------- */
@@ -6882,8 +7006,14 @@ const NPCS = [
     spec: { m: 'Ranger', line: 'acolyte', hide: ['Ranger_Quiver', 'Ranger_Cape'], r: 'fw_hammer_C', vkey: 'npc_smith', shine: 0,
       rec: [{ h: [185, 235], to: 24, s: 1.05 }] } }
 ];
+NPCS.push({ id: 'shop', name: 'พ่อค้ากลางเมือง', role: 'ร้านยา และอุปกรณ์', x: 505, y: 712, job: 'merchant', look: { g: 'm', hair: 2, hc: '#8a5a2b' },
+  spec: { m: 'Ranger', line: 'acolyte', hide: ['Ranger_Quiver', 'Ranger_Cape'], r: null, vkey: 'npc_shop', shine: 0.1,
+    rec: [{ h: [185, 235], to: 135, s: 0.9 }] } });
 NPCS.push({ id: 'gacha', name: 'ตู้กาชา', role: '10 ลูก 200,000 G', x: 360, y: 506, machine: true, job: 'novice', look: { g: 'm', hair: 0, hc: '#333' } });
 for (const n of NPCS) { n.actT = -9; n.actKind = ''; n.ent = {}; n.x += TOX; n.y += TOY; }
+for (const n of NPCS) for (const b of TOWN_BLOCKS) if (n.id === 'shop' && n.x > b[0] - 26 && n.x < b[2] + 26 && n.y > b[1] - 26 && n.y < b[3] + 26) {   // never stand inside a house
+  const dl = n.x - (b[0] - 26), dr = (b[2] + 26) - n.x, dt = n.y - (b[1] - 26), db = (b[3] + 26) - n.y, m = Math.min(dl, dr, dt, db);
+  if (m === dl) n.x = b[0] - 26; else if (m === dr) n.x = b[2] + 26; else if (m === dt) n.y = b[1] - 26; else n.y = b[3] + 26; }
 const isTown = () => !!(W.map && W.map.town);
 
 /* ---------- collision with houses ---------- */
@@ -8153,7 +8283,7 @@ $('#mmCv').addEventListener('click', (e) => {
 /* ---------- sheet panels ---------- */
 const PANELS = {
   autorange: ['วงเดินออโต้', panelAutoRange], potauto: ['🧪 ตั้งค่าใช้ยาอัตโนมัติ', (b) => potAutoSection(b)], stats: ['สถานะตัวละคร', panelStats], skills: ['สกิล', panelSkills], job: ['เปลี่ยนอาชีพ', panelJob],
-  map: ['แผนที่', panelMap], dungeon: ['ดันเจี้ยน', panelDungeon], npc_healer: ['ซิสเตอร์ลูน่า', panelHealer], npc_smith: ['ริว ช่างตีบวก', panelSmith], market: ['ตลาดซื้อ-ขาย', panelMarket], shop: ['ร้านช่างตีเหล็ก', panelShop], rank: ['ทำเนียบนักผจญภัย', panelRank], gm: ['ห้องควบคุม GM', panelGM],
+  map: ['แผนที่', panelMap], dungeon: ['ดันเจี้ยน', panelDungeon], npc_healer: ['ซิสเตอร์ลูน่า', panelHealer], npc_smith: ['ริว ช่างตีบวก', panelSmith], market: ['ตลาดซื้อ-ขาย', panelMarket], shop: ['🛒 ร้านค้า', panelShop], npc_shop: ['🛒 ร้านค้า', panelShop], rank: ['ทำเนียบนักผจญภัย', panelRank], gm: ['ห้องควบคุม GM', panelGM],
   npc_gacha: ['🎰 ตู้กาชา', panelGacha], pvp: ['⚔️ ห้อง PVP', panelPvp], dgresult: ['🏆 ผลงานในดันเจี้ยน', panelDgResult], album: ['📖 อัลบั้มการ์ด', panelAlbum], gmgive: ['🎁 ส่งของให้ผู้เล่น', panelGmGive], offline: ['💤 ฟามออฟไลน์', panelOffline], auto: ['โหมดออโต้', panelAuto], online: ['ผู้เล่นและปาร์ตี้', panelOnline], sound: ['ตั้งค่า', panelSound], chat: ['แชท', panelChat]
 };
 function openPanel(name) {
@@ -8380,22 +8510,65 @@ function panelJob(body) {
 }
 
 /* map */
+const WM = { sel: '' };
+const WM_V = [[[0, 0], [0, 225], [0, 385], [0, 600]], [[235, 0], [250, 210], [285, 410], [255, 600]], [[500, 0], [520, 185], [545, 420], [520, 600]], [[800, 0], [800, 200], [800, 400], [800, 600]]];   // corner points V[col][row]
+const WM_H = [[0, 22, -26, 0], [0, -24, 20, 0], [0, 26, -18, 0]];    // wobble of horizontal borders
+const WM_VO = [[0, 0, 0], [-20, 24, -16], [22, -18, 26], [0, 0, 0]];  // wobble of vertical borders
+const WM_REG = [
+  { c: 0, r: 0, lock: 'Lv 140+' }, { c: 1, r: 0, id: 'cove' }, { c: 2, r: 0, id: 'volcano' },
+  { c: 0, r: 1, lock: 'Lv 100–118' }, { c: 1, r: 1, id: 'village' }, { c: 2, r: 1, id: 'castle' },
+  { c: 0, r: 2, id: 'darkwood' }, { c: 1, r: 2, id: 'meadow' }, { c: 2, r: 2, id: 'desert' }];
+const wmMid = (a, b, off, vert) => [(a[0] + b[0]) / 2 + (vert ? off : 0), (a[1] + b[1]) / 2 + (vert ? 0 : off)];
+function wmPath(i, j) {
+  const A = WM_V[i][j], B = WM_V[i + 1][j], C = WM_V[i + 1][j + 1], D = WM_V[i][j + 1];
+  return 'M' + A + ' Q' + wmMid(A, B, WM_H[i][j], 0) + ' ' + B + ' Q' + wmMid(B, C, WM_VO[i + 1][j], 1) + ' ' + C + ' Q' + wmMid(D, C, WM_H[i][j + 1], 0) + ' ' + D + ' Q' + wmMid(A, D, WM_VO[i][j], 1) + ' ' + A + 'Z';
+}
+const escX = (t) => String(t).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]);
+function wmMap(id) { return id === 'village' ? TOWN : CONFIG.maps.find((m) => m.id === id); }
 function panelMap(body) {
-  const h = S.hero, ICON = { grass: '🌾', forest: '🌲', sand: '🏜️', ruins: '🏚️', lava: '🌋' };
-  body.append(el('p', { class: 'note', text: 'เลือกแผนที่ให้เหมาะกับเลเวล มอนสเตอร์บางตัวจะวิ่งเข้าหาเองเมื่อเห็นคุณ ตายแล้วจะกลับมาเกิดที่หมู่บ้าน' }));
-  { const here = isTown();
-    body.append(el('div', { class: 'list-row' }, el('span', { style: 'font-size:1.5rem', text: '🏘️' }),
-      el('div', { class: 'grow' }, el('div', { class: 'nm2', text: TOWN.name + '  (เมือง)' }), el('div', { class: 'ds', text: 'ปลอดภัย ไม่มีมอนสเตอร์  ซิสเตอร์ลูน่าฟื้น HP/SP  ริวช่างตีบวก' })),
-      el('button', { class: 'mini pri', text: here ? 'อยู่ที่นี่' : 'กลับเมือง', disabled: here || isDg(), onclick: () => { closeSheet(); enterMap('village'); save(); } }))); }
-  for (const m of CONFIG.maps) {
-    const here = W.map && W.map.id === m.id, low = h.level < m.min - 5;
-    body.append(el('div', { class: 'list-row' }, el('span', { style: 'font-size:1.5rem', text: ICON[m.theme] || '🗺️' }),
-      el('div', { class: 'grow' }, el('div', { class: 'nm2', text: m.name }),
-        el('div', { class: 'ds', text: 'Lv ' + m.min + '–' + m.max + '  ' + m.monsters.map((x) => x.name).slice(0, 4).join(', ') }),
-        low ? el('div', { class: 'meta', style: 'color:var(--bad)', text: 'อันตรายสำหรับเลเวลคุณ' }) : null,
-        ...bossTpls(m).map(([t]) => el('div', { class: 'meta', style: 'color:var(--accent-ink)', text: '👑 ' + t.name + '  ' + bossLine(m, t).text }))),
-      el('button', { class: 'mini pri', text: here ? 'อยู่ที่นี่' : 'เดินทาง', disabled: here, onclick: () => { closeSheet(); enterMap(m.id); save(); } })));
+  const h = S.hero;
+  const here = isTown() ? 'village' : W.map ? W.map.id : '';
+  if (!WM.sel || !WM_REG.some((g) => g.id === WM.sel)) WM.sel = WM_REG.some((g) => g.id === here) ? here : 'village';
+  body.append(el('p', { class: 'note', text: 'แตะเขตบนแผนที่เพื่อดูข้อมูล แล้วกดปุ่ม "เข้า" เพื่อเดินทาง ตายแล้วจะกลับมาเกิดที่หมู่บ้าน' }));
+  let defs = '', gs = '';
+  WM_REG.forEach((g, n) => {
+    const d = wmPath(g.c, g.r), cs = [WM_V[g.c][g.r], WM_V[g.c + 1][g.r], WM_V[g.c + 1][g.r + 1], WM_V[g.c][g.r + 1]];
+    const x0 = Math.min(...cs.map((q) => q[0])) - 30, x1 = Math.max(...cs.map((q) => q[0])) + 30, y0 = Math.min(...cs.map((q) => q[1])) - 30, y1 = Math.max(...cs.map((q) => q[1])) + 30;
+    const cx = cs.reduce((a, q) => a + q[0], 0) / 4, cy = cs.reduce((a, q) => a + q[1], 0) / 4;
+    defs += '<clipPath id="wc' + n + '"><path d="' + d + '"/></clipPath>';
+    if (!g.id) {
+      gs += '<g class="wm-r lock"><path d="' + d + '" fill="#1b1838"/><path d="' + d + '" fill="url(#wmHatch)"/><path class="wm-b" d="' + d + '"/>' +
+        '<text class="wm-i" x="' + cx + '" y="' + (cy + 4) + '" text-anchor="middle">🔒</text><text class="wm-l" x="' + cx + '" y="' + (cy + 44) + '" text-anchor="middle">' + escX(g.lock) + '</text><text class="wm-l" x="' + cx + '" y="' + (cy + 72) + '" text-anchor="middle">เร็ว ๆ นี้</text></g>';
+      return;
+    }
+    const m = wmMap(g.id), sel = WM.sel === g.id, art = groundArt(m.theme, 360, 280, m.id);
+    const mons = g.id === 'village' ? [] : m.monsters.filter((t) => !t.raid).slice(0, 4), shown = [mons.find((t) => !t.boss), mons.find((t) => t.boss), mons.filter((t) => !t.boss)[1]].filter(Boolean).slice(0, 3);
+    let ps = '';
+    shown.forEach((t, i) => { const u = monPortrait(t); if (u) ps += '<image href="' + u + '" x="' + (cx - 100 + i * 66) + '" y="' + (cy - 6 + (i === 1 ? 14 : 0)) + '" width="72" height="72"/>'; });
+    if (g.id === 'village') ps = '<text class="wm-i" x="' + cx + '" y="' + (cy + 40) + '" text-anchor="middle">🏘️</text>';
+    const low = g.id !== 'village' && h.level < m.min - 5;
+    gs += '<g class="wm-r' + (sel ? ' sel' : '') + (here === g.id ? ' here' : '') + '" data-m="' + g.id + '"><image href="' + art + '" x="' + x0 + '" y="' + y0 + '" width="' + (x1 - x0) + '" height="' + (y1 - y0) + '" preserveAspectRatio="xMidYMid slice" clip-path="url(#wc' + n + ')"/>' +
+      '<path d="' + d + '" fill="rgba(14,12,40,' + (sel ? '.05' : '.34') + ')"/>' + ps +
+      '<text class="wm-n" x="' + cx + '" y="' + (cy - 38) + '" text-anchor="middle">' + escX(g.id === 'village' ? 'หมู่บ้านอรุณรุ่ง' : m.name) + '</text>' +
+      '<text class="wm-l" x="' + cx + '" y="' + (cy - 10) + '" text-anchor="middle">' + (g.id === 'village' ? 'เมืองปลอดภัย' : 'Lv ' + m.min + '–' + m.max) + (low ? ' ⚠️' : '') + '</text>' +
+      (here === g.id ? '<text class="wm-pin" x="' + (cx + 76) + '" y="' + (cy - 44) + '" text-anchor="middle">📍</text>' : '') +
+      '<path class="wm-b" d="' + d + '"/></g>';
+  });
+  const box = el('div', { class: 'wm-box' });
+  box.innerHTML = '<svg viewBox="-6 -6 812 612" role="img" aria-label="แผนที่โลก"><defs>' + defs + '<pattern id="wmHatch" width="16" height="16" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="6" height="16" fill="rgba(255,255,255,.06)"/></pattern></defs>' + gs + '</svg>';
+  box.querySelectorAll('[data-m]').forEach((g) => g.addEventListener('click', () => { WM.sel = g.getAttribute('data-m'); renderSheet(); }));
+  body.append(box);
+  // selected region card
+  const m = wmMap(WM.sel), isT = WM.sel === 'village', hereSel = here === WM.sel, low = !isT && h.level < m.min - 5;
+  const card = el('div', { class: 'wm-card' }, el('div', { class: 'wm-ch' }, el('b', { text: isT ? TOWN.name + '  (เมือง)' : m.name }), el('span', { class: 'rchip', style: '--rc:#8576f5', text: isT ? 'ปลอดภัย' : 'Lv ' + m.min + '–' + m.max })));
+  if (isT) card.append(el('div', { class: 'ds', text: 'ไม่มีมอนสเตอร์  ซิสเตอร์ลูน่าฟื้น HP/SP  ริวช่างตีบวก  พ่อค้า ตู้กาชา' }));
+  else {
+    card.append(el('div', { class: 'wm-mons' }, ...m.monsters.filter((t) => !t.raid).map((t) => el('div', { class: 'wm-m' }, portEl(t, '👾', 'wm-mp'), el('small', { text: t.name })))));
+    if (low) card.append(el('div', { class: 'meta', style: 'color:var(--bad)', text: '⚠️ อันตรายสำหรับเลเวลคุณ' }));
+    for (const [t] of bossTpls(m)) card.append(el('div', { class: 'meta', style: 'color:var(--accent-ink)', text: '👑 ' + t.name + '  ' + bossLine(m, t).text }));
   }
+  card.append(el('button', { class: 'dgx-go', text: hereSel ? 'อยู่ที่นี่' : isT ? 'กลับเมือง' : 'เข้า', disabled: hereSel || isDg(), onclick: () => { closeSheet(); enterMap(isT ? 'village' : m.id); save(); } }));
+  body.append(card);
 }
 
 /* shop */
@@ -8422,6 +8595,8 @@ function albumEntries() {
   for (const dg of CONFIG.dungeons) { if (!dg.on) continue; const dm = dgMap(dg, 'album'); for (const t of dm.monsters) push(t, '🏰 ' + dg.name + '  (Lv ' + dg.minLv + '+)', t.raid ? 'บอสดันเจี้ยน ได้ ' + CONFIG.dgBossCard + '% ต่อการเคลียร์' : 'ดรอป ' + CONFIG.cardChance + '% ต่อตัว'); }
   return out;
 }
+const ALX = { sel: '' };
+const CS_IC = { weapon: '🗡️', shield: '🛡️', armor: '🧥', head: '🎩', face: '😎', mouth: '👄', shoes: '👢', ring: '💍' };
 function panelAlbum(body) {
   const h = S.hero, own = albumOwned(h), all = albumEntries();
   const cnt = (e) => Object.keys(own).reduce((a, k) => a + (k === e.id || k.startsWith(e.id + ':') ? own[k] : 0), 0);
@@ -8432,20 +8607,25 @@ function panelAlbum(body) {
     fl.append(el('button', { class: 'chip' + (albumFilter === id ? ' on' : ''), text: lb, onclick: () => { albumFilter = id; renderSheet(); } }));
   body.append(fl);
   const list = all.filter((e) => albumFilter === 'all' || (albumFilter === 'have' ? cnt(e) > 0 : albumFilter === 'need' ? !cnt(e) : e.c.cs === albumFilter));
-  if (!list.length) body.append(el('p', { class: 'note', text: 'ไม่มีการ์ดในหมวดนี้' }));
-  let where = '';
+  if (!list.length) { body.append(el('p', { class: 'note', text: 'ไม่มีการ์ดในหมวดนี้' })); return; }
+  if (!list.some((e) => e.id === ALX.sel)) ALX.sel = list[0].id;
+  const cur = list.find((e) => e.id === ALX.sel), n = cnt(cur);
+  const rnd = cardRandom(cur.tpl), vs = cardVars(cur.tpl);
+  const bonus = rnd ? 'สุ่ม: ' + vs.map((v) => bonusText(cardBonus(cur.tpl, v))).join(' / ') : bonusText(cur.c.b);
+  const left = el('div', { class: 'alx-l' },
+    el('div', { class: 'alx-card' + (n ? '' : ' miss'), style: '--c:' + cur.c.col }, el('div', { class: 'alx-cn', text: cur.c.nm + (cur.tpl.boss ? ' 👑' : '') }), portEl(cur.tpl, '🃏', 'alx-cp'), el('span', { class: 'alx-cs', text: (CS_IC[cur.c.cs] || '🃏') + ' ' + CS_TH[cur.c.cs] })),
+    el('div', { class: 'alx-own', text: n ? 'มี ' + n + ' ใบ' : 'ยังไม่มี' }),
+    el('div', { class: 'alx-sec', text: '✨ คุณสมบัติ' }), el('div', { class: 'alx-fx', text: bonus }),
+    el('div', { class: 'alx-sec', text: '🎯 ใส่ได้ที่' }), el('div', { class: 'alx-fx', text: 'ช่อง' + CS_TH[cur.c.cs] }),
+    el('div', { class: 'alx-sec', text: '📍 จุดดรอป' }), el('div', { class: 'alx-fx', text: cur.where }),
+    el('div', { class: 'alx-fx dim', text: 'จาก ' + cur.tpl.name + ' Lv ' + cur.tpl.lv }), el('div', { class: 'alx-fx dim', text: cur.how }));
+  const grid = el('div', { class: 'alx-g' });
   for (const e of list) {
-    if (e.where !== where) { where = e.where; body.append(el('div', { class: 'sub', text: where })); }
-    const n = cnt(e), ic = el('div', { class: 'alic', text: '🃏' }); ic.style.setProperty('--c', e.c.col);
-    const rnd = cardRandom(e.tpl), vs = cardVars(e.tpl);
-    const bonus = rnd ? 'สุ่ม: ' + vs.map((v) => bonusText(cardBonus(e.tpl, v))).join(' / ') : bonusText(e.c.b);
-    body.append(el('div', { class: 'albrow' + (n ? '' : ' miss') }, ic,
-      el('div', { class: 'grow' },
-        el('div', { class: 'nm2', text: e.c.nm + (e.tpl.boss ? '  👑' : '') }),
-        el('div', { class: 'ds', text: bonus }),
-        el('div', { class: 'meta', text: 'จาก ' + e.tpl.name + ' Lv ' + e.tpl.lv + '  ·  ' + e.how })),
-      el('div', { class: 'albr' }, el('span', { class: 'rchip', style: '--rc:#b06ad8', text: 'ใส่' + CS_TH[e.c.cs] }), el('b', { text: n ? 'มี ' + n + ' ใบ' : 'ยังไม่มี' }))));
+    const k = cnt(e);
+    grid.append(el('button', { class: 'alx-t' + (k ? '' : ' miss') + (e.id === ALX.sel ? ' sel' : ''), style: '--c:' + e.c.col, 'aria-label': e.c.nm, onclick: () => { ALX.sel = e.id; renderSheet(); } },
+      portEl(e.tpl, '🃏', 'alx-tp'), el('span', { class: 'alx-ts', text: CS_IC[e.c.cs] || '🃏' }), k ? el('b', { text: 'x' + k }) : null));
   }
+  body.append(el('div', { class: 'alx' }, left, grid));
 }
 function potAutoSection(body) {
   const h = S.hero; h.potAuto = h.potAuto || { hp: 35, sp: 12, hpL: 0, spL: 0, all: 0 };
