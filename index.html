@@ -2876,7 +2876,7 @@ function draw() {
   ctx.globalAlpha = 1;
   W.nums = W.nums.filter((n) => t - n.t0 <= n.dur);
 }
-const UI_TOUCH = { down: false, t: 0 };
+var UI_TOUCH = { down: false, t: 0 };
 for (const [ev, v] of [['pointerdown', true], ['pointerup', false], ['pointercancel', false], ['touchend', false], ['touchcancel', false]]) window.addEventListener(ev, () => { UI_TOUCH.down = v; }, { passive: true, capture: true });
 function resize() {
   const el = $('#scrGame'); if (el.hidden) return;
@@ -8387,7 +8387,7 @@ function renderSheetIfOpen() { if (S.sheet && S.sheet !== 'gm' && !$('#sheetWrap
 function closeSheet() { $('#sheetWrap').hidden = true; S.sheet = null; $('#sheetWrap').classList.remove('side'); document.body.classList.remove('npctalk'); R3.focus = null; }
 $('#sheetClose').addEventListener('click', closeSheet);
 $('#sheetWrap').addEventListener('pointerdown', (e) => { if (e.target === e.currentTarget) closeSheet(); });
-const ARMED = new Map();   // the sheet is redrawn often (online list, timers): keep the "tap again" state outside the button
+var ARMED = new Map();   // the sheet is redrawn often (online list, timers): keep the "tap again" state outside the button
 function twoStep(btn, label, armedLabel, fn) {
   const k = label + '|' + armedLabel, live = () => (ARMED.get(k) || 0) > Date.now();
   const arm = () => { btn.dataset.armed = '1'; btn.textContent = armedLabel; setTimeout(() => { if (btn.isConnected && !live()) { delete btn.dataset.armed; btn.textContent = label; } }, Math.max(50, ARMED.get(k) - Date.now() + 60)); };
@@ -9288,7 +9288,7 @@ async function init() {
     }, () => {});
   }
 }
-let lastTs = 0, lastDraw = 0;
+var lastTs = 0, lastDraw = 0;
 function frame(ts) {
   if (S.halt) return;   // offline farming started: the game stops drawing
   if (ts - lastDraw < PERF.gap() - 2) { requestAnimationFrame(frame); return; }   // frame cap: 30 fps saver / 60 fps otherwise (120 Hz phones run hot for nothing)
