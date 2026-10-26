@@ -1045,7 +1045,7 @@ defSkill('lk_fury', 'lordknight', 'โทสะจ้าวสงคราม', 
 defSkill('ac_heal', 'acolyte', 'แสงเยียวยา', '💚', 'heal', { party: 1, h: [0.1, 0.03], sp: [8, 1], cd: 3, color: '#8ff0a4' });
 defSkill('ac_bolt', 'acolyte', 'ศรศักดิ์สิทธิ์', '✨', 'atk', { zap: 1, dmg: 'magic', m: [1.2, 0.25], sp: [6, 0.6], cd: 1.5, color: '#fff1a8', fx: 'pillar' });
 defSkill('ac_bless', 'acolyte', 'พรแห่งแสง', '🙏', 'buff', { vfx: 'bell1', party: 1, b: { atk: 2, matk: 2 }, dur: 120, sp: [20, 1], cd: 5, color: '#ffe8a3' });
-defSkill('ac_divine', 'acolyte', 'พรแห่งเทพ', '👼', 'buff', { vfx: 'bell2', party: 1, b: { str: 1, agi: 1, vit: 1, int: 1, dex: 1, luk: 1 }, dur: 120, sp: [30, 2], cd: 5, color: '#fff3b0' });
+defSkill('ac_divine', 'acolyte', 'พรแห่งเทพ', '👼', 'buff', { vfx: 'bell2', party: 1, b: { str: 1, agi: 1, vit: 1, int: 1, dex: 1, luk: 1, mspd: 0.5 }, dur: 90, sp: [30, 2], cd: 5, color: '#fff3b0' });
 defSkill('pr_smite', 'priest', 'แสงพิพากษา', '☀️', 'aoe', { dmg: 'magic', m: [1.5, 0.25], r: 110, hits: 3, sp: [20, 1.5], cd: 4, color: '#fff6c2', fx: 'pillars' });
 defSkill('pr_grace', 'priest', 'พรวายุ', '🍃', 'buff', { vfx: 'bell2', party: 1, b: { aspd: 3, flee: 2, crit: 3 }, dur: 120, sp: [20, 1], cd: 5, color: '#c8f7ff' });
 defSkill('pr_mend', 'priest', 'มหาเยียวยา', '💖', 'heal', { zone: { r: 130, dur: 3 }, h: [0.2, 0.05], sp: [25, 2], cd: 6, color: '#9df5b5' });
@@ -1096,8 +1096,8 @@ defSkill('ws_execute', 'whitesmith', 'ประหารเหล็กกล้
 defSkill('ws_quake', 'whitesmith', 'ขวานถล่มปฐพี', '🌋', 'aoe', { boom: 1, m: [3.2, 0.45], r: 150, self: true, hits: 3, sp: [42, 3], cd: 6, color: '#ff8f3d', fx: 'quake' });
 defSkill('ws_titan', 'whitesmith', 'พลังไททัน', '💪', 'buff', { b: { atk: 6, def: 3 }, dur: 90, sp: [35, 2], cd: 30, color: '#fff3c4' });
 
-const BUFF_TH = { bowPct: 'พลังธนู', critDmg: 'ความแรงคริ', pdmg: 'ดาเมจกายภาพ', mdmg: 'ดาเมจเวท', hit: 'HIT', msp: 'SP สูงสุด', cdr: 'ลดคูลดาวน์สกิล', watk: 'ATK', wmatk: 'MATK', str: 'STR', agi: 'AGI', vit: 'VIT', int: 'INT', luk: 'LUK', matkPct: 'MATK', atk: 'ATK', matk: 'MATK', aspd: 'ความเร็วตี', def: 'DEF', crit: 'คริ', flee: 'หลบ', hpPct: 'HP สูงสุด', atkPct: 'ATK', aspdPct: 'ความเร็วตี', discount: 'ส่วนลดร้าน', dex: 'DEX' };
-const PCT_KEYS = { bowPct: 1, critDmg: 1, pdmg: 1, mdmg: 1, cdr: 1, matkPct: 1, atk: 1, matk: 1, aspd: 1, hpPct: 1, atkPct: 1, aspdPct: 1, discount: 1, crit: 1 };
+const BUFF_TH = { bowPct: 'พลังธนู', critDmg: 'ความแรงคริ', pdmg: 'ดาเมจกายภาพ', mdmg: 'ดาเมจเวท', hit: 'HIT', msp: 'SP สูงสุด', cdr: 'ลดคูลดาวน์สกิล', watk: 'ATK', wmatk: 'MATK', str: 'STR', agi: 'AGI', vit: 'VIT', int: 'INT', luk: 'LUK', matkPct: 'MATK', atk: 'ATK', matk: 'MATK', aspd: 'ความเร็วตี', def: 'DEF', crit: 'คริ', flee: 'หลบ', hpPct: 'HP สูงสุด', mspd: 'ความเร็วเดิน', atkPct: 'ATK', aspdPct: 'ความเร็วตี', discount: 'ส่วนลดร้าน', dex: 'DEX' };
+const PCT_KEYS = { mspd: 1, bowPct: 1, critDmg: 1, pdmg: 1, mdmg: 1, cdr: 1, matkPct: 1, atk: 1, matk: 1, aspd: 1, hpPct: 1, atkPct: 1, aspdPct: 1, discount: 1, crit: 1 };
 
 /* ---------- monsters & maps ---------- */
 const ARCHES = ['blob', 'shroom', 'beast', 'bat', 'plant', 'bones', 'ghost', 'brute', 'drake'];
@@ -1777,6 +1777,15 @@ function setWorldFor(map) {
 }
 const monCount = (map) => Math.round(map.count * 4);
 S.zoom = num(lsGet('spellblade_zoom'), 1.15, 0.8, 1.8);
+S.fxOthers = lsGet('spellblade_fxothers') !== '0';   // show other players' skill effects
+S.dmgOthers = lsGet('spellblade_dmgothers') !== '0';   // show other players' damage numbers
+S.fxSelf = lsGet('spellblade_fxself') !== '0';   // show my own skill effects
+/* performance mode: saver = 30 fps, 1x pixels, fewer effects / normal = 60 fps cap, as before / max = 60 fps, full effects */
+const PERF = { mode: ['saver', 'normal', 'max'].includes(lsGet('spellblade_perf')) ? lsGet('spellblade_perf') : 'normal' };
+PERF.gap = () => (PERF.mode === 'saver' ? 1000 / 30 : 1000 / 60);
+PERF.dpr = () => (PERF.mode === 'saver' ? 1 : 2);
+PERF.fx = () => (PERF.mode === 'saver' ? 60 : PERF.mode === 'max' ? 220 : 140);
+PERF.nums = () => (PERF.mode === 'saver' ? 70 : PERF.mode === 'max' ? 200 : 160);
 try { S.autoSel = JSON.parse(lsGet('spellblade_autosel') || '{}') || {}; } catch (e) { S.autoSel = {}; }
 try { S.autoOpt = Object.assign({ basic: true, skill: true }, JSON.parse(lsGet('spellblade_autoopt') || '{}') || {}); } catch (e) { S.autoOpt = { basic: true, skill: true }; }
 if (!S.autoOpt.basic && !S.autoOpt.skill) S.autoOpt = { basic: true, skill: true };
@@ -2137,9 +2146,9 @@ function drawCrit(ctx, n, x, baseY, t) {
   }
   ctx.restore();
 }
-function addFx(o) { o.t0 = W.t; W.fx.push(o); if (W.fx.length > 140) W.fx.shift(); }
-function addNum(x, y, text, col, size, o) { W.nums.push(Object.assign({ x, y, text, col, size, t0: W.t, dur: 0.9, font: 'px' }, o || {})); if (W.nums.length > NUM_MAX) W.nums.shift(); }
-function later(d, fn) { W.pend.push({ at: W.t + d, fn }); }
+function addFx(o) { if (W.fxTag === 'own' && S.fxSelf === false) return; o.t0 = W.t; W.fx.push(o); if (W.fx.length > PERF.fx()) W.fx.shift(); }
+function addNum(x, y, text, col, size, o) { W.nums.push(Object.assign({ x, y, text, col, size, t0: W.t, dur: 0.9, font: 'px' }, o || {})); if (W.nums.length > Math.min(NUM_MAX, PERF.nums())) W.nums.shift(); }
+function later(d, fn) { const tag = W.fxTag; W.pend.push({ at: W.t + d, fn: tag ? () => { const o = W.fxTag; W.fxTag = tag; try { fn(); } finally { W.fxTag = o; } } : fn }); }
 function projectile(x, y, tg, speed, sub, col, w) {
   const d = Math.hypot(tg.x - x, tg.y - 14 - y), dur = Math.max(0.06, d / speed);
   addFx({ kind: 'proj', sub, x, y, tg, color: col, dur, w: w || 2 });
@@ -2175,7 +2184,7 @@ function applyHit(tg, res, hits) {
       if (tg.state === 'dead' || tg.hp <= 0) return;
       const dealt = Math.min(per, Math.max(0, tg.hp));
       tg.hp -= per; tg.hitT = 0.12; tg.angry = true; tg.state = 'chase'; tg.tgt = myKey(); tg.predT = W.t; dgStat('dmg', dealt);
-      if (!NET.isHost) netPushHit(tg.uid, per, res.crit ? (res.magic ? 2 : 1) : 0);
+      if (!NET.isHost) netPushHit(tg.uid, per, res.crit ? (res.magic ? 2 : 1) : 0); else netPushHitView(tg.uid, per, res.crit ? (res.magic ? 2 : 1) : 0);
       if (res.crit) myCrit(tg, per, i, res.magic);
       else { AU.sfx('hit'); addNum(tg.x, tg.y - 32 * s, fmt(per), '#ffffff', 11, { pop: true, tk: tg.uid, dur: NUM_LIFE, dmg: true, tg, oy: -32 * s }); }
       if (tg.hp <= 0) { if (NET.isHost) killMon(tg, myKey()); else tg.hp = 0; }
@@ -2364,7 +2373,8 @@ function reviveBy(pct, who) {
 }
 const VFX = {}; if (typeof VFX_SRC === 'object') for (const k in VFX_SRC) { const im = new Image(); im.decoding = 'async'; im.src = VFX_SRC[k]; VFX[k] = im; }
 const VFX_FR = 160, VFX_N = 15;
-function castSkill(id, fromQueue) {
+function castSkill(id, fromQueue) { const ot = W.fxTag; W.fxTag = 'own'; try { return castSkillInner(id, fromQueue); } finally { W.fxTag = ot; } }
+function castSkillInner(id, fromQueue) {
   if (ccActive()) { toast(P.ccType === 'freeze' ? 'ถูกแช่แข็ง ใช้สกิลไม่ได้' : 'มึนงงอยู่ ใช้สกิลไม่ได้'); return; }
   const h = S.hero, sk = SKILLS[id], lv = h.skills[id] | 0;
   if (!sk || !lv || sk.type === 'passive' || P.dead) return false;
@@ -2387,6 +2397,8 @@ function castSkill(id, fromQueue) {
   P.sp -= cost; P.cds[id] = W.t + cdEff; (P.cdMax || (P.cdMax = {}))[id] = cdEff; P.swingT = W.t; P.castT = W.t; P.castKind = sk.type; S.dirty = true;
   addFx({ kind: 'circle', x: P.x, y: P.y, color: sk.color, dur: 0.75 });
   addNum(P.x, P.y - 70, sk.name + '!', sk.color, 13, { font: 'th', dur: 1.1 });
+  { const tp = tg || resTg; NET.skfx = (NET.skfx || []).filter((e) => Date.now() - e[7] < 6000).slice(-5);
+    NET.skfx.push([uid36().slice(0, 9), id, Math.round(P.x / WORLD.w * 10000) / 10000, Math.round(P.y / WORLD.h * 10000) / 10000, tp ? Math.round(tp.x / WORLD.w * 10000) / 10000 : -1, tp ? Math.round(tp.y / WORLD.h * 10000) / 10000 : -1, P.dir || 1, Date.now()]); ONLINE.lastSend = 0; }
   if (!AU.clip(id)) AU.sfx(AU.skillSfx(sk));
   const mult = sk.m ? sk.m[0] + sk.m[1] * lv : 1;
   if (sk.type === 'atk') {
@@ -2587,7 +2599,7 @@ function autoAct() {
 function moveToward(x, y, dt, stop) {
   const dx = x - P.x, dy = y - P.y, d = Math.hypot(dx, dy);
   if (d <= stop) return false;
-  const sp = (115 + Math.min(40, P.D.st.agi * 0.4)) * ((P.slowUntil || 0) > W.t ? 0.55 : 1), k = Math.min(d - stop, sp * dt) / d;
+  const sp = (115 + Math.min(40, P.D.st.agi * 0.4)) * (1 + (buffSum().mspd || 0) / 100) * ((P.slowUntil || 0) > W.t ? 0.55 : 1), k = Math.min(d - stop, sp * dt) / d;
   P.x += dx * k; P.y += dy * k; P.dir = dx >= 0 ? 1 : -1;
   const b = bounds(); P.x = clamp(P.x, b.x0, b.x1); P.y = clamp(P.y, b.y0, b.y1);
   if (isTown()) [P.x, P.y] = townPush(P.x, P.y, 12);
@@ -2864,11 +2876,13 @@ function draw() {
   ctx.globalAlpha = 1;
   W.nums = W.nums.filter((n) => t - n.t0 <= n.dur);
 }
+const UI_TOUCH = { down: false, t: 0 };
+for (const [ev, v] of [['pointerdown', true], ['pointerup', false], ['pointercancel', false], ['touchend', false], ['touchcancel', false]]) window.addEventListener(ev, () => { UI_TOUCH.down = v; }, { passive: true, capture: true });
 function resize() {
   const el = $('#scrGame'); if (el.hidden) return;
   const r = el.getBoundingClientRect(); if (r.width < 50 || r.height < 50) return;
   const ow = W.w, oh = W.h;
-  W.w = r.width; W.h = r.height; W.dpr = Math.min(2, window.devicePixelRatio || 1);
+  W.w = r.width; W.h = r.height; W.dpr = Math.min(PERF.dpr(), window.devicePixelRatio || 1);
   const cv = $('#world'); cv.width = Math.round(W.w * W.dpr); cv.height = Math.round(W.h * W.dpr);
   if (R3.on) R3.resize();
   if (W.map && !R3.on && !W.ground) buildGround();
@@ -4816,6 +4830,55 @@ function fxIntake() {
   if (!W.map) return; const seen = NET.lbSeen || (NET.lbSeen = new Set());
   for (const o of othersHere()) if (o.lb) for (const e of o.lb) if (!seen.has(e[0])) { seen.add(e[0]); if (Date.now() - e[4] < 8000 || !e[4]) lootBeam(e[1] * WORLD.w, e[2] * WORLD.h, e[3], false); }
   if (seen.size > 300) NET.lbSeen = new Set([...seen].slice(-150));
+  // other players' skill casts: same map / PVP arena / dungeon instance (othersHere compares map ids)
+  const ss = NET.skSeen || (NET.skSeen = new Set());
+  for (const o of ONLINE.others.values()) {
+    if (!o.fxs) continue;
+    if (!o.fxBoot) { o.fxBoot = true; for (const e of o.fxs) ss.add(o.key + e[0]); continue; }   // events already there when first seen are old: skip
+    const here = !!W.map && o.map === W.map.id && !isGone(o);
+    for (const e of o.fxs) { const k = o.key + e[0]; if (ss.has(k)) continue; ss.add(k); if (here && S.fxOthers !== false) { try { remoteSkillFx(o, e); } catch (err) {} } }
+  }
+  if (ss.size > 400) NET.skSeen = new Set([...ss].slice(-200));
+}
+// visual-only replay of another player's skill (no damage, no buffs)
+function remoteSkillFx(o, e) {
+  const sk = SKILLS[e[1]]; if (!sk) return;
+  const cx = e[2] * WORLD.w, cy = e[3] * WORLD.h, hasT = e[4] >= 0, tx = hasT ? e[4] * WORLD.w : cx, ty = hasT ? e[5] * WORLD.h : cy, dir = e[6] || (tx >= cx ? 1 : -1);
+  const tg = { x: tx, y: ty, size: 1, state: 'idle', hp: 1 };
+  addFx({ kind: 'circle', x: cx, y: cy, color: sk.color, dur: 0.75 });
+  if (sk.type === 'atk' || (sk.type === 'combo' && hasT)) {
+    let delay = 0.14;
+    if (sk.fx === 'arrow') delay = projectile(cx + dir * 10, cy - 22, tg, 820, 'arrow', sk.color, 3);
+    else if (sk.fx === 'bolt') delay = projectile(cx + dir * 10, cy - 30, tg, 600, sk.fire ? 'fire' : 'orb', sk.color, 7);
+    else if (sk.fx === 'pillar') addFx(sk.zap ? { kind: 'zap', x: tx, y: ty, color: sk.color, dur: Math.max(0.9, gfxLen(zapKey(sk.color))), seed: fxSeed() } : { kind: 'pillar', x: tx, y: ty, color: sk.color, dur: 0.6, w: 24 });
+    if (sk.fire) addFx({ kind: 'fcast', x: cx + dir * 14, y: cy, color: sk.color, dur: Math.max(0.55, gfxLen('fire_cast')), r: 0.8, dir, seed: fxSeed() });
+    if (!sk.ice) later(0.06, () => addFx({ kind: 'slash', x: tx, y: ty - 14, color: sk.color, dur: 0.3, dir, big: true }));
+    later(delay, () => addFx({ kind: 'burst', x: tx, y: ty - 14, color: sk.color, dur: 0.4 }));
+  } else if (sk.type === 'aoe') {
+    const ax = sk.self || !hasT ? cx : tx, ay = sk.self || !hasT ? cy : ty;
+    addFx({ kind: 'ring', x: ax, y: ay, r: sk.r, color: sk.color, dur: 0.55 });
+    if (sk.fx === 'quake') addFx({ kind: 'quake', x: ax, y: ay, r: sk.r, color: sk.color, dur: 0.55 });
+    else {
+      const n = Math.max(3, sk.hits + 1);
+      for (let i = 0; i < n; i++) {
+        const a = Math.random() * TAU, rd = Math.random() * sk.r * 0.8, px = ax + Math.cos(a) * rd, py = ay + Math.sin(a) * rd * 0.6;
+        later(i * 0.08, () => addFx(sk.zap ? { kind: 'zap', x: px, y: py, color: sk.color, dur: Math.max(0.85, gfxLen(zapKey(sk.color))), seed: fxSeed(), thick: 0.85 } : sk.aboom ? { kind: 'aboom', x: px, y: py, color: sk.color, dur: Math.max(0.6, gfxLen('boom_air')), size: 0.8, h: 1.2 + Math.random() * 0.8, seed: fxSeed() } : { kind: sk.fx === 'meteor' ? 'meteor' : 'pillar', x: px, y: py, color: sk.color, dur: 0.6, w: 16 }));
+        if (sk.fx === 'meteor') later(i * 0.08 + 0.33, () => addFx({ kind: 'gboom', x: px, y: py, size: 0.75, dur: Math.max(1.1, gfxLen('boom_ground')), seed: fxSeed() }));
+      }
+    }
+    if (sk.fire) addFx({ kind: 'fcast', x: cx + dir * 14, y: cy, color: sk.color, dur: Math.max(0.7, gfxLen('fire_cast')), r: 1.1, dir, seed: fxSeed() });
+    if (sk.fzone) later(0.5, () => addFx({ kind: 'fzone', x: ax, y: ay, r: sk.r * 0.7, dur: 3, seed: fxSeed() }));
+    if (sk.boom) later(0.12, () => addFx({ kind: 'gboom', x: ax, y: ay, size: 1.3, dur: Math.max(1.2, gfxLen('boom_ground')), seed: fxSeed() }));
+    if (sk.nuke) later(0.55, () => addFx({ kind: 'nuke', x: ax, y: ay, size: 1.5, dur: Math.max(2, gfxLen('boom_nuke')), seed: fxSeed() }));
+  } else if (sk.type === 'heal') {
+    addFx({ kind: 'heal', x: hasT ? tx : cx, y: hasT ? ty : cy, color: sk.color, dur: 0.9 });
+  } else if (sk.type === 'buff') {
+    if (sk.vfx) addFx({ kind: 'vfx', sheet: sk.vfx, ok: o.key, x: cx, y: cy, dur: 1.05 });
+    addFx({ kind: 'ring', x: cx, y: cy, r: 42, color: sk.color, dur: 0.6 });
+    addFx({ kind: 'pillar', x: cx, y: cy, color: sk.color, dur: 0.6, w: 28 });
+  } else if (sk.type === 'res') {
+    addFx({ kind: 'pillar', x: hasT ? tx : cx, y: hasT ? ty : cy, color: sk.color, dur: 1.2, w: 40 });
+  }
 }
 
 /* ---------- frost: freeze or slow monsters (bosses only slow), and players in PVP ---------- */
@@ -5743,7 +5806,11 @@ async function initRoom() {
   room.onPeers((ch) => {
     ONLINE.peers = ch.peers;
     for (const p of ch.peers) if (p.isMe && p.sameTab) NET.me = p.peer;
-    syncOthers(); renderOnlineDot(); if (S.sheet === 'online') renderSheet();
+    syncOthers(); renderOnlineDot();
+    if (S.sheet === 'online') {   // redraw only when the list really changed, at most every 2 s and never while a finger is down (the tap would be lost)
+      const sig = [PARTY.key, PARTY.sel, activeOthers().map((o) => [o.key, o.name, o.job, o.lv, o.jl, o.hp, o.map, o.pk].join(':')).join('|')].join('#'), nowT = performance.now();
+      if (sig !== ONLINE.sheetSig && nowT - (ONLINE.sheetT || 0) > 2000 && !UI_TOUCH.down) { ONLINE.sheetSig = sig; ONLINE.sheetT = nowT; renderSheet(); }
+    }
   }, () => { ONLINE.room = null; ONLINE.peers = []; ONLINE.others.clear(); renderOnlineDot(); if (S.sheet === 'online') renderSheet(); });
 }
 const arr = (v, n) => Array.isArray(v) ? v.slice(-n) : null;
@@ -5780,6 +5847,7 @@ function readPresence(p) {
     pvh: (Array.isArray(pr.pvh) ? pr.pvh : []).slice(-20).filter((e) => Array.isArray(e) && typeof e[0] === 'string' && typeof e[1] === 'string').map((e) => [e[0].slice(0, 12), e[1].slice(0, 40), int(e[2], 1, 1, 1e8), e[3] ? 1 : 0]),
     pvi: (Array.isArray(pr.pvi) ? pr.pvi : []).slice(-6).filter((e) => Array.isArray(e) && typeof e[0] === 'string' && typeof e[1] === 'string').map((e) => [e[0].slice(0, 40), e[1].slice(0, 12), num(e[2], 0, 0, 1e15)]),
     sup: (Array.isArray(pr.sup) ? pr.sup : []).slice(-12).filter((e) => Array.isArray(e) && typeof e[0] === 'string' && typeof e[1] === 'string' && ['h', 'b', 'r'].includes(e[2])).map((e) => [e[0].slice(0, 12), e[1].slice(0, 40), e[2], e[2] === 'b' ? String(e[3]).slice(0, 20) : num(e[3], 0, 0, 1), num(e[4], 0, 0, 1e6)]),
+    fxs: (Array.isArray(pr.fxs) ? pr.fxs : []).slice(-6).filter((e) => Array.isArray(e) && typeof e[0] === 'string' && typeof e[1] === 'string' && typeof SKILLS === 'object' && SKILLS[e[1]]).map((e) => [e[0].slice(0, 12), e[1].slice(0, 20), num(e[2], 0.5, 0, 1), num(e[3], 0.5, 0, 1), num(e[4], -1, -1, 1), num(e[5], -1, -1, 1), e[6] < 0 ? -1 : 1]),
     eqv: (() => { const a = Array.isArray(pr.ev) ? pr.ev : [], g = (x, sl) => (typeof x === 'string' && GEAR[x] && GEAR[x].slot === sl ? x : null); return { head: g(a[0], 'head'), face: g(a[1], 'face'), mouth: g(a[2], 'mouth'), wings: g(a[3], 'wings') }; })()
   };
 }
@@ -5895,6 +5963,10 @@ function mirrorMons(dt) {
     if (m.nx != null) { const k = Math.min(1, dt * 8); m.x += (m.nx - m.x) * k; m.y += (m.ny - m.y) * k; }
   }
 }
+function netPushHitView(uid, dmg, crit) {   // host: only so the others can see the damage numbers (the host applies its own damage directly)
+  NET.hitSeq++; NET.hits.push([NET.hitSeq, uid, dmg, crit ? (crit === 2 ? 2 : 1) : 0]);
+  if (NET.hits.length > 16) NET.hits.shift();
+}
 function netPushHit(uid, dmg, crit) {
   NET.hitSeq++; NET.hits.push([NET.hitSeq, uid, dmg, crit ? (crit === 2 ? 2 : 1) : 0]);
   if (NET.hits.length > 16) NET.hits.shift();
@@ -5936,6 +6008,7 @@ function processOthersHits() {
       const m = W.mons.find((x) => x.uid === int(hh[1], -1, -1, 1e9) && x.state !== 'dead');
       if (!m) continue;
       const dmg = int(hh[2], 0, 0, 1e9), cr = hh[3] ? (int(hh[3], 1, 0, 2) === 2 ? 2 : 1) : 0, s = m.size || 1;
+      if (S.dmgOthers === false) { m.hitT = 0.1; continue; }
       if (cr) critPop(m.x, m.y - 30 * s, fmt(dmg), { size: 16, burst: true, magic: cr === 2, tk: m.uid, tg: m, oy: -30 * s });
       else addNum(m.x, m.y - 30 * s, fmt(dmg), '#cfe3ff', 12, { pop: false, dur: NUM_LIFE, dmg: true, tk: m.uid, tg: m, oy: -30 * s });
       m.hitT = 0.1;
@@ -6005,6 +6078,7 @@ function onlineTick(dt) {
   { const mc = (NET.mcc || []).filter((e) => Date.now() - e[4] < 6000); NET.mcc = mc; if (mc.length) pr.mcc = mc.map((e) => e.slice(0, 4)); }
   if (isPvp()) { const pc = (NET.pvc || []).filter((e) => Date.now() - e[4] < 6000); NET.pvc = pc; if (pc.length) pr.pvc = pc.map((e) => e.slice(0, 4)); }
   { const sp = (NET.sup || []).filter((e) => Date.now() - e[5] < 8000); NET.sup = sp; if (sp.length) pr.sup = sp.map((e) => e.slice(0, 5)); }
+  { const sf = (NET.skfx || []).filter((e) => Date.now() - e[7] < 6000); NET.skfx = sf; if (sf.length) pr.fxs = sf.map((e) => e.slice(0, 7)); }
   if (S.blocked) return;   // a tab that stopped saving also stops showing itself
   const sig = JSON.stringify(pr);
   if (sig === ONLINE.sig && now - ONLINE.lastSend < (window.__WEB ? 4000 : 1500)) return;   // idle heartbeat (entries expire after 12 s)
@@ -6237,6 +6311,14 @@ function panelSound(body) {
     el('button', { class: 'mini', text: 'ลองเสียงคริ', onclick: () => AU.sfx('crit') }),
     el('button', { class: 'mini', text: 'ลองเสียงการ์ด', onclick: () => AU.sfx('card') })));
   body.append(el('p', { class: 'note', style: 'margin-top:12px', text: 'แต่ละแผนที่มีเพลงของตัวเอง ถ้าไม่ได้ยินเสียง ให้ตรวจว่ามือถือไม่ได้เปิดโหมดเงียบ' }));
+  body.append(el('div', { class: 'sub', text: '🔋 ประสิทธิภาพ / ความร้อน' }));
+  const pm = [['saver', '🔋 ประหยัดแบต/ลดร้อน'], ['normal', '⚖️ ปกติ'], ['max', '✨ เอฟเฟกต์สุด 60fps']];
+  body.append(el('div', { class: 'acts' }, ...pm.map(([k, t]) => el('button', { class: 'mini' + (PERF.mode === k ? ' on pri' : ''), text: t, onclick: () => { PERF.mode = k; lsSet('spellblade_perf', k); lastDraw = 0; resize(); renderSheet(); toast(k === 'saver' ? 'โหมดประหยัด: 30 เฟรม ความละเอียดต่ำลง เอฟเฟกต์น้อยลง' : k === 'max' ? 'โหมดเอฟเฟกต์สุด: 60 เฟรม ความละเอียดเต็ม' : 'โหมดปกติ'); } }))));
+  body.append(el('p', { class: 'note', text: 'ประหยัด: จำกัด 30 เฟรม ลดความละเอียดภาพและจำนวนเอฟเฟกต์ เหมาะกับไอโฟนที่เครื่องร้อน เล่นนานๆ หรือเปิดออโต้ทิ้งไว้ / ปกติ: จำกัด 60 เฟรม / เอฟเฟกต์สุด: 60 เฟรม ความละเอียดเต็ม เอฟเฟกต์เต็ม (กินแบตและร้อนกว่า)' }));
+  body.append(el('div', { class: 'sub', text: 'เอฟเฟกต์และดาเมจ' }));
+  const tog = (lab, key, ls) => el('button', { class: 'mini' + (S[key] !== false ? ' on' : ''), text: (S[key] !== false ? '✅ ' : '🚫 ') + lab, onclick: () => { S[key] = S[key] === false; lsSet(ls, S[key] ? '1' : '0'); renderSheet(); } });
+  body.append(el('div', { class: 'acts' }, tog('เอฟเฟกต์สกิลผู้อื่น', 'fxOthers', 'spellblade_fxothers'), tog('ตัวเลขดาเมจผู้อื่น', 'dmgOthers', 'spellblade_dmgothers'), tog('เอฟเฟกต์สกิลตัวเอง', 'fxSelf', 'spellblade_fxself')));
+  body.append(el('p', { class: 'note', text: 'ติ๊ก ✅ = แสดง / 🚫 = ปิด ปิดเอฟเฟกต์ช่วยให้เครื่องลื่นและเย็นลงเวลาตีบอสกันหลายคน (ตัวเลขดาเมจของตัวเองยังแสดงตามปกติ)' }));
   body.append(el('div', { class: 'sub', text: 'ภาพ' }));
   const kk = R3.kkUse !== false;
   body.append(el('div', { class: 'acts' }, el('button', { class: 'mini' + (kk ? ' on' : ''), text: kk ? '✅ ตัวละครโมเดลใหม่' : 'ตัวละครแบบเดิม', onclick: () => { R3.kkUse = !kk; lsSet('spellblade_kk', R3.kkUse ? '1' : '0'); drawAvatar(); renderSheet(); } })));
@@ -8305,11 +8387,14 @@ function renderSheetIfOpen() { if (S.sheet && S.sheet !== 'gm' && !$('#sheetWrap
 function closeSheet() { $('#sheetWrap').hidden = true; S.sheet = null; $('#sheetWrap').classList.remove('side'); document.body.classList.remove('npctalk'); R3.focus = null; }
 $('#sheetClose').addEventListener('click', closeSheet);
 $('#sheetWrap').addEventListener('pointerdown', (e) => { if (e.target === e.currentTarget) closeSheet(); });
+const ARMED = new Map();   // the sheet is redrawn often (online list, timers): keep the "tap again" state outside the button
 function twoStep(btn, label, armedLabel, fn) {
+  const k = label + '|' + armedLabel, live = () => (ARMED.get(k) || 0) > Date.now();
+  const arm = () => { btn.dataset.armed = '1'; btn.textContent = armedLabel; setTimeout(() => { if (btn.isConnected && !live()) { delete btn.dataset.armed; btn.textContent = label; } }, Math.max(50, ARMED.get(k) - Date.now() + 60)); };
+  if (live()) arm();
   btn.addEventListener('click', () => {
-    if (btn.dataset.armed) { fn(); return; }
-    btn.dataset.armed = '1'; btn.textContent = armedLabel;
-    setTimeout(() => { if (btn.isConnected) { delete btn.dataset.armed; btn.textContent = label; } }, 3000);
+    if (live()) { ARMED.delete(k); fn(); return; }
+    ARMED.set(k, Date.now() + 3000); arm();
   });
   return btn;
 }
@@ -9203,9 +9288,11 @@ async function init() {
     }, () => {});
   }
 }
-let lastTs = 0;
+let lastTs = 0, lastDraw = 0;
 function frame(ts) {
   if (S.halt) return;   // offline farming started: the game stops drawing
+  if (ts - lastDraw < PERF.gap() - 2) { requestAnimationFrame(frame); return; }   // frame cap: 30 fps saver / 60 fps otherwise (120 Hz phones run hot for nothing)
+  lastDraw = ts;
   const now = ts / 1000; let dt = Math.min(0.1, Math.max(0, now - (lastTs || now)));
   if (W.hitstop && performance.now() < W.hitstop) dt *= 0.06;
   lastTs = now;
