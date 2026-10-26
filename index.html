@@ -1034,6 +1034,7 @@ defSkill('nv_aid', 'novice', 'ปฐมพยาบาล', '🩹', 'heal', { ma
 // Swordman line
 defSkill('sm_bash', 'swordman', 'ฟันทลาย', '⚔️', 'atk', { m: [1.3, 0.3], sp: [5, 0.6], cd: 1.5, color: '#ffb347', fx: 'slash' });
 defSkill('sm_quake', 'swordman', 'พสุธาสะเทือน', '💥', 'aoe', { m: [1.0, 0.2], r: 90, self: true, sp: [10, 1], cd: 4, color: '#e07b39', fx: 'quake' });
+defSkill('sm_provoke', 'swordman', 'ยั่วยุ', '😠', 'taunt', { maxLv: 5, dur: 10, sp: [12, 1], cd: 12, color: '#ff5a3c' });
 defSkill('sm_iron', 'swordman', 'ร่างเหล็กกล้า', '🛡️', 'passive', { p: { hpPct: 2, def: 1 }, color: '#9fb4d0' });
 defSkill('kn_pierce', 'knight', 'ดาบพุ่งทะลวง', '🗡️', 'atk', { m: [2.0, 0.35], hits: 3, sp: [10, 1], cd: 2, color: '#8fd3ff', fx: 'slash' });
 defSkill('kn_spiral', 'knight', 'พายุคมดาบ', '🌀', 'aoe', { m: [1.8, 0.25], r: 110, sp: [18, 1.5], cd: 5, color: '#b3e5ff', fx: 'quake' });
@@ -2183,7 +2184,7 @@ function applyHit(tg, res, hits) {
     later(i * 0.075, () => {
       if (tg.state === 'dead' || tg.hp <= 0) return;
       const dealt = Math.min(per, Math.max(0, tg.hp));
-      tg.hp -= per; tg.hitT = 0.12; tg.angry = true; tg.state = 'chase'; tg.tgt = myKey(); tg.predT = W.t; dgStat('dmg', dealt);
+      tg.hp -= per; tg.hitT = 0.12; tg.predT = W.t; if (NET.isHost) threatHit(tg, myKey(), dealt); else { tg.angry = true; tg.state = 'chase'; tg.tgt = myKey(); } dgStat('dmg', dealt);
       if (!NET.isHost) netPushHit(tg.uid, per, res.crit ? (res.magic ? 2 : 1) : 0); else netPushHitView(tg.uid, per, res.crit ? (res.magic ? 2 : 1) : 0);
       if (res.crit) myCrit(tg, per, i, res.magic);
       else { AU.sfx('hit'); addNum(tg.x, tg.y - 32 * s, fmt(per), '#ffffff', 11, { pop: true, tk: tg.uid, dur: NUM_LIFE, dmg: true, tg, oy: -32 * s }); }
@@ -2292,6 +2293,28 @@ function monHit(m) {
   dgStat('taken', Math.min(dmg, Math.max(0, P.hp))); P.hp -= dmg; P.hurtT = W.t; AU.sfx('hurt');
   addNum(P.x, P.y - 52, fmt(dmg), '#ff5a4a', 13, { dmg: true, tk: 'me', tg: P, oy: -52, dur: NUM_LIFE });
   if (P.hp <= 0) playerDie();
+}
+/* ---------- threat table: anyone can hit a monster; it turns on whoever dealt the most damage (taunt overrides) ---------- */
+function threatTarget(m) {
+  const pl = mapPlayers();
+  if (m.tauntKey && (m.tauntUntil || 0) > W.t && pl.some((p) => p.key === m.tauntKey)) return m.tauntKey;
+  let best = null, bv = 0;
+  if (m.thr) for (const k in m.thr) if (m.thr[k] > bv && pl.some((p) => p.key === k)) { bv = m.thr[k]; best = k; }
+  return best;
+}
+function threatHit(m, key, dmg) {
+  (m.thr || (m.thr = {}))[key] = (m.thr[key] || 0) + Math.max(1, dmg);
+  m.angry = true; m.state = 'chase'; m.tgt = threatTarget(m) || key;
+}
+function doTaunt(sk) {
+  const me = myKey(), dur = sk.dur;
+  addFx({ kind: 'ring', x: P.x, y: P.y, r: 90, color: sk.color, dur: 0.7 }); addFx({ kind: 'pillar', x: P.x, y: P.y, color: sk.color, dur: 0.6, w: 28 });
+  addNum(P.x, P.y - 66, sk.icon + ' ' + sk.name, sk.color, 12, { font: 'th', dur: 1.4 });
+  if (NET.isHost) { for (const m of W.mons) if (m.state !== 'dead' && !m.pvp) { m.tauntKey = me; m.tauntUntil = W.t + dur; m.tgt = me; m.angry = true; m.state = 'chase'; } }
+  else {
+    for (const m of W.mons) if (m.state !== 'dead' && !m.pvp) { m.tgt = me; m.state = 'chase'; }
+    NET.mcc = (NET.mcc || []).filter((e) => Date.now() - e[4] < 6000).slice(-19); NET.mcc.push([uid36().slice(-9), -1, 'k', Math.round(dur * 1000), Date.now()]);
+  }
 }
 function playerDie() {
   P.combo = null; P.lockT = 0; P.invT = 0; P.dash = null;
@@ -2451,6 +2474,8 @@ function castSkillInner(id, fromQueue) {
     addFx({ kind: 'ring', x: P.x, y: P.y, r: 42, color: sk.color, dur: 0.6 });
     addFx({ kind: 'pillar', x: P.x, y: P.y, color: sk.color, dur: 0.6, w: 28 });
     if (sk.party) for (const o of supMates()) { sendSup(o, 'b', [id, lv]); addFx({ kind: 'pillar', x: o.x, y: o.y, color: sk.color, dur: 0.6, w: 22 }); if (sk.vfx) addFx({ kind: 'vfx', sheet: sk.vfx, ok: o.key, x: o.x, y: o.y, dur: 1.05 }); }
+  } else if (sk.type === 'taunt') {
+    doTaunt(sk);
   } else if (sk.type === 'res') {
     sendSup(resTg, 'r', [0.6]); addFx({ kind: 'pillar', x: resTg.x, y: resTg.y, color: sk.color, dur: 1.2, w: 40 }); addNum(resTg.x, resTg.y - 60, '🕊️ ชุบชีวิต', '#fffbe6', 14, { font: 'th', dur: 1.4 });
   } else if (sk.type === 'combo') {
@@ -2587,6 +2612,7 @@ function autoAct() {
     if (!sk || !lv || (P.cds[id] || 0) > W.t || P.sp < spCost(sk, lv)) continue;
     if (sk.type === 'buff') { if (P.buffs[id] || !P.target) continue; castSkill(id); return; }
     if (sk.type === 'heal') { if (P.hp < D.maxHp * 0.6 || ((sk.party || sk.zone) && partyNeedsHeal())) { castSkill(id); return; } continue; }
+    if (sk.type === 'taunt') { if (P.target && (typeof partyMates === 'function' ? partyMates(false).length : 0)) { castSkill(id); return; } continue; }
     if (sk.type === 'res') { if (deadMateNear()) { castSkill(id); return; } continue; }
     if (S.auto && !S.autoOpt.skill) continue;   // auto set to basic attacks only
     if (!P.target) continue;
@@ -2615,6 +2641,7 @@ function updateMons(dt) {
     if ((m.frzUntil || 0) > W.t) { m.moving = false; continue; }
     if ((m.holdUntil || 0) > W.t) { m.moving = false; continue; }
     const sf = (m.slowUntil || 0) > W.t ? 0.45 : 1;
+    if (m.angry) { const tk = threatTarget(m); if (tk) m.tgt = tk; }
     let tg = m.tgt ? pl.find((p) => p.key === m.tgt) : null;
     if (!tg && m.tgt) { m.tgt = null; m.angry = false; if (m.state === 'chase') m.state = 'idle'; }
     if (!tg && m.aggro) { let bd = m.raid ? 320 : 150; for (const p of pl) { const d = Math.hypot(p.x - m.x, p.y - m.y); if (d < bd) { bd = d; tg = p; } } if (tg) { m.tgt = tg.key; m.state = 'chase'; } }
@@ -4923,7 +4950,7 @@ function iceHit(tg, sk, lv) {
 function ccIntake() {
   const seen = NET.mccSeen || (NET.mccSeen = new Set());
   for (const o of othersHere()) {
-    if (NET.isHost && o.mcc) for (const e of o.mcc) if (!seen.has(e[0])) { seen.add(e[0]); const m = W.mons.find((x) => x.uid === e[1] && x.state !== 'dead'); if (m) setMonCC(m, e[2], e[3] / 1000); }
+    if (NET.isHost && o.mcc) for (const e of o.mcc) if (!seen.has(e[0])) { seen.add(e[0]); const m = W.mons.find((x) => x.uid === e[1] && x.state !== 'dead'); if (e[2] === 'k') { for (const mm of W.mons) if (mm.state !== 'dead' && !mm.pvp) { mm.tauntKey = o.key; mm.tauntUntil = W.t + e[3] / 1000; mm.tgt = o.key; mm.angry = true; mm.state = 'chase'; } } else if (m) setMonCC(m, e[2], e[3] / 1000); }
     if (isPvp() && o.pvc) for (const e of o.pvc) if (e[1] === NET.me && !seen.has(e[0])) { seen.add(e[0]); const d = e[3] / 1000;
       if (e[2] === 'f' && (P.frzImm || 0) <= W.t && !P.dead) { P.ccType = 'freeze'; P.ccUntil = W.t + d; P.frzImm = W.t + d + 3; P.slowUntil = Math.max(P.slowUntil || 0, W.t + d + 2); P.tx = null; toast('🧊 ถูก ' + o.name + ' แช่แข็ง'); }
       else if (e[2] === 't') { if ((P.stunImm || 0) <= W.t && !P.dead) { applyCC('stun', d); P.stunImm = W.t + d + 3; AU.sfx('stun'); } }
@@ -5861,7 +5888,7 @@ function readPresence(p) {
     ra: Array.isArray(pr.ra) ? [String(pr.ra[0] || '').slice(0, 12), int(pr.ra[1], 0, -9, 9)] : null,
     rs: Array.isArray(pr.rs) ? [0, 1, 2].map((i) => num(pr.rs[i], 0, 0, 1e13)) : null,
     lb: (Array.isArray(pr.lb) ? pr.lb : []).slice(-4).filter((e) => Array.isArray(e) && typeof e[0] === 'string' && LOOT_COL[e[3]]).map((e) => [e[0].slice(0, 12), num(e[1], 0.5, 0, 1), num(e[2], 0.5, 0, 1), e[3], num(e[4], 0, 0, 1e15)]),
-    mcc: (Array.isArray(pr.mcc) ? pr.mcc : []).slice(-20).filter((e) => Array.isArray(e) && typeof e[0] === 'string' && (e[2] === 'f' || e[2] === 's')).map((e) => [e[0].slice(0, 12), int(e[1], -1, -1, 1e9), e[2], int(e[3], 0, 0, 5000)]),
+    mcc: (Array.isArray(pr.mcc) ? pr.mcc : []).slice(-20).filter((e) => Array.isArray(e) && typeof e[0] === 'string' && (e[2] === 'f' || e[2] === 's' || e[2] === 'k')).map((e) => [e[0].slice(0, 12), int(e[1], -1, -1, 1e9), e[2], int(e[3], 0, 0, 15000)]),
     pvc: (Array.isArray(pr.pvc) ? pr.pvc : []).slice(-10).filter((e) => Array.isArray(e) && typeof e[0] === 'string' && typeof e[1] === 'string' && (e[2] === 'f' || e[2] === 's')).map((e) => [e[0].slice(0, 12), e[1].slice(0, 40), e[2], int(e[3], 0, 0, 3000)]),
     pvm: Array.isArray(pr.pvm) ? [int(pr.pvm[0], 0, 0, 1e9), int(pr.pvm[1], 0, 0, 1e6)] : null,
     pva: (Array.isArray(pr.pva) ? pr.pva : []).slice(-24).filter((e) => typeof e === 'string').map((e) => e.slice(0, 12)),
@@ -5913,7 +5940,7 @@ function syncOthers() {
   pvpIntake(); fxIntake(); ccIntake();
   partyIntake();
 }
-const isGone = (o) => !o.ok || o.dupe || (o.aw && performance.now() - (o.awaySince || 0) > 20000) || performance.now() - (o.beat || 0) > 20000;
+const isGone = (o) => !o.ok || o.dupe || performance.now() - (o.beat || 0) > 20000;
 const activeOthers = () => [...ONLINE.others.values()].filter((o) => !isGone(o));
 const isLive = (o) => !o.aw && !o.lite && performance.now() - (o.beat || 0) < 6000;
 function othersLive() { return othersHere().filter(isLive); }
@@ -6013,7 +6040,7 @@ function hostApplyDamage() {
       if (tot <= before) { if (tot < before) base.set(uid, tot); continue; }
       base.set(uid, tot);
       const m = W.mons.find((x) => x.uid === uid && x.state !== 'dead'); if (!m) continue;
-      m.hp -= tot - before; m.angry = true; m.state = 'chase'; m.tgt = o.key; m.hitT = 0.1;
+      m.hp -= tot - before; m.hitT = 0.1; threatHit(m, o.key, tot - before);
       if (m.hp <= 0) killMon(m, o.key);
     }
   }
@@ -6112,7 +6139,7 @@ function onlineTick(dt) {
 
 document.addEventListener('visibilitychange', () => {
   if (!ONLINE.room) return;
-  if (document.visibilityState === 'hidden') { if (ONLINE.last) ONLINE.room.presence(Object.assign({}, ONLINE.last, { aw: 1, hb: ++ONLINE.hb })).catch(() => {}); }
+  if (document.visibilityState === 'hidden') { /* stay live: the background ticker keeps the character running (support/healer on a 2nd window) */ }
   else { NET.mapT = Date.now(); NET.hostRef = null; ONLINE.sig = ''; ONLINE.lastSend = 0; }
 });
 window.addEventListener('pagehide', () => { if (ONLINE.room && ONLINE.last) ONLINE.room.presence(Object.assign({}, ONLINE.last, { aw: 1, hb: ++ONLINE.hb })).catch(() => {}); });
@@ -7958,6 +7985,7 @@ function skillDesc(sk, lv) {
     case 'heal': return 'ฟื้น HP ' + pct(sk.h[0] + sk.h[1] * lv) + ' + ตามพลังเวท' + (sk.zone ? ' ฮีลหมู่วงกว้าง ' + sk.zone.dur + ' วิ (ตัวเองและเพื่อนที่ยืนในวง)' : sk.party ? ' (ตัวเองหรือเพื่อนในปาร์ตี้ที่เลือดน้อยสุด คิดจาก HP สูงสุดของผู้ใช้สกิล)' : '');
     case 'buff': return bt(sk.b) + ' นาน ' + sk.dur + ' วิ' + (sk.party ? ' (ตัวเองและเพื่อนในปาร์ตี้)' : '');
     case 'combo': return 'ดาเมจรวม ' + pct((sk.m[0] + sk.m[1] * lv) * sk.hits) + ' (' + sk.hits + ' ครั้ง) ' + (sk.combo === 'sonic' ? 'ฟันเร็วสูง โอกาส ' + sk.proc + '% สตั้นเป้าหมาย ต้องสวมคาตาร์' : 'พุ่งฟันเป็นรูปดาว 5 แฉก อมตะระหว่างใช้สกิล โอกาส ' + sk.proc + '% ทำให้ช้า ต้องสวมมีดคู่') + ' (ไม่ได้ผลกับบอส)';
+    case 'taunt': return 'ยั่วยุมอนสเตอร์และบอสทั้งหมดในแมพให้หันมาตีตัวเอง นาน ' + sk.dur + ' วิ';
     case 'res': return 'ชุบชีวิตเพื่อนในปาร์ตี้ที่ล้มอยู่ใกล้ๆ 1 คน ฟื้นด้วย HP 60%';
     case 'passive': return bt(sk.p);
   }
@@ -8082,20 +8110,7 @@ function leaveWorld(msg, away) {
   $('#bossBar').hidden = true; $('#patchModal').hidden = true;
   showSelect(msg, away);
 }
-const AWAY_MS = 20000;
-let hiddenAt = 0, awayTimer = 0;
-const awayMsg = 'คุณไม่ได้อยู่หน้าจอเกิน 20 วินาที ระบบพาตัวละครออกจากโลกแล้ว กดเข้าสู่เกมเพื่อเล่นต่อ';
-document.addEventListener('visibilitychange', () => {
-  if (document.visibilityState === 'hidden') {
-    hiddenAt = Date.now(); clearTimeout(awayTimer);
-    awayTimer = setTimeout(() => { if (document.visibilityState === 'hidden') leaveWorld(awayMsg, true); }, AWAY_MS);
-  } else {
-    clearTimeout(awayTimer);
-    if (hiddenAt && Date.now() - hiddenAt >= AWAY_MS) leaveWorld(awayMsg, true);
-    hiddenAt = 0;
-  }
-});
-window.addEventListener('pageshow', (e) => { if (e.persisted && hiddenAt && Date.now() - hiddenAt >= AWAY_MS) leaveWorld(awayMsg, true); });
+// (removed) the 20 s away-from-screen auto logout: a second window/device can now keep a support character running
 
 /* ---------- game start & HUD ---------- */
 function startGame(hero, fromServer) {
@@ -9332,6 +9347,25 @@ function frame(ts) {
 }
 R3.init();
 requestAnimationFrame(frame);
+/* ---- keep running in a hidden tab / minimised window (24/7 support character) ----
+ * requestAnimationFrame stops when the tab is hidden, so a Worker timer (not throttled like page timers)
+ * drives update + online heartbeat without drawing. A Web Lock / wake lock keeps the browser from freezing or sleeping the tab. */
+(function () {
+  let bgLast = 0;
+  function bgTick() {
+    if (!document.hidden || S.halt || !(S.screen === 'game' && S.hero && W.map)) { bgLast = 0; return; }
+    const n = performance.now(); let dt = bgLast ? (n - bgLast) / 1000 : 0.1; bgLast = n;
+    try { while (dt > 0) { const d = Math.min(0.1, dt); dt -= d; lastTs = 0; update(d); } onlineTick(0.1); bossTick(); } catch (e) { console.error(e); }
+  }
+  try {
+    const url = URL.createObjectURL(new Blob(['setInterval(function(){postMessage(1)},100)'], { type: 'text/javascript' }));
+    const w = new Worker(url); w.onmessage = bgTick;
+  } catch (e) { setInterval(bgTick, 1000); }
+  try { if (navigator.locks) navigator.locks.request('spellblade-keepalive', () => new Promise(() => {})); } catch (e) {}
+  let wl = null;
+  const getWl = () => { try { if (navigator.wakeLock && !document.hidden) navigator.wakeLock.request('screen').then((l) => { wl = l; }).catch(() => {}); } catch (e) {} };
+  document.addEventListener('visibilitychange', getWl); getWl();
+})();
 init().catch((e) => { console.error(e); if (!S.hero) setupCreate(); });
 /* =================== Title / login scene =================== *
  * The hero art as a living picture (hair, grass and water move in the wind, from painted masks),
