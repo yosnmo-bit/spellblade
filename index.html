@@ -192,6 +192,53 @@ button:disabled{cursor:default}
 .eqbox{width:100%;max-width:470px;display:flex;flex-direction:column;background:var(--panel);color:var(--ink);border-radius:16px;border:1px solid var(--line);overflow:hidden;box-shadow:0 10px 40px rgba(0,0,0,.4)}
 .eqbox .sheet-title button{width:32px;height:32px;border-radius:50%;border:1px solid rgba(255,255,255,.4);background:rgba(255,255,255,.14);color:#fff;padding:0}
 .eqbody{flex:1;overflow-y:auto;padding:10px 12px 18px}
+/* ===== eq screen: purple night, 3D minimal tabs ===== */
+.eqbox{--panel:#1c1a3c;--panel-2:#2a2756;--ink:#efecff;--ink-soft:#b3afe0;--line:#413d78;--chip:#2c2960;--accent:#f0b24a;--accent-ink:#f4c877;--good:#5ad28c;--bad:#ff8068;--title-a:#5b4fc4;--title-b:#3b32a0;max-width:min(100%,780px);background:radial-gradient(120% 60% at 50% 0%,#3d3794 0%,#231f52 42%,#14122e 100%);border-color:#4b46a0}
+.eqbox .sheet-title{background:transparent;border-radius:0;padding:10px 12px 4px 16px;font-size:1.05rem}
+.tabs3d{display:flex;gap:10px;padding:6px 14px 10px}
+.tab3d{flex:1;padding:9px 6px;border-radius:14px;border:1px solid rgba(255,255,255,.14);background:linear-gradient(180deg,rgba(255,255,255,.13),rgba(255,255,255,.04));color:var(--ink-soft);font-weight:700;box-shadow:0 4px 0 rgba(0,0,0,.38),inset 0 1px 0 rgba(255,255,255,.22);transition:transform .08s,box-shadow .08s}
+.tab3d[aria-selected="true"]{background:linear-gradient(180deg,#ffd983,#f0a93a);color:#3a2306;border-color:#ffe6ae;transform:translateY(2px);box-shadow:0 2px 0 #9a6414,inset 0 1px 0 rgba(255,255,255,.6),0 0 16px rgba(240,178,74,.35)}
+.tab3d:active{transform:translateY(3px);box-shadow:0 1px 0 rgba(0,0,0,.4)}
+.eqbox .eqslot{border-radius:14px;border:1px solid #4d48a6;background:linear-gradient(180deg,#3b3783,#29265a);box-shadow:0 3px 0 #15122f,inset 0 1px 0 rgba(255,255,255,.2)}
+.eqbox .eqslot:active{transform:translateY(2px);box-shadow:0 1px 0 #15122f}
+.eqbox .eqslot.sel{border-color:var(--accent);box-shadow:0 3px 0 #15122f,0 0 0 2px var(--accent),0 0 14px rgba(240,178,74,.35)}
+.eqbox .eqslot.rar{border-color:var(--rc);box-shadow:0 3px 0 #15122f,inset 0 0 0 1px var(--rc),0 0 10px color-mix(in srgb,var(--rc) 50%,transparent)}
+.eqbox .tile{background:linear-gradient(180deg,#38347c,#2a2758);border-color:#4d48a6;box-shadow:0 2px 0 #15122f,inset 0 1px 0 rgba(255,255,255,.16)}
+.eqbox .tile.rar{background:linear-gradient(160deg,color-mix(in srgb,var(--rc) 42%,#2c2960),#2a2758);box-shadow:0 2px 0 #15122f,inset 0 0 0 1px var(--rc),0 0 8px color-mix(in srgb,var(--rc) 50%,transparent)}
+.eqbox .tile.empty{box-shadow:none;background:rgba(0,0,0,.18)}
+.eqbox .tile.sel{outline-color:var(--accent)}
+.eqbox .eqcv{background:radial-gradient(circle at 50% 80%,#6a5fd6 0%,#2e2a6c 45%,#171436 85%);border:1px solid #4b46a0}
+.eqbox .eqdet,.eqbox .invdet{background:rgba(0,0,0,.24);border:1px solid var(--line)}
+.eqbox .mini{border-radius:11px;background:linear-gradient(180deg,#3d3987,#2b2860);border-color:#514ca8;color:var(--ink);box-shadow:0 2px 0 #15122f}
+.eqbox .mini.pri{background:linear-gradient(180deg,#7a6cf0,#5144c8);border-color:#8e82ff;color:#fff}
+.eqbox .mini.on{background:linear-gradient(180deg,#ffd983,#f0a93a);color:#3a2306;border-color:#ffe6ae}
+.eqbox .mini.warn{color:var(--bad)}
+.eqprof{display:flex;flex-direction:column;gap:12px}
+.eqprof .eqstats{order:2}
+.eqstats{padding:10px 12px;border-radius:16px;background:rgba(0,0,0,.24);border:1px solid var(--line)}
+.eqst-h{display:flex;flex-direction:column;margin-bottom:8px}.eqst-h b{font-size:1.05rem}.eqst-h small{color:var(--ink-soft)}
+.eqst-t{margin:10px 0 4px;font-size:.74rem;font-weight:700;color:var(--accent-ink);letter-spacing:.02em}
+.eqbar{display:grid;grid-template-columns:24px 1fr auto;gap:6px;align-items:center;font-size:.72rem;margin:3px 0}
+.eqbar .bt{height:9px;border-radius:6px;background:rgba(0,0,0,.4);overflow:hidden;box-shadow:inset 0 1px 2px rgba(0,0,0,.5)}
+.eqbar .bt i{display:block;height:100%;border-radius:6px;background:linear-gradient(#ff8a8a,#e2484f)}
+.eqbar.sp .bt i{background:linear-gradient(#8ec8ff,#3e84e6)}
+.eqsix{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+.eqsix div,.eqkv div{padding:6px 8px;border-radius:10px;background:rgba(255,255,255,.07);font-size:.7rem;color:var(--ink-soft);display:flex;flex-direction:column}
+.eqsix b,.eqkv b{color:var(--ink);font-size:.92rem}
+.eqsix em{font-style:normal;color:var(--good);font-size:.74rem;margin-left:2px}
+.eqkv{display:grid;grid-template-columns:repeat(2,1fr);gap:6px}
+.eqkv div{flex-direction:row;justify-content:space-between;align-items:center}
+.eqbag{display:grid;grid-template-columns:minmax(0,148px) minmax(0,1fr);gap:10px;height:min(62vh,540px)}
+.eqbagL{display:flex;flex-direction:column;align-items:center;gap:6px;overflow-y:auto;min-width:0}
+.eqbagL .eqcv{height:128px;flex:none}
+.eqslotgrid{display:grid;grid-template-columns:repeat(2,1fr);gap:6px;width:100%}
+.eqslotgrid .eqslot{width:100%;height:52px}
+.eqbagR{overflow-y:auto;border-radius:14px;background:rgba(0,0,0,.22);padding:4px 8px 10px;border:1px solid var(--line);min-width:0}
+.eqbagR .sub{margin:6px 0 2px;font-size:.84rem}
+.eqbagR .grid5{grid-template-columns:repeat(4,1fr)}
+@media (min-width:640px){.eqprof{display:grid;grid-template-columns:250px 1fr;align-items:start}.eqprof .eqstats{order:0}.eqbag{grid-template-columns:minmax(0,190px) minmax(0,1fr)}}
+.mkt{border-radius:12px;box-shadow:0 3px 0 rgba(0,0,0,.2),inset 0 1px 0 rgba(255,255,255,.35);transition:transform .08s}
+.mkt.on{transform:translateY(2px);box-shadow:0 1px 0 rgba(0,0,0,.3),inset 0 1px 0 rgba(255,255,255,.4),0 0 10px color-mix(in srgb,var(--accent) 40%,transparent)}
 .eqmain{display:grid;grid-template-columns:64px 1fr 64px;gap:8px;align-items:start}
 .eqcol{display:flex;flex-direction:column;gap:6px}
 .eqslot{position:relative;width:64px;height:62px;border-radius:12px;border:1px solid var(--line);background:var(--chip);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:2px;gap:1px}
@@ -5403,7 +5450,9 @@ function ensureEquipDom() {
   if ($('#eqWrap')) return;
   const w = el('div', { class: 'eqwrap', id: 'eqWrap', hidden: true },
     el('div', { class: 'eqbox', role: 'dialog', 'aria-modal': 'true', 'aria-label': 'ตัวละครและอุปกรณ์' },
-      el('div', { class: 'sheet-title' }, el('span', { text: 'ตัวละคร' }), el('button', { 'aria-label': 'ปิด', text: '✕', onclick: closeEquip })),
+      el('div', { class: 'sheet-title' }, el('span', { id: 'eqTtl', text: 'ตัวละคร' }), el('button', { 'aria-label': 'ปิด', text: '✕', onclick: closeEquip })),
+      el('div', { class: 'tabs3d', id: 'eqTabs', role: 'tablist' },
+        ...[['eq', '👤 ตัวละคร'], ['bag', '🎒 กระเป๋า']].map(([m, lb]) => el('button', { class: 'tab3d', role: 'tab', 'data-m': m, text: lb, onclick: () => { EQ.mode = m; EQ.focus = null; renderEquip(); const b = $('#eqBody'); if (b) b.scrollTop = 0; } }))),
       el('div', { class: 'eqbody', id: 'eqBody' })));
   document.body.append(w);
   w.addEventListener('pointerdown', (e) => { if (e.target === w) closeEquip(); });
@@ -5415,37 +5464,65 @@ function ensureEquipDom() {
 }
 function openEquip(focus) {
   ensureEquipDom(); closeSheet();
+  EQ.mode = focus === 'bag' ? 'bag' : 'eq'; EQ.focus = null;
   EQ.open = true; $('#eqWrap').hidden = false; renderEquip();
+  $('#eqBody').scrollTop = 0;
+}
+function fitEqCv() {
+  if (!EQ.cv || !EQ.cv.isConnected) return;
   const d = Math.min(2, window.devicePixelRatio || 1), r = EQ.cv.getBoundingClientRect();
-  EQ.cv.width = Math.max(1, Math.round(r.width * d)); EQ.cv.height = Math.max(1, Math.round(r.height * d));
-  if (focus === 'bag') setTimeout(() => { const b = $('#eqInv'); if (b) b.scrollIntoView({ block: 'start' }); }, 30);
-  else $('#eqBody').scrollTop = 0;
+  const w = Math.max(1, Math.round(r.width * d)), hh = Math.max(1, Math.round(r.height * d));
+  if (EQ.cv.width !== w || EQ.cv.height !== hh) { EQ.cv.width = w; EQ.cv.height = hh; }
+}
+function eqStats(h, D) {
+  const hp = Math.max(0, Math.round(P.hp || 0)), sp = Math.max(0, Math.round(P.sp || 0));
+  const bar = (lab, v, mx, cls) => el('div', { class: 'eqbar ' + cls }, el('span', { text: lab }), el('div', { class: 'bt' }, el('i', { style: 'width:' + clamp(mx ? v / mx * 100 : 0, 0, 100) + '%' })), el('b', { text: fmt(v) + '/' + fmt(mx) }));
+  const six = el('div', { class: 'eqsix' });
+  for (const k of STATS) { const v = h.stats[k], b = D.st[k] - v; six.append(el('div', null, k.toUpperCase(), el('b', null, String(v), b > 0 ? el('em', { text: '+' + b }) : null))); }
+  const kv = el('div', { class: 'eqkv' });
+  [['ATK', fmt(D.atk)], ['MATK', fmt(D.matk)], ['DEF', fmt(D.def)], ['HIT', fmt(D.hit)], ['FLEE', fmt(D.flee)], ['CRIT', D.crit.toFixed(1) + '%'], ['ASPD', String(aspdOf(D.aspdMs))], ['ลดคูลดาวน์', D.cdr.toFixed(1) + '%']]
+    .forEach(([a, b]) => kv.append(el('div', null, el('span', { text: a }), el('b', { text: b }))));
+  return el('div', { class: 'eqstats' },
+    el('div', { class: 'eqst-h' }, el('b', { text: h.name }), el('small', { text: jobName(h.job) + '  Base ' + h.level + '  Job ' + h.jobLv })),
+    bar('HP', hp, D.maxHp, 'hp'), bar('SP', sp, D.maxSp, 'sp'),
+    el('div', { class: 'eqst-t', text: 'ค่าพื้นฐาน' }), six,
+    el('div', { class: 'eqst-t', text: 'ค่าต่อสู้' }), kv,
+    el('div', { class: 'acts', style: 'margin-top:10px' }, el('button', { class: 'mini pri', text: '📊 จัดสเตตัส' + (h.statPts ? ' (' + h.statPts + ')' : ''), onclick: () => { closeEquip(); openPanel('stats'); } })));
 }
 function closeEquip() { EQ.open = false; EQ.pick = null; const w = $('#eqWrap'); if (w) w.hidden = true; }
 function slotBtn(h, key) {
   const inf = slotInfo(h, key), n = sockets(h, key), cards = slotCards(h, key);
   const dots = el('span', { class: 'sdots' });
   for (let i = 0; i < n; i++) dots.append(el('i', { class: cards[i] ? 'on' : '' }));
-  return el('button', { class: 'eqslot' + (EQ.sel === key ? ' sel' : '') + (inf.empty ? ' empty' : '') + (inf.r >= 1 ? ' rar' : ''), style: inf.r >= 1 ? '--rc:' + rarCol(inf.r) : null, 'aria-label': SLOT_TH[key] + ': ' + inf.nm, onclick: () => { EQ.sel = key; EQ.pick = null; renderEquip(); } },
+  return el('button', { class: 'eqslot' + (EQ.sel === key ? ' sel' : '') + (inf.empty ? ' empty' : '') + (inf.r >= 1 ? ' rar' : ''), style: inf.r >= 1 ? '--rc:' + rarCol(inf.r) : null, 'aria-label': SLOT_TH[key] + ': ' + inf.nm, onclick: () => { EQ.sel = key; EQ.pick = null; EQ.focus = 'slot'; renderEquip(); } },
     el('span', { class: 'ei', text: inf.ic || '＋' }), inf.ref ? el('b', { class: 'eref', text: '+' + inf.ref }) : null, el('small', { text: SLOT_TH[key] }), dots);
 }
 function renderEquip() {
   if (!EQ.open || !S.hero) return;
   const h = S.hero, body = $('#eqBody'), st = body.scrollTop, D = derived();
   body.textContent = '';
-  const left = el('div', { class: 'eqcol' }), right = el('div', { class: 'eqcol' });
-  for (const k of ['head', 'face', 'mouth', 'weapon', 'off']) left.append(slotBtn(h, k));
-  for (const k of ['armor', 'wings', 'shoes', 'ring1', 'ring2']) right.append(slotBtn(h, k));
-  right.append(el('button', { class: 'eqslot stat', onclick: () => { closeEquip(); openPanel('stats'); } }, el('span', { class: 'ei', text: '📊' }), el('small', { text: 'สถานะ' })));
-  body.append(el('div', { class: 'eqmain' }, left,
-    el('div', { class: 'eqcenter' }, EQ.cv, el('div', { class: 'eqname', text: h.name }), el('div', { class: 'eqjob', text: jobName(h.job) + '  Base ' + h.level + '  Job ' + h.jobLv }),
-      el('div', { class: 'eqmini' }, el('span', null, 'ATK ', el('b', { text: fmt(D.atk) })), el('span', null, 'MATK ', el('b', { text: fmt(D.matk) })), el('span', null, 'DEF ', el('b', { text: fmt(D.def) }))),
-      JOBS[h.job].weapon === 'dagger' ? (() => { const w = weaponOf(h.job, h.wstyle), setW = (ws) => { if (h.wstyle === ws) return; h.wstyle = ws; normalizeGear(h); P.D = derived(); S.dirty = true; drawAvatar(); renderEquip(); };
+  const mode = EQ.mode || 'eq';
+  for (const t of document.querySelectorAll('#eqTabs .tab3d')) t.setAttribute('aria-selected', String(t.dataset.m === mode));
+  { const tt = $('#eqTtl'); if (tt) tt.textContent = mode === 'bag' ? 'กระเป๋า' : 'ตัวละคร'; }
+  const SL = ['head', 'face', 'mouth', 'weapon', 'off'], SR = ['armor', 'wings', 'shoes', 'ring1', 'ring2'];
+  const wsBlock = JOBS[h.job].weapon === 'dagger' ? (() => { const w = weaponOf(h.job, h.wstyle), setW = (ws) => { if (h.wstyle === ws) return; h.wstyle = ws; normalizeGear(h); P.D = derived(); S.dirty = true; drawAvatar(); renderEquip(); };
         return el('div', { class: 'wstyle' }, el('div', { class: 'acts' },
           el('button', { class: 'mini' + (w === 'dual' ? ' on' : ''), text: '🗡️ มีดสองข้าง', 'aria-pressed': String(w === 'dual'), onclick: () => setW('dual') }),
           el('button', { class: 'mini' + (w === 'katar' ? ' on' : ''), text: '⚔️ คาตาร์', 'aria-pressed': String(w === 'katar'), onclick: () => setW('katar') })),
-          el('small', { text: w === 'dual' ? 'ตีสองครั้งต่อรอบ ใส่มีดได้ทั้งสองมือ การ์ดข้างละ 2 ใบ' : 'ตีครั้งเดียวแต่คริติคอลสูงกว่า ใส่การ์ดได้ 2 ใบ' })); })() : null),
-    right));
+          el('small', { text: w === 'dual' ? 'ตีสองครั้งต่อรอบ ใส่มีดได้ทั้งสองมือ การ์ดข้างละ 2 ใบ' : 'ตีครั้งเดียวแต่คริติคอลสูงกว่า ใส่การ์ดได้ 2 ใบ' })); })() : null;
+  let invHost = null;
+  if (mode === 'eq') {
+    const left = el('div', { class: 'eqcol' }), right = el('div', { class: 'eqcol' });
+    for (const k of SL) left.append(slotBtn(h, k));
+    for (const k of SR) right.append(slotBtn(h, k));
+    body.append(el('div', { class: 'eqprof' }, eqStats(h, D), el('div', { class: 'eqmain' }, left,
+      el('div', { class: 'eqcenter' }, EQ.cv, el('div', { class: 'eqname', text: h.name }), el('div', { class: 'eqjob', text: jobName(h.job) + '  Base ' + h.level + '  Job ' + h.jobLv }), wsBlock), right)));
+  } else {
+    const grid = el('div', { class: 'eqslotgrid' });
+    for (let i = 0; i < 5; i++) { grid.append(slotBtn(h, SL[i])); grid.append(slotBtn(h, SR[i])); }
+    invHost = el('div', { class: 'eqbagR' });
+    body.append(el('div', { class: 'eqbag' }, el('div', { class: 'eqbagL' }, EQ.cv, el('div', { class: 'eqname', text: h.name }), grid), invHost));
+  }
   // selected slot detail
   const key = EQ.sel, inf = slotInfo(h, key), n = sockets(h, key), acc = accepts(h, key), det = el('div', { class: 'eqdet' });
   det.append(el('div', { class: 'nm2', style: inf.r >= 1 ? 'color:' + rarCol(inf.r) : null, text: (inf.ic ? inf.ic + ' ' : '') + inf.nm + (inf.ref ? ' +' + inf.ref : '') + '  (' + SLOT_TH[key] + ')' }));
@@ -5474,11 +5551,12 @@ function renderEquip() {
     const owned = h.inv.filter((x) => x.kind === 'gear' && (key === 'off' ? (dualNow(h) ? isDagger(x.id) : isShield(x.id) && shieldUser(h)) : GEAR[x.id].slot === baseSlot(key)) && canUse(h, x.id));
     if (owned.length) { const l = el('div', { class: 'picklist' }); for (const it of owned) l.append(el('button', { class: 'pickc', style: (it.r || 0) >= 1 ? 'border-color:' + rarCol(it.r) : null, onclick: () => { EQ.picking = true; equipGear(it.k); EQ.picking = false; } }, el('b', { style: (it.r || 0) >= 1 ? 'color:' + rarCol(it.r) : null, text: GEAR[it.id].ic + ' สวม' + it.nm + ((it.r || 0) >= 1 ? '  [' + RAR[it.r].nm + ']' : '') }), el('small', { text: bonusText(itemBase(it)) + (it.o && it.o.length ? '  ✦ ' + it.o.map((op) => bonusText({ [op[0]]: op[1] })).join('  ✦ ') : '') }))); det.append(l); }
   }
-  body.append(det);
+  if (mode === 'eq' || EQ.focus === 'slot') body.append(det);
+  if (mode === 'eq') { body.scrollTop = st; fitEqCv(); return; }
   // inventory
   const tiles = Object.keys(POT).filter((kd) => kd === 'hp' || kd === 'sp' || (h[POT[kd].f] || 0) > 0).map((kd) => ({ k: 'P:' + kd, pot: kd, icon: POT[kd].ic, n: h[POT[kd].f] || 0, nm: POT[kd].nm, blue: kd === 'sp' }));
   for (const it of h.inv) tiles.push({ k: it.k, icon: it.kind === 'card' ? '🃏' : it.kind === 'gear' ? GEAR[it.id].ic : it.kind === 'key' ? '🗝️' : it.kind === 'ore' ? ORE[it.id].ic : it.kind === 'pass' ? '🎫' : it.k === 'L:salt' ? '🧂' : (ARCH_ICON[it.ar] || '📦'), n: it.n, nm: it.nm, it });
-  body.append(el('div', { class: 'sub', id: 'eqInv', text: 'กระเป๋า ' + h.inv.length + '/' + invMax(h) + ((h.mail || []).length ? '   📬 รอเข้ากระเป๋า ' + h.mail.length + ' ชิ้น' : '') }));
+  invHost.append(el('div', { class: 'sub', id: 'eqInv', text: 'กระเป๋า ' + h.inv.length + '/' + invMax(h) + ((h.mail || []).length ? '   📬 รอเข้ากระเป๋า ' + h.mail.length + ' ชิ้น' : '') }));
   const sel = tiles.find((t) => t.k === EQ.invSel), idet = el('div', { class: 'invdet' });
   if (!sel) idet.append(el('p', { class: 'note', style: 'margin:0', text: 'แตะไอเทมเพื่อดูรายละเอียด การ์ดดรอปจากมอนทุกตัว ' + CONFIG.cardChance + '% และแต่ละใบใส่ได้เฉพาะช่องของมัน' }));
   else if (!sel.it) {
@@ -5524,8 +5602,8 @@ function renderEquip() {
       it.kind === 'pass' ? null : el('button', { class: 'mini', text: 'ขาย 1', onclick: () => sellItem(it.k, 1) }),
       it.n > 1 && it.kind !== 'pass' ? el('button', { class: 'mini', text: 'ขายทั้งหมด', onclick: () => sellItem(it.k, it.n) }) : null));
   }
-  body.append(idet);
-  body.append(el('div', { class: 'acts', style: 'justify-content:flex-end;margin:8px 0' }, el('button', { class: 'mini', text: 'ขายวัตถุดิบทั้งหมด', onclick: sellAllLoot })));
+  if (EQ.focus !== 'slot') body.append(idet);
+  invHost.append(el('div', { class: 'acts', style: 'justify-content:flex-end;margin:8px 0' }, el('button', { class: 'mini', text: 'ขายวัตถุดิบทั้งหมด', onclick: sellAllLoot })));
   const g = el('div', { class: 'grid5' });
   for (const t of tiles) {
     const rr = t.it && t.it.kind === 'gear' ? t.it.r || 0 : 0;
@@ -5533,12 +5611,12 @@ function renderEquip() {
       el('span', { text: t.icon, style: t.blue ? 'filter:hue-rotate(200deg)' : null }), t.it && t.it.kind === 'gear' ? null : el('b', { text: String(t.n) }),
       t.it && t.it.kind === 'card' ? el('em', { text: CS_TH[t.it.cs] }) : t.it && t.it.sk === 2 ? el('em', { text: '2 รู' }) : null);
     if (t.it && t.it.kind === 'card') b.style.setProperty('--c', t.it.col);
-    b.addEventListener('click', () => { EQ.invSel = t.k; renderEquip(); });
+    b.addEventListener('click', () => { EQ.invSel = t.k; EQ.focus = 'item'; renderEquip(); });
     g.append(b);
   }
   for (let i = tiles.length; i < invMax(h) + 2; i++) g.append(el('div', { class: 'tile empty' }));
-  body.append(g);
-  body.scrollTop = st;
+  invHost.append(g);
+  body.scrollTop = st; fitEqCv();
 }
 function drawEquipPreview(now) {
   if (!EQ.open || !EQ.cv || !S.hero) return;
