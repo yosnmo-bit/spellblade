@@ -3329,7 +3329,7 @@ void main(){
   }
   function kkTex(E, key, vkey, rules) {
     const id = key + '|' + (vkey || ''); if (E.kkt[id]) return E.kkt[id];
-    const img = kkImg(key, vkey, rules); if (!img) return null;
+    const img = kkImg(key, vkey, rules); if (!img) { E.kkMiss = true; return null; }
     const gl = E.gl, t = gl.createTexture(); gl.bindTexture(gl.TEXTURE_2D, t);
     gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, img);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR); gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
@@ -4546,9 +4546,10 @@ void main(){
     if (!R3.on) return false;
     const E = R3.th, cv = R3.thCv;
     E.setCam([0.2, 0.95, 3.1], [0, 0.55, 0], 0.55, 1, 0.1, 30); E.fogR = [50, 60]; E.amb = [0.62, 0.64, 0.72];
-    E.begin(cv.width, cv.height, [0, 0, 0, 0]);
+    E.kkMiss = false; E.begin(cv.width, cv.height, [0, 0, 0, 0]);
     const m = { id: tpl.id, arch: tpl.arch, mdl: tpl.mdl || '', color: tpl.color, size: tpl.boss ? 1.1 : 1, alpha: 1, X: 0, Z: 0, _fa: 0.5, state: 'idle', moving: false, atkN: 0, hitT: 0, seed: 1 };
     E.push(); drawMon(E, m, 0.6); E.pop();
+    if (E.kkMiss) return false;   // texture still decoding: don't snapshot a white model
     const z = Math.max(w, h); ctx2d.drawImage(cv, (w - z) / 2, (h - z) / 2, z, z);
     return true;
   };
@@ -6734,7 +6735,7 @@ function monPortrait(tpl) {
     }
   } catch (e) { /* fall through to the emoji */ }
   ART.tries[k] = (ART.tries[k] || 0) + 1;   // the model may still be loading: look again shortly
-  if (ART.tries[k] < 4 && !ART.retry) ART.retry = setTimeout(() => { ART.retry = 0; renderSheetIfOpen(); }, 700);
+  if (ART.tries[k] < 12 && !ART.retry) ART.retry = setTimeout(() => { ART.retry = 0; renderSheetIfOpen(); }, 500);
   return '';
 }
 const portEl = (tpl, fb, cls) => { const u = monPortrait(tpl); return u ? el('img', { class: cls || 'port', src: u, alt: '' }) : el('span', { class: (cls || 'port') + ' ph', text: fb || '👾' }); };
@@ -8186,7 +8187,7 @@ function hudLayout() {
 }
 if (window.ResizeObserver) { const ro = new ResizeObserver(hudLayout); ro.observe($('#scrGame').querySelector('.plate')); ro.observe($('#raidBar')); }
 addEventListener('resize', hudLayout);
-R3.onKKTex = () => { if (S.hero && S.screen === 'game') drawAvatar(); };
+R3.onKKTex = () => { if (S.hero && S.screen === 'game') drawAvatar(); try { renderSheetIfOpen(); } catch (e) {} };
 $('#dgExit').addEventListener('click', () => leaveDungeon());
 $('#rwExit').addEventListener('click', () => leaveDungeon());
 $('#rwAgain').addEventListener('click', () => dgAgain());
