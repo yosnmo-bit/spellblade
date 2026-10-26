@@ -649,8 +649,9 @@ body.lg-on .selwrap .btn-main{max-width:260px}
 /* inventory: character + equipment on the left, items on the right */
 #eqTabs{display:none}
 .eqgold{display:flex;align-items:center;justify-content:space-between;gap:6px;padding:7px 10px;min-height:64px;align-items:stretch;font-size:clamp(14px,4.2vw,18px);border-radius:12px;background:linear-gradient(180deg,#FFF4C9,#FFE08A);border:1px solid #FFC857;box-shadow:0 2px 0 #D9A02B;font-weight:800;color:#6B4200;margin:4px 0 6px}
-.eqgold small{font-weight:700;color:#8A5A12;font-size:.9em;white-space:nowrap;align-self:flex-end;margin-left:auto}
+.eqgold small{font-weight:700;color:#8A5A12;font-size:.8em;white-space:nowrap;align-self:flex-end;margin-left:0;margin-right:auto;max-width:100%}
 .eqgold span{white-space:nowrap;align-self:flex-start;font-size:.88em}
+.eqgold{flex-direction:column;justify-content:space-between}
 .eqcats{display:flex;gap:5px;overflow-x:auto;padding:2px 0 6px;scrollbar-width:none}.eqcats::-webkit-scrollbar{display:none}
 .eqcat{flex:none;padding:5px 10px;border-radius:999px;border:1px solid #8CC4F4;background:linear-gradient(180deg,#fff,#DDEEFF);color:var(--ink);font-weight:700;font-size:.76rem;box-shadow:0 2px 0 #9CC8EC}
 .eqcat[aria-pressed="true"]{background:linear-gradient(180deg,#6CC5FF,#2B8DF2);color:#fff;border-color:#2A7FDB;box-shadow:0 2px 0 #1D66B8}
@@ -7014,7 +7015,7 @@ function auraArgs(top, wr, refW, lv) {
 const myAura = () => auraArgs(topRar(S.hero), weaponRar(S.hero), S.hero.refineW, S.hero.level);
 /* =================== MARKETPLACE =================== */
 const MK = { all: [], sub: false, tab: 'buy', filter: 'all', sort: 'new', busy: false, pick: null, collecting: false, exp: false, timer: 0 };
-const MK_TAX = 5, MK_MAX = 8, MK_LIFE = 60 * 60 * 1000;   // a listing nobody buys within MK_LIFE goes back to its owner
+const MK_TAX = 5, MK_MAX = 8, MK_LIFE = 10 * 60 * 60 * 1000;   // a listing nobody buys within MK_LIFE goes back to its owner
 
 const mkStack = (it) => !!it && (it.kind === 'card' || it.kind === 'key' || it.kind === 'ore');
 const mkSellable = (it) => !!it && ((it.kind === 'gear' && GEAR[it.id] && GEAR[it.id].dg) || mkStack(it));
@@ -7056,7 +7057,7 @@ async function mkCollect() {
 }
 const mkMine = () => MK.all.filter((L) => L.s === S.uid && L.st === 'open');
 const mkExpired = (L) => Date.now() - L.t >= MK_LIFE;
-function mkLeft(L) { const ms = L.t + MK_LIFE - Date.now(); return ms <= 0 ? '⏰ หมดเวลา กำลังคืนของ' : '⏳ เหลือ ' + Math.max(1, Math.ceil(ms / 60000)) + ' นาที'; }
+function mkLeft(L) { const ms = L.t + MK_LIFE - Date.now(); if (ms <= 0) return '⏰ หมดเวลา กำลังคืนของ'; const mn = Math.max(1, Math.ceil(ms / 60000)); return '⏳ เหลือ ' + (mn >= 60 ? Math.floor(mn / 60) + ' ชม. ' + (mn % 60 ? mn % 60 + ' นาที' : '') : mn + ' นาที'); }
 // unsold listings go back to their owner (bag first, mailbox if the bag is full); runs on every market update and every 30 s
 async function mkExpire() {
   const h = S.hero; if (!h || !S.uid || !S.db || MK.exp) return;
@@ -7080,7 +7081,7 @@ async function mkExpire() {
     }
   } finally { MK.exp = false; }
   if (back || mailed) {
-    toast('⏰ ลงขายครบ 1 ชั่วโมงไม่มีคนซื้อ ' + (back ? 'ของกลับเข้ากระเป๋า ' + back + ' ชิ้น' : '') + (mailed ? (back ? ' · ' : '') + 'ส่งเข้ากล่องจดหมาย ' + mailed + ' ชิ้น (กระเป๋าเต็ม)' : ''));
+    toast('⏰ ลงขายครบ 10 ชั่วโมงไม่มีคนซื้อ ' + (back ? 'ของกลับเข้ากระเป๋า ' + back + ' ชิ้น' : '') + (mailed ? (back ? ' · ' : '') + 'ส่งเข้ากล่องจดหมาย ' + mailed + ' ชิ้น (กระเป๋าเต็ม)' : ''));
     AU.sfx('coin'); if (S.screen === 'game') hudText(); renderSheetIfOpen();
   }
 }
@@ -7178,7 +7179,7 @@ function panelMarket(body) {
   const tabs = el('div', { class: 'mktabs', role: 'tablist' });
   for (const [id, lb] of [['buy', '🛒 ซื้อ'], ['sell', '💰 ขาย'], ['mine', '📋 ของฉัน (' + mkMine().length + ')']])
     tabs.append(el('button', { class: 'mkt' + (MK.tab === id ? ' on' : ''), role: 'tab', 'aria-selected': MK.tab === id ? 'true' : 'false', text: lb, onclick: () => { MK.tab = id; renderSheet(); } }));
-  body.append(tabs, el('p', { class: 'note', text: 'ซื้อขายอุปกรณ์จากดันเจี้ยน การ์ด กุญแจ และแร่ระหว่างผู้เล่น ผู้ขายเสียภาษี ' + MK_TAX + '% และได้เงินอัตโนมัติเมื่อขายได้ ลงขายพร้อมกันได้คนละ ' + MK_MAX + ' ชิ้น  ถ้าไม่มีคนซื้อภายใน 1 ชั่วโมง ของจะเด้งกลับเข้ากระเป๋าอัตโนมัติ' }));
+  body.append(tabs, el('p', { class: 'note', text: 'ซื้อขายอุปกรณ์จากดันเจี้ยน การ์ด กุญแจ และแร่ระหว่างผู้เล่น ผู้ขายเสียภาษี ' + MK_TAX + '% และได้เงินอัตโนมัติเมื่อขายได้ ลงขายพร้อมกันได้คนละ ' + MK_MAX + ' ชิ้น  ถ้าไม่มีคนซื้อภายใน 10 ชั่วโมง ของจะเด้งกลับเข้ากระเป๋าอัตโนมัติ' }));
   if (MK.tab === 'buy') {
     const fl = el('div', { class: 'mkf' });
     for (const [id, lb] of [['all', 'ทั้งหมด'], ['mine', 'ตรงอาชีพฉัน'], ['weapon', 'อาวุธ'], ['armor', 'เกราะ'], ['shoes', 'รองเท้า'], ['ring', '💍 แหวน'], ['shield', '🛡️ โล่'], ['card', '🃏 การ์ด'], ['key', '🗝️ กุญแจ'], ['ore', '🔷 แร่']])
