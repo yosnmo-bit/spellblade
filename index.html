@@ -8387,8 +8387,9 @@ function renderSheetIfOpen() { if (S.sheet && S.sheet !== 'gm' && !$('#sheetWrap
 function closeSheet() { $('#sheetWrap').hidden = true; S.sheet = null; $('#sheetWrap').classList.remove('side'); document.body.classList.remove('npctalk'); R3.focus = null; }
 $('#sheetClose').addEventListener('click', closeSheet);
 $('#sheetWrap').addEventListener('pointerdown', (e) => { if (e.target === e.currentTarget) closeSheet(); });
-var ARMED = new Map();   // the sheet is redrawn often (online list, timers): keep the "tap again" state outside the button
+   // the sheet is redrawn often (online list, timers): keep the "tap again" state outside the button
 function twoStep(btn, label, armedLabel, fn) {
+  const ARMED = window.__ARMED || (window.__ARMED = new Map());   // created on first use: twoStep already runs while the page is still loading
   const k = label + '|' + armedLabel, live = () => (ARMED.get(k) || 0) > Date.now();
   const arm = () => { btn.dataset.armed = '1'; btn.textContent = armedLabel; setTimeout(() => { if (btn.isConnected && !live()) { delete btn.dataset.armed; btn.textContent = label; } }, Math.max(50, ARMED.get(k) - Date.now() + 60)); };
   if (live()) arm();
