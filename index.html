@@ -1992,7 +1992,10 @@ function derived(h) {
   const maxHp = Math.round((70 + 12 * h.level + 0.35 * h.level * h.level) * hpMod * (1 + st.vit / 100) * (1 + ((pa.hpPct || 0) + h.refineA * 2) / 100));
   const maxSp = Math.round((20 + 4 * h.level) * spMod * (1 + st.int / 100) + (pa.msp || 0));
   const def = Math.round(st.vit * 0.5 + h.refineA * 3 + (L.shield ? 5 * (tier + 1) : 0) + (pa.def || 0) + (bu.def || 0));
-  const aspdMs = Math.max(ASPD_MIN_MS, Math.max(260, (1500 - st.agi * 7) * L.aspd * (w === 'katar' ? 1.08 : w === 'dual' ? 0.95 : 1)) / (1 + ((pa.aspdPct || 0) + (bu.aspd || 0)) / 100));
+  // ASPD = base ASPD (from AGI/job/weapon) + ASPD% bonuses added directly as points, capped at ASPD_MAX
+  const aspdBaseMs = Math.max(260, (1500 - st.agi * 7) * L.aspd * (w === 'katar' ? 1.08 : w === 'dual' ? 0.95 : 1));
+  const aspdTot = Math.min(ASPD_MAX, 200 - ASPD_K * aspdBaseMs / 1000 + (pa.aspdPct || 0) + (bu.aspd || 0));
+  const aspdMs = Math.max(ASPD_MIN_MS, (200 - aspdTot) / ASPD_K * 1000);
   return {
     st, jb, w, atkType: L.atk, range: L.range,
     atk: Math.round(atk), matk: Math.round(matk), maxHp: Math.round(maxHp * ((W.map && W.map.pvp && h === S.hero) ? PVP_HP : 1)), maxSp, def, aspdMs,
