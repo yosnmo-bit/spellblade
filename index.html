@@ -2408,6 +2408,7 @@ function castSkillInner(id, fromQueue) {
   if (P.sp < cost) { if (!S.auto) toast('SP ไม่พอ'); return false; }
   const D = P.D;
   let tg = null;
+  if (sk.type === 'combo' && sk.combo === 'star' && !starHasTarget()) { if (!S.auto) toast('ไม่มีเป้าหมายในระยะสกิล'); return false; }
   if (sk.type === 'atk' || sk.type === 'aoe' || (sk.type === 'combo' && sk.combo === 'sonic')) {
     tg = (P.target && P.target.state !== 'dead' && P.target.hp > 0) ? P.target : pickTarget();
     if (!tg) { if (!S.auto) toast('ไม่มีเป้าหมาย'); return false; }
@@ -2512,6 +2513,8 @@ function starCut(A, B, mult, sk, done) {
     applyHit(m, rollPhys(mult, m), 1); addFx({ kind: 'burst', x: m.x, y: m.y - 14 * s, color: '#c084ff', dur: 0.3 }); comboProc(m, sk, done);
   }
 }
+const STAR_REACH = 190;   // a target must be this close for Star Slash to fire
+function starHasTarget() { for (const m of pvpPool()) if (m.state !== 'dead' && m.hp > 0 && (m.alpha == null || m.alpha >= 0.5) && Math.hypot(m.x - P.x, m.y - P.y) <= STAR_REACH) return true; return false; }
 function startCombo(sk, lv, tg, mult) {
   const id = ++COMBO_SEQ, map = W.map, CH = COMBO_CHARGE;
   const alive = () => P.combo && P.combo.id === id && !P.dead && W.map === map;
@@ -2615,6 +2618,7 @@ function autoAct() {
     if (sk.type === 'taunt') { if (P.target && (typeof partyMates === 'function' ? partyMates(false).length : 0)) { castSkill(id); return; } continue; }
     if (sk.type === 'res') { if (deadMateNear()) { castSkill(id); return; } continue; }
     if (S.auto && !S.autoOpt.skill) continue;   // auto set to basic attacks only
+    if (sk.type === 'combo' && sk.combo === 'star' && !starHasTarget()) continue;
     if (!P.target) continue;
     if (sk.type === 'aoe' && sk.self && Math.hypot(P.target.x - P.x, P.target.y - P.y) > sk.r * 0.8) continue;
     castSkill(id); return;
