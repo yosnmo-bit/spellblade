@@ -8608,11 +8608,6 @@ function panelStats(body) {
      ['ASPD', aspdOf(D.aspdMs) + (aspdOf(D.aspdMs) >= ASPD_MAX ? ' (MAX)' : '')], ['ลดคูลดาวน์', D.cdr.toFixed(1) + '%'], ['MAX HP', fmt(D.maxHp)], ['MAX SP', fmt(D.maxSp)]]
       .forEach(([a, b]) => g.append(el('div', null, el('span', { text: a }), el('b', { text: b }))));
     body.append(g);
-    const rc = CONFIG.statReset || 0, used = STATS.some((k) => h.stats[k] > 1);
-    const rs = el('button', { class: 'mini', text: '↺ รีเซ็ตสเตตัส' + (rc ? ' (' + fmt(rc) + ' G)' : ''), disabled: !used });
-    twoStep(rs, rs.textContent, 'แตะอีกครั้ง คืนแต้มทั้งหมด', resetStats);
-    const nw = twoStep(el('button', { class: 'mini warn', text: 'สร้างตัวละครใหม่' }), 'สร้างตัวละครใหม่', 'แตะอีกครั้ง ตัวละครนี้จะหายไป', () => { closeSheet(); S.hero = null; W.map = null; lsSet(LS_SAVE + (S.uid || ''), ''); setAuto(false); setupCreate(); });
-    body.append(el('div', { class: 'acts', style: 'margin-top:10px' }, rs, nw));
     return;
   }
   const rows = [];
@@ -8641,6 +8636,10 @@ function panelStats(body) {
     for (const k of STATS) for (let i = 0; i < (STX.pend[k] || 0); i++) { const c = statCost(h.stats[k]); if (h.statPts < c || h.stats[k] >= STAT_MAX) break; h.statPts -= c; h.stats[k]++; }
     STX.pend = {}; P.D = derived(); S.dirty = true; hudText(); renderSheet(); toast('บันทึกสเตตัสแล้ว');
   });
+  { const rc = CONFIG.statReset || 0, used = STATS.some((k) => h.stats[k] > 1);
+    const rs = el('button', { class: 'mini', text: '↺ รีเซ็ตสเตตัส' + (rc ? ' (' + fmt(rc) + ' G)' : ''), disabled: !used });
+    twoStep(rs, rs.textContent, 'แตะอีกครั้ง คืนแต้มทั้งหมด', resetStats);
+    body.append(el('div', { class: 'acts', style: 'margin:6px 0' }, rs)); }
   body.append(el('div', { class: 'stfoot' }, el('div', { class: 'pts2' }, 'แต้มคงเหลือ ', ptsEl), autoBtn, okBtn));
   upd();
 }
