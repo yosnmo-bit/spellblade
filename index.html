@@ -1039,8 +1039,9 @@ defSkill('sm_iron', 'swordman', 'ร่างเหล็กกล้า', '🛡
 defSkill('kn_pierce', 'knight', 'ดาบพุ่งทะลวง', '🗡️', 'atk', { m: [2.0, 0.35], hits: 3, sp: [10, 1], cd: 2, color: '#8fd3ff', fx: 'slash' });
 defSkill('kn_spiral', 'knight', 'พายุคมดาบ', '🌀', 'aoe', { m: [1.8, 0.25], r: 110, sp: [18, 1.5], cd: 5, color: '#b3e5ff', fx: 'quake' });
 defSkill('kn_valor', 'knight', 'ปลุกใจอัศวิน', '🦁', 'buff', { b: { atk: 3, def: 2 }, dur: 60, sp: [20, 2], cd: 30, color: '#ffe066' });
-defSkill('lk_judge', 'lordknight', 'ดาบพิพากษา', '⚡', 'atk', { zap: 1, m: [4.0, 0.6], hits: 5, sp: [20, 2], cd: 3, color: '#fff3a0', fx: 'pillar' });
-defSkill('lk_cata', 'lordknight', 'ปฐพีถล่ม', '🌋', 'aoe', { boom: 1, m: [3.0, 0.4], r: 130, self: true, hits: 2, sp: [30, 2], cd: 6, color: '#ff9f43', fx: 'quake' });
+defSkill('lk_judge', 'lordknight', 'ดาบพิพากษา', '⚡', 'atk', { zap: 1, m: [4.0, 1.0], hits: 5, sp: [20, 2], cd: 3, color: '#fff3a0', fx: 'pillar' });
+defSkill('lk_cata', 'lordknight', 'ปฐพีถล่ม', '🌋', 'aoe', { boom: 1, m: [3.0, 0.8], r: 130, self: true, hits: 2, sp: [30, 2], cd: 6, color: '#ff9f43', fx: 'quake' });
+defSkill('lk_rage', 'lordknight', 'บ้าคลั่ง', '🩸', 'berserk', { maxLv: 10, m: [0.15, 0.03], hits: 7, hpCost: 0.09, dur: 30, sp: [100, 0], cd: 3, color: '#ff3b3b' });
 defSkill('lk_fury', 'lordknight', 'โทสะจ้าวสงคราม', '😤', 'buff', { b: { atk: 5, aspd: 3 }, dur: 60, sp: [40, 3], cd: 30, color: '#ff6b6b' });
 // Acolyte line
 defSkill('ac_heal', 'acolyte', 'แสงเยียวยา', '💚', 'heal', { party: 1, h: [0.1, 0.03], sp: [8, 1], cd: 3, color: '#8ff0a4' });
@@ -1097,7 +1098,7 @@ defSkill('ws_execute', 'whitesmith', 'ประหารเหล็กกล้
 defSkill('ws_quake', 'whitesmith', 'ขวานถล่มปฐพี', '🌋', 'aoe', { boom: 1, m: [3.2, 0.45], r: 150, self: true, hits: 3, sp: [42, 3], cd: 6, color: '#ff8f3d', fx: 'quake' });
 defSkill('ws_titan', 'whitesmith', 'พลังไททัน', '💪', 'buff', { b: { atk: 6, def: 3 }, dur: 90, sp: [35, 2], cd: 30, color: '#fff3c4' });
 
-const BUFF_TH = { bowPct: 'พลังธนู', critDmg: 'ความแรงคริ', pdmg: 'ดาเมจกายภาพ', mdmg: 'ดาเมจเวท', hit: 'HIT', msp: 'SP สูงสุด', cdr: 'ลดคูลดาวน์สกิล', watk: 'ATK', wmatk: 'MATK', str: 'STR', agi: 'AGI', vit: 'VIT', int: 'INT', luk: 'LUK', matkPct: 'MATK', atk: 'ATK', matk: 'MATK', aspd: 'ความเร็วตี', def: 'DEF', crit: 'คริ', flee: 'หลบ', hpPct: 'HP สูงสุด', mspd: 'ความเร็วเดิน', atkPct: 'ATK', aspdPct: 'ความเร็วตี', discount: 'ส่วนลดร้าน', dex: 'DEX' };
+const BUFF_TH = { bowPct: 'พลังธนู', critDmg: 'ความแรงคริ', pdmg: 'ดาเมจกายภาพ', mdmg: 'ดาเมจเวท', hit: 'HIT', msp: 'SP สูงสุด', cdr: 'ลดคูลดาวน์สกิล', watk: 'ATK', wmatk: 'MATK', str: 'STR', agi: 'AGI', vit: 'VIT', int: 'INT', luk: 'LUK', matkPct: 'MATK', atk: 'ATK', matk: 'MATK', aspd: 'ASPD%', def: 'DEF', crit: 'คริ', flee: 'หลบ', hpPct: 'HP สูงสุด', mspd: 'ความเร็วเดิน', atkPct: 'ATK', aspdPct: 'ASPD%', discount: 'ส่วนลดร้าน', dex: 'DEX' };
 const PCT_KEYS = { mspd: 1, bowPct: 1, critDmg: 1, pdmg: 1, mdmg: 1, cdr: 1, matkPct: 1, atk: 1, matk: 1, aspd: 1, hpPct: 1, atkPct: 1, aspdPct: 1, discount: 1, crit: 1 };
 
 /* ---------- monsters & maps ---------- */
@@ -2192,8 +2193,23 @@ function applyHit(tg, res, hits) {
     });
   }
 }
+function berserkHit(tg) {
+  const b = P.bers, sk = SKILLS.lk_rage, D = P.D;
+  if (!b || b.until <= W.t || b.hits <= 0) { P.bers = null; return false; }
+  const cost = Math.round(D.maxHp * sk.hpCost);
+  if (P.hp <= cost) { P.bers = null; toast('HP ไม่พอ บ้าคลั่งสิ้นสุด'); return false; }
+  P.hp -= cost; P.hurtT = W.t; S.dirty = true; b.hits--;
+  addNum(P.x, P.y - 52, '-' + fmt(cost), '#ff5a4a', 13, { dmg: true, tk: 'me', tg: P, oy: -52, dur: NUM_LIFE });
+  const dmg = Math.max(1, Math.round(D.maxHp * (sk.m[0] + sk.m[1] * b.lv) * (0.95 + Math.random() * 0.1)));   // scales with Max HP, ignores DEF, never misses
+  const s = tg.size || 1, res = { dmg, crit: false };
+  P.swingT = W.t; AU.sfx('swing');
+  later(0.1, () => { addFx({ kind: 'slash', x: tg.x, y: tg.y - 14 * s, color: '#ff3b3b', dur: 0.25, dir: P.dir, big: true }); applyHit(tg, res, 1); });
+  if (b.hits <= 0) { P.bers = null; toast('🩸 บ้าคลั่งสิ้นสุด'); }
+  return true;
+}
 function basicAttack(tg) {
   const D = P.D, s = tg.size || 1;
+  if (P.bers && berserkHit(tg)) return;
   P.swingT = W.t;
   AU.sfx(D.atkType === 'magic' ? 'cast' : D.atkType === 'ranged' ? 'arrow' : 'swing');
   if (D.atkType === 'magic') {
@@ -2306,13 +2322,15 @@ function threatHit(m, key, dmg) {
   (m.thr || (m.thr = {}))[key] = (m.thr[key] || 0) + Math.max(1, dmg);
   m.angry = true; m.state = 'chase'; m.tgt = threatTarget(m) || key;
 }
+const TAUNT_R = 220;   // taunt only reaches monsters this close to the caster
 function doTaunt(sk) {
   const me = myKey(), dur = sk.dur;
   addFx({ kind: 'ring', x: P.x, y: P.y, r: 90, color: sk.color, dur: 0.7 }); addFx({ kind: 'pillar', x: P.x, y: P.y, color: sk.color, dur: 0.6, w: 28 });
   addNum(P.x, P.y - 66, sk.icon + ' ' + sk.name, sk.color, 12, { font: 'th', dur: 1.4 });
-  if (NET.isHost) { for (const m of W.mons) if (m.state !== 'dead' && !m.pvp) { m.tauntKey = me; m.tauntUntil = W.t + dur; m.tgt = me; m.angry = true; m.state = 'chase'; } }
+  const near = (m) => Math.hypot(m.x - P.x, m.y - P.y) <= TAUNT_R;
+  if (NET.isHost) { for (const m of W.mons) if (m.state !== 'dead' && !m.pvp && near(m)) { m.tauntKey = me; m.tauntUntil = W.t + dur; m.tgt = me; m.angry = true; m.state = 'chase'; } }
   else {
-    for (const m of W.mons) if (m.state !== 'dead' && !m.pvp) { m.tgt = me; m.state = 'chase'; }
+    for (const m of W.mons) if (m.state !== 'dead' && !m.pvp && near(m)) { m.tgt = me; m.state = 'chase'; }
     NET.mcc = (NET.mcc || []).filter((e) => Date.now() - e[4] < 6000).slice(-19); NET.mcc.push([uid36().slice(-9), -1, 'k', Math.round(dur * 1000), Date.now()]);
   }
 }
@@ -2340,6 +2358,7 @@ function pickTarget() {
     if (m.state === 'dead' || m.alpha < 0.5 || m.hp <= 0) continue;
     const onMe = m.tgt === me && m.state === 'chase';
     if (sel && !m.pvp && !sel.has(m.id) && !onMe) continue;
+    if (S.auto && m.pvp && S.autoPvp && S.autoPvp.size && !S.autoPvp.has(m.pk2)) continue;
     if (S.auto && !m.pvp && autoLim(m, onMe)) continue;
     const sc = Math.hypot(m.x - P.x, m.y - P.y) + Math.min(120, Math.max(0, m.lv - lv) * 4) - (onMe ? 160 : 0);
     if (sc < bs) { bs = sc; best = m; }
@@ -2477,6 +2496,11 @@ function castSkillInner(id, fromQueue) {
     if (sk.party) for (const o of supMates()) { sendSup(o, 'b', [id, lv]); addFx({ kind: 'pillar', x: o.x, y: o.y, color: sk.color, dur: 0.6, w: 22 }); if (sk.vfx) addFx({ kind: 'vfx', sheet: sk.vfx, ok: o.key, x: o.x, y: o.y, dur: 1.05 }); }
   } else if (sk.type === 'taunt') {
     doTaunt(sk);
+  } else if (sk.type === 'berserk') {
+    if (P.hp <= D.maxHp * sk.hpCost + 1) { toast('HP ไม่พอ ใช้บ้าคลั่งไม่ได้'); return false; }
+    P.bers = { lv, hits: sk.hits, until: W.t + sk.dur };
+    addFx({ kind: 'ring', x: P.x, y: P.y, r: 60, color: sk.color, dur: 0.7 }); addFx({ kind: 'pillar', x: P.x, y: P.y, color: sk.color, dur: 0.7, w: 30 });
+    addNum(P.x, P.y - 66, sk.icon + ' ' + sk.name + ' x' + sk.hits, sk.color, 12, { font: 'th', dur: 1.4 });
   } else if (sk.type === 'res') {
     sendSup(resTg, 'r', [0.6]); addFx({ kind: 'pillar', x: resTg.x, y: resTg.y, color: sk.color, dur: 1.2, w: 40 }); addNum(resTg.x, resTg.y - 60, '🕊️ ชุบชีวิต', '#fffbe6', 14, { font: 'th', dur: 1.4 });
   } else if (sk.type === 'combo') {
@@ -2615,6 +2639,7 @@ function autoAct() {
     if (!sk || !lv || (P.cds[id] || 0) > W.t || P.sp < spCost(sk, lv)) continue;
     if (sk.type === 'buff') { if (P.buffs[id] || !P.target) continue; castSkill(id); return; }
     if (sk.type === 'heal') { if (P.hp < D.maxHp * 0.6 || ((sk.party || sk.zone) && partyNeedsHeal())) { castSkill(id); return; } continue; }
+    if (sk.type === 'berserk') { if (P.bers || !P.target || P.hp < D.maxHp * 0.7) continue; castSkill(id); return; }
     if (sk.type === 'taunt') { if (P.target && (typeof partyMates === 'function' ? partyMates(false).length : 0)) { castSkill(id); return; } continue; }
     if (sk.type === 'res') { if (deadMateNear()) { castSkill(id); return; } continue; }
     if (S.auto && !S.autoOpt.skill) continue;   // auto set to basic attacks only
@@ -4954,7 +4979,7 @@ function iceHit(tg, sk, lv) {
 function ccIntake() {
   const seen = NET.mccSeen || (NET.mccSeen = new Set());
   for (const o of othersHere()) {
-    if (NET.isHost && o.mcc) for (const e of o.mcc) if (!seen.has(e[0])) { seen.add(e[0]); const m = W.mons.find((x) => x.uid === e[1] && x.state !== 'dead'); if (e[2] === 'k') { for (const mm of W.mons) if (mm.state !== 'dead' && !mm.pvp) { mm.tauntKey = o.key; mm.tauntUntil = W.t + e[3] / 1000; mm.tgt = o.key; mm.angry = true; mm.state = 'chase'; } } else if (m) setMonCC(m, e[2], e[3] / 1000); }
+    if (NET.isHost && o.mcc) for (const e of o.mcc) if (!seen.has(e[0])) { seen.add(e[0]); const m = W.mons.find((x) => x.uid === e[1] && x.state !== 'dead'); if (e[2] === 'k') { for (const mm of W.mons) if (mm.state !== 'dead' && !mm.pvp && Math.hypot(mm.x - o.x, mm.y - o.y) <= TAUNT_R) { mm.tauntKey = o.key; mm.tauntUntil = W.t + e[3] / 1000; mm.tgt = o.key; mm.angry = true; mm.state = 'chase'; } } else if (m) setMonCC(m, e[2], e[3] / 1000); }
     if (isPvp() && o.pvc) for (const e of o.pvc) if (e[1] === NET.me && !seen.has(e[0])) { seen.add(e[0]); const d = e[3] / 1000;
       if (e[2] === 'f' && (P.frzImm || 0) <= W.t && !P.dead) { P.ccType = 'freeze'; P.ccUntil = W.t + d; P.frzImm = W.t + d + 3; P.slowUntil = Math.max(P.slowUntil || 0, W.t + d + 2); P.tx = null; toast('🧊 ถูก ' + o.name + ' แช่แข็ง'); }
       else if (e[2] === 't') { if ((P.stunImm || 0) <= W.t && !P.dead) { applyCC('stun', d); P.stunImm = W.t + d + 3; AU.sfx('stun'); } }
@@ -7989,7 +8014,8 @@ function skillDesc(sk, lv) {
     case 'heal': return 'ฟื้น HP ' + pct(sk.h[0] + sk.h[1] * lv) + ' + ตามพลังเวท' + (sk.zone ? ' ฮีลหมู่วงกว้าง ' + sk.zone.dur + ' วิ (ตัวเองและเพื่อนที่ยืนในวง)' : sk.party ? ' (ตัวเองหรือเพื่อนในปาร์ตี้ที่เลือดน้อยสุด คิดจาก HP สูงสุดของผู้ใช้สกิล)' : '');
     case 'buff': return bt(sk.b) + ' นาน ' + sk.dur + ' วิ' + (sk.party ? ' (ตัวเองและเพื่อนในปาร์ตี้)' : '');
     case 'combo': return 'ดาเมจรวม ' + pct((sk.m[0] + sk.m[1] * lv) * sk.hits) + ' (' + sk.hits + ' ครั้ง) ' + (sk.combo === 'sonic' ? 'ฟันเร็วสูง โอกาส ' + sk.proc + '% สตั้นเป้าหมาย ต้องสวมคาตาร์' : 'พุ่งฟันเป็นรูปดาว 5 แฉก อมตะระหว่างใช้สกิล โอกาส ' + sk.proc + '% ทำให้ช้า ต้องสวมมีดคู่') + ' (ไม่ได้ผลกับบอส)';
-    case 'taunt': return 'ยั่วยุมอนสเตอร์และบอสทั้งหมดในแมพให้หันมาตีตัวเอง นาน ' + sk.dur + ' วิ';
+    case 'berserk': return 'ตีธรรมดา ' + sk.hits + ' ครั้งถัดไปกลายเป็นโจมตีแลกเลือด: เสีย HP ' + Math.round(sk.hpCost * 100) + '% ของ Max HP ต่อฮิต ดาเมจ ' + Math.round((sk.m[0] + sk.m[1] * lv) * 100) + '% ของ Max HP ไม่คิด DEF ไม่มีวันพลาด';
+    case 'taunt': return 'ยั่วยุมอนสเตอร์และบอสในระยะใกล้ตัวให้หันมาตีตัวเอง นาน ' + sk.dur + ' วิ';
     case 'res': return 'ชุบชีวิตเพื่อนในปาร์ตี้ที่ล้มอยู่ใกล้ๆ 1 คน ฟื้นด้วย HP 60%';
     case 'passive': return bt(sk.p);
   }
@@ -8240,6 +8266,20 @@ let autoPick = null;
 function panelAuto(body) {
   if (isTown()) { body.append(el('p', { class: 'note', text: '🏘️ ในหมู่บ้านไม่มีมอนสเตอร์ ออกไปล่าที่แผนที่อื่นได้จากปุ่ม 🗺️ แผนที่' })); return; }
   const map = W.map; if (!map) return;
+  if (map.pvp) {   // PVP: pick which players auto may attack
+    const pk = S.autoPvpPick || (S.autoPvpPick = new Set(S.autoPvp ? [...S.autoPvp] : []));
+    body.append(el('p', { class: 'note', style: 'margin-top:0', text: 'เลือกผู้เล่นที่จะให้ออโต้ตี ถ้าไม่เลือกจะตีทุกคนในสนาม' }));
+    const g = el('div', { class: 'autolist' }), pl = (W.pvp || []).filter((m) => m.state !== 'dead' || true);
+    if (!pl.length) g.append(el('p', { class: 'note', text: 'ยังไม่มีผู้เล่นคนอื่นในสนาม' }));
+    pl.forEach((m) => { const on = pk.has(m.pk2);
+      g.append(el('button', { class: 'autoc' + (on ? ' on' : ''), 'aria-pressed': String(on), onclick: () => { if (on) pk.delete(m.pk2); else pk.add(m.pk2); renderSheet(); } },
+        el('span', { class: 'ai', text: '🧑' }), el('span', { class: 'an' }, el('b', { text: m.name || 'ผู้เล่น' }), el('small', { text: 'Lv ' + (m.lv || '?') + (m.state === 'dead' ? '  ล้มอยู่' : '') })))); });
+    body.append(g);
+    const go = (arr) => { S.autoPvp = arr ? new Set(arr) : null; closeSheet(); P.target = null; setAuto(true); toast(arr ? 'ออโต้: ตีเฉพาะ ' + arr.length + ' คนที่เลือก' : 'ออโต้: ตีทุกคนในสนาม'); };
+    body.append(el('div', { class: 'acts' }, el('button', { class: 'mini', text: 'ตีทุกคน', onclick: () => go(null) }),
+      el('button', { class: 'mini pri', text: pk.size ? 'ตีเฉพาะที่เลือก (' + pk.size + ')' : 'เลือกอย่างน้อย 1 คน', disabled: !pk.size, onclick: () => go([...pk]) })));
+    return;
+  }
   if (!autoPick || autoPick.map !== map.id) autoPick = { map: map.id, set: new Set(S.autoSel[map.id] || []) };
   body.append(el('p', { class: 'note', style: 'margin-top:0', text: 'เลือกมอนที่จะให้ตีอัตโนมัติบน ' + map.name + ' ส่วนมอนที่เข้ามาตีคุณจะถูกตีกลับเสมอ' }));
   const g = el('div', { class: 'autolist' });
