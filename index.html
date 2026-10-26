@@ -648,8 +648,9 @@ body.lg-on .selwrap .btn-main{max-width:260px}
 .wm-box{border-color:#6FB5EE;background:#CFE8FF;box-shadow:0 4px 0 #A9CFEE}
 /* inventory: character + equipment on the left, items on the right */
 #eqTabs{display:none}
-.eqgold{display:flex;align-items:center;justify-content:space-between;gap:6px;padding:7px 10px;border-radius:12px;background:linear-gradient(180deg,#FFF4C9,#FFE08A);border:1px solid #FFC857;box-shadow:0 2px 0 #D9A02B;font-weight:800;color:#6B4200;margin:4px 0 6px}
-.eqgold small{font-weight:700;color:#8A5A12}
+.eqgold{display:flex;align-items:center;justify-content:space-between;gap:6px;padding:7px 10px;white-space:nowrap;font-size:clamp(12px,3.6vw,16px);border-radius:12px;background:linear-gradient(180deg,#FFF4C9,#FFE08A);border:1px solid #FFC857;box-shadow:0 2px 0 #D9A02B;font-weight:800;color:#6B4200;margin:4px 0 6px}
+.eqgold small{font-weight:700;color:#8A5A12;font-size:.85em;white-space:nowrap}
+.eqgold span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
 .eqcats{display:flex;gap:5px;overflow-x:auto;padding:2px 0 6px;scrollbar-width:none}.eqcats::-webkit-scrollbar{display:none}
 .eqcat{flex:none;padding:5px 10px;border-radius:999px;border:1px solid #8CC4F4;background:linear-gradient(180deg,#fff,#DDEEFF);color:var(--ink);font-weight:700;font-size:.76rem;box-shadow:0 2px 0 #9CC8EC}
 .eqcat[aria-pressed="true"]{background:linear-gradient(180deg,#6CC5FF,#2B8DF2);color:#fff;border-color:#2A7FDB;box-shadow:0 2px 0 #1D66B8}
@@ -4956,6 +4957,8 @@ function remoteSkillFx(o, e) {
   const cx = e[2] * WORLD.w, cy = e[3] * WORLD.h, hasT = e[4] >= 0, tx = hasT ? e[4] * WORLD.w : cx, ty = hasT ? e[5] * WORLD.h : cy, dir = e[6] || (tx >= cx ? 1 : -1);
   const tg = { x: tx, y: ty, size: 1, state: 'idle', hp: 1 };
   addFx({ kind: 'circle', x: cx, y: cy, color: sk.color, dur: 0.75 });
+  // sound of another player's skill (buffs/heals are always audible; attacks only when near)
+  if (sk.type !== 'combo') { try { const near = Math.hypot(cx - P.x, cy - P.y) < 700; if (near || (sk.type !== 'atk' && sk.type !== 'aoe')) { if (!AU.clip(e[1])) AU.sfx(AU.skillSfx(sk)); } } catch (err) {} }
   if (sk.type === 'combo') {
     const CH = COMBO_CHARGE;
     addFx({ kind: 'darkAura', x: cx, y: cy, dur: CH + 0.25 });
@@ -8370,7 +8373,7 @@ function panelAuto(body) {
     b.addEventListener('click', () => { if (lpFired) { lpFired = false; return; } usePot((S.hero.potBtn || def)[idx]); hudText(); }); };
   hook('#potHp', 0, ['hp']); hook('#potSp', 1, ['hp', 'sp']); }
 $('#chatBtn').addEventListener('click', () => openPanel('chat'));
-$('#avatar').addEventListener('click', () => openEquip('eq'));
+$('#avatar').addEventListener('click', () => openPanel('stats'));
 $('#pvpBar').addEventListener('click', () => openPanel('pvp'));
 $('#pvpInvYes').addEventListener('click', () => { $('#pvpInvite').hidden = true; if (PVP.offer) pvpEnter(PVP.offer.room); });
 $('#pvpInvNo').addEventListener('click', () => { $('#pvpInvite').hidden = true; PVP.offer = null; });
