@@ -2180,7 +2180,7 @@ function canJobChange(h) {
 function newHero(name, look) {
   return { name, look, job: 'novice', level: 1, exp: 0, jobLv: 1, jobExp: 0, stats: { str: 1, agi: 1, vit: 1, int: 1, dex: 1, luk: 1 },
     statPts: 48, skillPts: 0, skills: {}, hotbar: ['', '', '', '', '', '', '', ''], gold: 200, refineW: 0, refineA: 0, potHp: 10, potSp: 3, potHpL: 0, potSpL: 0, potAll: 0, potBtn: ['hp', 'sp'], potAuto: { hp: 35, sp: 12, hpL: 0, spL: 0, all: 0 },
-    mapId: 'village', kills: 0, bossKills: 0, fbKills: 0, dgClears: 0, mail: [], mailDone: [], wstyle: 'dual', gmStamp: 0, inv: [], eq: null, ref: {}, rm: {} };
+    mapId: 'village', kills: 0, bossKills: 0, fbKills: 0, dgClears: 0, mail: [], mailDone: [], wstyle: 'dual', gmStamp: 0, inv: [], eq: null, ref: {}, rm: {}, vault: { inv: [], until: 0 } };
 }
 function sanitizeHero(d) {
   d = d || {};
@@ -2201,6 +2201,7 @@ function sanitizeHero(d) {
     mailDone: (Array.isArray(d.mailDone) ? d.mailDone : []).filter((x) => typeof x === 'string').slice(-80),
     wstyle: d.wstyle === 'katar' ? 'katar' : 'dual', gmStamp: num(d.gmStamp, 0, 0, 1e15),
     bagX: int(d.bagX, 0, 0, BAG_X_MAX),
+    vault: (() => { const v = d.vault || {}, inv = []; for (const x of (Array.isArray(v.inv) ? v.inv : [])) { const it = sanitizeItem(x, true); if (!it) continue; const same = inv.find((y) => y.k === it.k); if (same) { if (it.kind !== 'gear') same.n = Math.min(999, (same.n || 1) + (it.n || 1)); } else if (inv.length < VAULT_SLOTS) inv.push(it); } return { inv, until: num(v.until, 0, 0, 1e15) }; })(),
     mkDone: (Array.isArray(d.mkDone) ? d.mkDone : []).filter((x) => typeof x === 'string').map((x) => x.slice(0, 40)).slice(-80),
     ref: (() => { const r = d.ref || {}, o = {}; for (const k of ['off', 'ring1', 'ring2', 'head', 'face', 'mouth', 'shoes', 'wings']) o[k] = int(r[k], 0, 0, 15); return o; })(),
     rm: (() => { const r = d.rm || {}, o = {}; for (const k of ['weapon', 'armor', 'off', 'ring1', 'ring2', 'head', 'face', 'mouth', 'shoes', 'wings']) { const m = r[k] || {}, q = {}; for (let l = 0; l < 15; l++) { const n = int(m[l], 0, 0, 50); if (n) q[l] = n; } if (Object.keys(q).length) o[k] = q; } return o; })()
@@ -3407,7 +3408,7 @@ function heroDoc() {
   const h = S.hero;
   return { name: h.name, look: h.look, job: h.job, level: h.level, exp: h.exp, jobLv: h.jobLv, jobExp: h.jobExp, stats: h.stats,
     skills: h.skills, hotbar: h.hotbar, gold: h.gold, refineW: h.refineW, refineA: h.refineA, potHp: h.potHp, potSp: h.potSp, potHpL: h.potHpL || 0, potSpL: h.potSpL || 0, potAll: h.potAll || 0, potBtn: h.potBtn || ['hp', 'sp'], potAuto: h.potAuto || { hp: 35, sp: 12, hpL: 0, spL: 0, all: 0 },
-    mapId: h.mapId === 'training' ? TRAIN.back : h.mapId, kills: h.kills, bossKills: h.bossKills || 0, fbKills: h.fbKills || 0, dgClears: h.dgClears || 0, off: h.off || null, mail: h.mail || [], mailDone: (h.mailDone || []).slice(-80), sv: SCHEMA, sid: S.sid, sidT: S.sidT || 0, wstyle: h.wstyle, gmStamp: h.gmStamp || 0, inv: h.inv, eq: h.eq, mkDone: h.mkDone || [], ref: h.ref || {}, rm: h.rm || {}, bagX: h.bagX || 0, updatedAt: Date.now() };
+    mapId: h.mapId === 'training' ? TRAIN.back : h.mapId, kills: h.kills, bossKills: h.bossKills || 0, fbKills: h.fbKills || 0, dgClears: h.dgClears || 0, off: h.off || null, mail: h.mail || [], mailDone: (h.mailDone || []).slice(-80), sv: SCHEMA, sid: S.sid, sidT: S.sidT || 0, wstyle: h.wstyle, gmStamp: h.gmStamp || 0, inv: h.inv, eq: h.eq, mkDone: h.mkDone || [], ref: h.ref || {}, rm: h.rm || {}, bagX: h.bagX || 0, vault: h.vault || { inv: [], until: 0 }, updatedAt: Date.now() };
 }
 function saveLocal() { if (S.hero) lsSet(LS_SAVE + (S.uid || ''), JSON.stringify(Object.assign(heroDoc(), { savedAt: Date.now() }))); }
 // save guard: every save carries the game version (sv) and this tab's session id (sid);
@@ -5819,6 +5820,7 @@ const AU = (() => {
 })();
 /* =================== ITEMS, EQUIPMENT & CARDS =================== */
 const INV_MAX = 40;   // base bag size
+const VAULT_SLOTS = 60, VAULT_DAYS = 7, VAULT_PRICE = 20000, VAULT_MAX_DAYS = 90;   // warehouse rental: slots, days per rental, price (G), furthest prepay
 const BAG_X_MAX = 200;   // most extra slots the expansion tickets can add
 const invMax = (h) => INV_MAX + (((h || S.hero || {}).bagX) | 0);
 const bagPass = () => ({ k: 'B:x5', kind: 'pass', nm: 'บัตรขยายช่องกระเป๋า +5', ar: 'blob', pr: 0, lv: 1, col: '#7dd3ff' });
@@ -7822,8 +7824,10 @@ NPCS.push({ id: 'shop', name: 'พ่อค้ากลางเมือง', r
   spec: { m: 'Ranger', line: 'acolyte', hide: ['Ranger_Quiver', 'Ranger_Cape'], r: null, vkey: 'npc_shop', shine: 0.1,
     rec: [{ h: [185, 235], to: 135, s: 0.9 }] } });
 NPCS.push({ id: 'gacha', name: 'ตู้กาชา', role: '10 ลูก 200,000 G', x: 360, y: 506, machine: true, job: 'novice', look: { g: 'm', hair: 0, hc: '#333' } });
+NPCS.push({ id: 'vault', name: 'คุณมิลิน', role: 'คลังสินค้า · เช่าเก็บของ', x: 215, y: 712, job: 'merchant', look: { g: 'f', hair: 4, hc: '#c9835a' },
+  spec: { m: 'Rogue', line: 'novice', hide: ['Rogue_Cape'], r: null, vkey: 'npc_vault', shine: 0.1, rec: null } });
 for (const n of NPCS) { n.actT = -9; n.actKind = ''; n.ent = {}; n.x += TOX; n.y += TOY; }
-for (const n of NPCS) for (const b of TOWN_BLOCKS) if (n.id === 'shop' && n.x > b[0] - 26 && n.x < b[2] + 26 && n.y > b[1] - 26 && n.y < b[3] + 26) {   // never stand inside a house
+for (const n of NPCS) for (const b of TOWN_BLOCKS) if ((n.id === 'shop' || n.id === 'vault') && n.x > b[0] - 26 && n.x < b[2] + 26 && n.y > b[1] - 26 && n.y < b[3] + 26) {   // never stand inside a house
   const dl = n.x - (b[0] - 26), dr = (b[2] + 26) - n.x, dt = n.y - (b[1] - 26), db = (b[3] + 26) - n.y, m = Math.min(dl, dr, dt, db);
   if (m === dl) n.x = b[0] - 26; else if (m === dr) n.x = b[2] + 26; else if (m === dt) n.y = b[1] - 26; else n.y = b[3] + 26; }
 const isTown = () => !!(W.map && W.map.town);
@@ -7859,6 +7863,141 @@ function npcTick() {
   if (Math.hypot(P.x - P.npc.x, P.y - P.npc.y) < 74) { const n = P.npc; P.npc = null; P.tx = null; P.dir = n.x >= P.x ? 1 : -1; openPanel('npc_' + n.id); AU.sfx('chat'); }
 }
 function npcAct(id, kind) { const n = NPCS.find((x) => x.id === id); if (n) { n.actT = W.t; n.actKind = kind; } }
+
+/* ---------- warehouse keeper (คุณมิลิน): rented storage with a floating bag <-> vault window ---------- */
+const VAULT_MS = 864e5;
+const vaultOf = (h) => h.vault || (h.vault = { inv: [], until: 0 });
+const vaultActive = (h) => vaultOf(h).until > Date.now();
+function vaultLeftText(h) {
+  const v = vaultOf(h), left = v.until - Date.now();
+  if (left <= 0) return v.until ? '⚠️ สัญญาเช่าหมดอายุแล้ว (ถอนของได้ แต่ฝากเพิ่มไม่ได้)' : 'ยังไม่ได้เช่าคลัง';
+  const d = Math.floor(left / VAULT_MS), hr = Math.floor((left % VAULT_MS) / 36e5), mi = Math.floor((left % 36e5) / 6e4);
+  return '✅ สัญญาเช่าเหลืออีก ' + (d ? d + ' วัน ' + hr + ' ชม.' : hr ? hr + ' ชม. ' + mi + ' นาที' : mi + ' นาที');
+}
+const vaultIcon = (it) => it.kind === 'card' ? '🃏' : it.kind === 'gear' ? GEAR[it.id].ic : it.kind === 'key' ? '🗝️' : it.kind === 'ore' ? ORE[it.id].ic : it.kind === 'pass' ? '🎫' : it.k === 'L:salt' ? '🧂' : (ARCH_ICON[it.ar] || '📦');
+const VT = { sel: null, qty: 1, scr: null };
+function vaultCss() {
+  if (document.getElementById('vaultCss')) return;
+  const st = document.createElement('style'); st.id = 'vaultCss';
+  st.textContent = `
+#vaultScr{position:fixed;inset:0;z-index:8500;display:grid;place-items:center;padding:max(10px,env(safe-area-inset-top)) 10px max(10px,env(safe-area-inset-bottom));background:rgba(5,8,15,.5)}
+.vwin{width:min(780px,100%);max-width:780px;max-height:calc(100dvh - 20px);display:flex;flex-direction:column;overflow:hidden;box-shadow:0 18px 50px rgba(0,0,0,.55)}
+.vwin .vbar{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 12px 10px 16px;font-weight:800;cursor:grab;touch-action:none;user-select:none;border-bottom:1px solid var(--line)}
+.vwin .vx{width:32px;height:32px;border-radius:50%;border:0;background:linear-gradient(#ffb347,#f57c00);color:#fff;font-weight:900;box-shadow:0 2px 0 #b55400;cursor:pointer}
+.vwin .vbody{overflow:auto;padding:10px 12px 14px;display:flex;flex-direction:column;gap:10px}
+.vwin .npcsay b{color:var(--accent-ink,#9a6b00)}
+.vwin .vrent{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px;margin-top:4px;font-size:.84rem;font-weight:700}
+.vwin .vcols{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+@media(max-width:560px){.vwin .vcols{grid-template-columns:1fr}}
+.vwin .vcol{border:1px solid var(--line);border-radius:12px;padding:8px;background:var(--panel-2);min-width:0}
+.vwin .vcol.over{outline:2px dashed var(--accent);outline-offset:-2px}
+.vwin .vcol h4{margin:0 0 6px;display:flex;justify-content:space-between;align-items:baseline;font-size:.92rem}
+.vwin .vgrid{display:grid;grid-template-columns:repeat(5,1fr);gap:5px;max-height:30vh;overflow:auto;padding:2px}
+.vwin .tile{font-size:1.2rem}
+.vwin .vdet{border:1px solid var(--line);border-radius:12px;padding:10px 12px;background:var(--panel-2);display:flex;flex-direction:column;gap:4px}
+.vwin .vdet .acts{margin-top:6px;align-items:center}
+.vwin .vq{width:64px;padding:6px;border-radius:9px;border:1px solid var(--line);background:var(--chip);color:var(--ink);text-align:center;font-weight:700}
+`;
+  document.head.append(st);
+}
+function vaultMove(side, k, qty) {
+  const h = S.hero, v = vaultOf(h), toVault = side === 'bag';
+  if (toVault && !vaultActive(h)) { toast('สัญญาเช่าไม่มีผล ต่อสัญญากับคุณมิลินก่อนจึงจะฝากของได้'); return; }
+  const from = toVault ? h.inv : v.inv, to = toVault ? v.inv : h.inv, cap = toVault ? VAULT_SLOTS : invMax(h);
+  const it = from.find((x) => x.k === k); if (!it) return;
+  const gear = it.kind === 'gear'; let n = gear ? 1 : Math.max(1, Math.min(it.n || 1, Math.floor(qty) || 1));
+  const ex = !gear && to.find((x) => x.k === k);
+  if (ex) {
+    const room = 999 - ex.n; if (room <= 0) { toast('ช่องนี้เต็ม 999 ชิ้นแล้ว'); return; }
+    n = Math.min(n, room); ex.n += n;
+  } else {
+    if (to.length >= cap) { toast(toVault ? 'คลังเต็มแล้ว (' + VAULT_SLOTS + ' ช่อง)' : 'กระเป๋าเต็ม จัดของก่อน'); return; }
+    to.push(gear ? it : Object.assign(clone(it), { n }));
+  }
+  if (gear || n >= it.n) from.splice(from.indexOf(it), 1); else it.n -= n;
+  if (!from.some((x) => x.k === VT.sel?.k)) VT.sel = null;
+  S.dirty = true; save(); AU.sfx('card');
+  if (typeof renderEquip === 'function' && typeof EQ === 'object' && EQ.open) renderEquip();
+  renderVault();
+}
+function vaultRent() {
+  const h = S.hero, v = vaultOf(h), now = Date.now();
+  if (h.gold < VAULT_PRICE) { toast('เงินไม่พอ ค่าเช่า ' + fmt(VAULT_PRICE) + ' G'); return; }
+  const nu = Math.max(now, v.until) + VAULT_DAYS * VAULT_MS;
+  if (nu - now > VAULT_MAX_DAYS * VAULT_MS) { toast('ต่อสัญญาล่วงหน้าได้ไม่เกิน ' + VAULT_MAX_DAYS + ' วัน'); return; }
+  h.gold -= VAULT_PRICE; v.until = nu; S.dirty = true; save(); hudText(); AU.sfx('card');
+  toast('📦 เช่าคลังเพิ่ม ' + VAULT_DAYS + ' วันเรียบร้อย'); renderVault();
+}
+function vaultTile(side, it) {
+  const rr = it.kind === 'gear' ? it.r || 0 : 0, sel = VT.sel && VT.sel.side === side && VT.sel.k === it.k;
+  const b = el('button', { class: 'tile' + (sel ? ' sel' : '') + (it.kind === 'card' ? ' card' : '') + (rr >= 1 ? ' rar' : ''), style: rr >= 1 ? '--rc:' + rarCol(rr) : null, draggable: 'true', title: it.nm, 'aria-label': it.nm + ' ' + it.n },
+    el('span', { text: vaultIcon(it) }), it.kind === 'gear' ? null : el('b', { text: String(it.n) }),
+    it.kind === 'card' ? el('em', { text: CS_TH[it.cs] }) : it.sk === 2 ? el('em', { text: '2 รู' }) : null);
+  if (it.kind === 'card') b.style.setProperty('--c', it.col);
+  b.addEventListener('click', () => { if (sel) return; VT.sel = { side, k: it.k }; VT.qty = 1; renderVault(); });
+  b.addEventListener('dblclick', () => vaultMove(side, it.k, 1e9));
+  b.addEventListener('dragstart', (e) => { e.dataTransfer.setData('text/plain', JSON.stringify({ side, k: it.k })); e.dataTransfer.effectAllowed = 'move'; });
+  return b;
+}
+function renderVault() {
+  const body = document.getElementById('vBody'); if (!body) return;
+  const h = S.hero, v = vaultOf(h), rentOk = vaultActive(h), st = body.scrollTop, gs = [...body.querySelectorAll('.vgrid')].map((g) => g.scrollTop);
+  body.textContent = '';
+  body.append(el('div', { class: 'npcsay' }, el('b', { text: 'คุณมิลิน' }),
+    el('p', { text: 'ยินดีต้อนรับค่ะ ที่นี่รับฝากของปลอดภัยทุกชิ้น เช่าได้ครั้งละ ' + VAULT_DAYS + ' วัน ' + fmt(VAULT_PRICE) + ' G เก็บได้ ' + VAULT_SLOTS + ' ช่อง ถ้าสัญญาหมด ของยังอยู่ครบและถอนออกได้ แต่จะฝากเพิ่มไม่ได้จนกว่าจะต่อสัญญานะคะ (ยาในกระเป๋าฝากไม่ได้)' }),
+    el('div', { class: 'vrent' }, el('span', { text: vaultLeftText(h) + '   🪙 ' + fmt(h.gold) + ' G' }),
+      el('button', { class: 'mini pri', text: (v.until > Date.now() ? 'ต่อสัญญา' : 'เช่าคลัง') + ' ' + VAULT_DAYS + ' วัน · ' + fmt(VAULT_PRICE) + ' G', onclick: vaultRent }))));
+  const mk = (side, title, arr, cap) => {
+    const g = el('div', { class: 'vgrid' }), col = el('div', { class: 'vcol' }, el('h4', {}, el('span', { text: title }), el('small', { text: arr.length + '/' + cap })), g);
+    for (const it of arr) g.append(vaultTile(side, it));
+    for (let i = arr.length; i < cap; i++) g.append(el('div', { class: 'tile empty' }));
+    col.addEventListener('dragover', (e) => { e.preventDefault(); col.classList.add('over'); });
+    col.addEventListener('dragleave', () => col.classList.remove('over'));
+    col.addEventListener('drop', (e) => { e.preventDefault(); col.classList.remove('over'); let d = null; try { d = JSON.parse(e.dataTransfer.getData('text/plain')); } catch (x) { return; } if (d && d.side && d.side !== side) vaultMove(d.side, d.k, 1e9); });
+    return col;
+  };
+  body.append(el('div', { class: 'vcols' }, mk('bag', '🎒 กระเป๋าของคุณ', h.inv, invMax(h)), mk('vault', '📦 คลังสินค้า', v.inv, VAULT_SLOTS)));
+  const arr = VT.sel && (VT.sel.side === 'bag' ? h.inv : v.inv), it = arr && arr.find((x) => x.k === VT.sel.k), det = el('div', { class: 'vdet' });
+  if (!it) {
+    VT.sel = null;
+    det.append(el('p', { class: 'note', style: 'margin:0', text: 'แตะไอเทมเพื่อเลือก แล้วกดปุ่มฝาก/ถอน หรือลากข้ามฝั่ง (ดับเบิลคลิก = ย้ายทั้งหมด)' }));
+  } else {
+    const d = itemDesc(it), gear = it.kind === 'gear', toVault = VT.sel.side === 'bag';
+    VT.qty = gear ? 1 : Math.max(1, Math.min(it.n, Math.floor(VT.qty) || 1));
+    const nm = el('b', { text: vaultIcon(it) + ' ' + d.name + (d.tag ? '  [' + d.tag + ']' : '') + (gear ? '' : '  x' + it.n) }); if (d.col) nm.style.color = d.col;
+    det.append(nm); for (const l of d.lines) det.append(el('div', { class: 'ds', text: l }));
+    const acts = el('div', { class: 'acts' });
+    if (!gear && it.n > 1) {
+      const q = el('input', { class: 'vq', type: 'number', min: 1, max: it.n, 'aria-label': 'จำนวน' }); q.value = VT.qty;
+      q.addEventListener('change', () => { VT.qty = Math.max(1, Math.min(it.n, Math.floor(q.value) || 1)); renderVault(); });
+      acts.append(el('button', { class: 'mini', text: '−', onclick: () => { VT.qty = Math.max(1, VT.qty - 1); renderVault(); } }), q,
+        el('button', { class: 'mini', text: '+', onclick: () => { VT.qty = Math.min(it.n, VT.qty + 1); renderVault(); } }),
+        el('button', { class: 'mini', text: 'สูงสุด', onclick: () => { VT.qty = it.n; renderVault(); } }));
+    }
+    acts.append(el('button', { class: 'mini pri', text: (toVault ? 'ฝากเข้าคลัง ▶' : '◀ ถอนเข้ากระเป๋า') + (gear || it.n < 2 ? '' : '  ×' + VT.qty), disabled: toVault && !rentOk, onclick: () => vaultMove(VT.sel.side, it.k, VT.qty) }));
+    det.append(acts);
+    if (toVault && !rentOk) det.append(el('div', { class: 'meta', style: 'color:var(--bad)', text: 'ต้องเช่าคลังก่อนจึงจะฝากของได้' }));
+  }
+  body.append(det);
+  body.scrollTop = st; body.querySelectorAll('.vgrid').forEach((g, i) => { g.scrollTop = gs[i] || 0; });
+}
+function openVault() {
+  closeSheet(); closeVault(); vaultCss(); vaultOf(S.hero); VT.sel = null; VT.qty = 1;
+  const scr = el('div', { id: 'vaultScr' }), win = el('div', { class: 'mcard vwin', role: 'dialog', 'aria-modal': 'true', 'aria-label': 'คลังสินค้า' });
+  const bar = el('div', { class: 'vbar' }, el('span', { text: '📦 คลังสินค้า · ลากหัวข้อเพื่อย้ายหน้าต่าง' }), el('button', { class: 'vx', 'aria-label': 'ปิด', text: '✕', onclick: closeVault }));
+  let ox = 0, oy = 0;
+  bar.addEventListener('pointerdown', (e) => {
+    if (e.target.closest('button')) return;
+    const sx = e.clientX - ox, sy = e.clientY - oy; try { bar.setPointerCapture(e.pointerId); } catch (x) {}
+    const mv = (ev) => { ox = ev.clientX - sx; oy = ev.clientY - sy; win.style.transform = 'translate(' + ox + 'px,' + oy + 'px)'; };
+    const up = () => { bar.removeEventListener('pointermove', mv); bar.removeEventListener('pointerup', up); bar.removeEventListener('pointercancel', up); };
+    bar.addEventListener('pointermove', mv); bar.addEventListener('pointerup', up); bar.addEventListener('pointercancel', up);
+  });
+  scr.addEventListener('pointerdown', (e) => { if (e.target === scr) closeVault(); });
+  win.append(bar, el('div', { class: 'vbody', id: 'vBody' })); scr.append(win); document.body.append(scr); VT.scr = scr;
+  renderVault();
+}
+function closeVault() { const s = document.getElementById('vaultScr'); if (s) s.remove(); VT.scr = null; VT.sel = null; if (S.dirty) save(); }
 function panelHealer(body) {
   body.append(el('div', { class: 'npcsay' }, el('b', { text: 'ซิสเตอร์ลูน่า' }), el('p', { text: 'ขอแสงแห่งอรุณคุ้มครองท่าน เหนื่อยล้ามาจากการผจญภัยใช่ไหม มารับพรก่อนออกเดินทางสิ' })));
   const D = P.D || derived();
@@ -9199,6 +9338,7 @@ function openPanel(name) {
   if (name === 'map') { openFullPanel('map'); return; }
   if (name === 'stats') { STX.pend = {}; STX.tab = 'up'; openFullPanel('stats'); return; }
   if (name === 'npc_gacha') { openGacha(); return; }
+  if (name === 'npc_vault') { openVault(); return; }
   if (name === 'rank' || name === 'gm') loadPlayers();
   if (name === 'bag' || name === 'equip') { openEquip(name === 'bag' ? 'bag' : 'eq'); return; }
   if (!PANELS[name]) return;
