@@ -7003,7 +7003,7 @@ function monPortrait(tpl) {
     }
   } catch (e) { /* fall through to the emoji */ }
   ART.tries[k] = (ART.tries[k] || 0) + 1;   // the model may still be loading: look again shortly
-  if (ART.tries[k] < 12 && !ART.retry) ART.retry = setTimeout(() => { ART.retry = 0; renderSheetIfOpen(); if (document.getElementById('dgScr')) dgScreenRender(); }, 500);
+  if (ART.tries[k] < 12 && !ART.retry) ART.retry = setTimeout(() => { ART.retry = 0; renderSheetIfOpen(); if (document.getElementById('dgScr')) dgScreenRender(); if (FS.body) renderSheet(); }, 500);
   return '';
 }
 const portEl = (tpl, fb, cls) => { const u = monPortrait(tpl); return u ? el('img', { class: cls || 'port', src: u, alt: '' }) : el('span', { class: (cls || 'port') + ' ph', text: fb || '👾' }); };
@@ -7055,37 +7055,37 @@ function openDgScreen() {
   if (!document.getElementById('dgsCss')) {
     const st = document.createElement('style'); st.id = 'dgsCss';
     st.textContent = `
-#dgScr{position:fixed;inset:0;z-index:8000;display:flex;flex-direction:column;background:linear-gradient(180deg,#1b1747,#0f0c2c);color:#fff;padding-top:env(safe-area-inset-top);padding-bottom:env(safe-area-inset-bottom)}
-#dgScr .dtop{display:flex;align-items:center;justify-content:space-between;padding:12px 14px;background:linear-gradient(#62b8ff,#2a7fe6);box-shadow:0 3px 0 rgba(0,0,0,.3)}
-#dgScr .dtop b{font-size:1.2rem}
-#dgScr .dx{width:44px;height:44px;border-radius:50%;border:0;background:linear-gradient(#ffb347,#f57c00);color:#fff;font-size:1.4rem;font-weight:900;box-shadow:0 3px 0 #b55400;cursor:pointer}
-#dgScr .dscroll{flex:1;overflow-y:auto;padding:12px 14px;display:flex;flex-direction:column;gap:12px}
-#dgScr .dparty{padding:10px 12px;border-radius:12px;background:rgba(255,160,60,.18);border:1px solid #ffb347;display:flex;flex-direction:column;gap:3px;font-size:.85rem}
+#dgScr{position:fixed;inset:0;z-index:8000;display:flex;flex-direction:column;background:linear-gradient(180deg,#1b1747,#0f0c2c);color:#fff;padding:max(8px,env(safe-area-inset-top)) 0 env(safe-area-inset-bottom)}
+#dgScr .dtop{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:2px 10px 8px 12px;flex:none}
+#dgScr .dx{flex:none;width:44px;height:44px;border-radius:50%;border:0;background:linear-gradient(#ffb347,#f57c00);color:#fff;font-size:1.4rem;font-weight:900;box-shadow:0 3px 0 #b55400;cursor:pointer}
+#dgScr .dparty{flex:1;min-width:0;padding:6px 10px;border-radius:12px;background:rgba(255,160,60,.18);border:1px solid #ffb347;font-size:.8rem;line-height:1.3}
 #dgScr .dparty.ok{background:rgba(80,200,120,.18);border-color:#6bdc8b}
-#dgScr .dparty small{opacity:.85;font-size:.72rem;line-height:1.4}
-#dgScr .dlist{display:flex;gap:10px;overflow-x:auto;padding:4px 2px 8px;flex:none}
-#dgScr .ditem{position:relative;flex:0 0 150px;height:96px;border-radius:14px;border:2px solid #514ca8;background-size:cover;background-position:center;color:#fff;text-align:left;padding:8px;display:flex;flex-direction:column;align-items:flex-start;gap:2px;overflow:hidden;cursor:pointer}
-#dgScr .ditem .nm{font-weight:700;font-size:.85rem;line-height:1.2;z-index:1;text-shadow:0 2px 4px #000}
-#dgScr .ditem small{font-size:.7rem;z-index:1;opacity:.9}
-#dgScr .ditem .ip{position:absolute;right:-6px;bottom:-8px;width:64px;height:64px;object-fit:contain}
-#dgScr .ditem .ip.ph{font-size:2rem;text-align:center;line-height:64px}
+#dgScr .dcols{flex:1;min-height:0;display:flex;gap:10px;padding:0 10px}
+#dgScr .dlist{flex:0 0 34%;display:flex;flex-direction:column;gap:8px;overflow-y:auto;padding:2px 4px 8px 2px}
+#dgScr .ditem{position:relative;flex:none;min-height:84px;border-radius:14px;border:2px solid #514ca8;background-size:cover;background-position:center;color:#fff;text-align:left;padding:8px;display:flex;flex-direction:column;align-items:flex-start;gap:2px;overflow:hidden;cursor:pointer}
+#dgScr .ditem .nm{font-weight:700;font-size:.82rem;line-height:1.2;z-index:1;text-shadow:0 2px 4px #000;max-width:100%}
+#dgScr .ditem small{font-size:.68rem;z-index:1;opacity:.9}
+#dgScr .ditem .ip{position:absolute;right:-6px;bottom:-8px;width:56px;height:56px;object-fit:contain}
+#dgScr .ditem .ip.ph{font-size:1.8rem;text-align:center;line-height:56px}
 #dgScr .ditem.on{border-color:#ffd983;box-shadow:0 0 0 2px #f0b24a,0 0 18px rgba(240,178,74,.5)}
-#dgScr .dban{position:relative;height:min(38vh,260px);flex:none;border-radius:16px;border:2px solid #514ca8;background-size:cover;background-position:center;overflow:hidden}
-#dgScr .dbt{position:absolute;left:14px;top:12px;display:flex;flex-direction:column;gap:6px;z-index:1}
-#dgScr .dbt b{font-size:1.4rem;text-shadow:0 2px 6px #000}
-#dgScr .ddiff{align-self:flex-start;padding:2px 10px;border-radius:999px;font-size:.75rem;font-weight:700;color:#241406}
-#dgScr .dbp{position:absolute;right:4px;bottom:-4px;height:92%;max-width:60%;object-fit:contain;filter:drop-shadow(0 6px 8px rgba(0,0,0,.6))}
-#dgScr .dbp.ph{font-size:5rem;text-align:center;line-height:1}
-#dgScr .dsub{font-weight:700;color:#ffd983;font-size:.95rem}
-#dgScr .drw{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
-#dgScr .dr{display:flex;flex-direction:column;align-items:center;padding:8px 2px;border-radius:12px;background:linear-gradient(180deg,#38347c,#2a2758);border:1px solid #4d48a6}
-#dgScr .dr .ic{font-size:1.6rem}#dgScr .dr b{color:#ffd983;font-size:.95rem}#dgScr .dr small{font-size:.68rem;opacity:.85;text-align:center}
+#dgScr .ddet{flex:1;min-width:0;display:flex;flex-direction:column}
+#dgScr .dscroll{flex:1;min-height:0;overflow-y:auto;display:flex;flex-direction:column;gap:10px;padding-bottom:8px}
+#dgScr .dban{position:relative;height:min(30vh,220px);flex:none;border-radius:16px;border:2px solid #514ca8;background-size:cover;background-position:center;overflow:hidden}
+#dgScr .dbt{position:absolute;left:12px;top:10px;display:flex;flex-direction:column;gap:6px;z-index:1}
+#dgScr .dbt b{font-size:1.25rem;text-shadow:0 2px 6px #000}
+#dgScr .ddiff{align-self:flex-start;padding:2px 10px;border-radius:999px;font-size:.72rem;font-weight:700;color:#241406}
+#dgScr .dbp{position:absolute;right:2px;bottom:-4px;height:92%;max-width:60%;object-fit:contain;filter:drop-shadow(0 6px 8px rgba(0,0,0,.6))}
+#dgScr .dbp.ph{font-size:4rem;text-align:center;line-height:1}
+#dgScr .dsub{font-weight:700;color:#ffd983;font-size:.92rem}
+#dgScr .drw{display:grid;grid-template-columns:repeat(3,1fr);gap:7px}
+#dgScr .dr{display:flex;flex-direction:column;align-items:center;padding:7px 2px;border-radius:12px;background:linear-gradient(180deg,#38347c,#2a2758);border:1px solid #4d48a6}
+#dgScr .dr .ic{font-size:1.5rem}#dgScr .dr b{color:#ffd983;font-size:.9rem}#dgScr .dr small{font-size:.64rem;opacity:.85;text-align:center}
 #dgScr .dchips{display:flex;flex-wrap:wrap;gap:6px}
-#dgScr .dchip{padding:3px 10px;border-radius:999px;border:1px solid var(--rc);color:var(--rc);font-weight:700;font-size:.8rem;background:rgba(0,0,0,.3)}
-#dgScr .dinfo{font-size:.82rem;display:flex;flex-direction:column;gap:4px;opacity:.92;line-height:1.45}
-#dgScr .dfoot{padding:10px 14px 14px;display:flex;flex-direction:column;gap:6px;background:rgba(0,0,0,.35)}
-#dgScr .dfoot small{font-size:.7rem;opacity:.8}
-#dgScr .dgo{padding:15px;border-radius:14px;border:1px solid #ffe6ae;background:linear-gradient(180deg,#ffd983,#f0a93a);color:#3a2306;font-weight:800;font-size:1.15rem;box-shadow:0 4px 0 #9a6414;cursor:pointer}
+#dgScr .dchip{padding:3px 10px;border-radius:999px;border:1px solid var(--rc);color:var(--rc);font-weight:700;font-size:.78rem;background:rgba(0,0,0,.3)}
+#dgScr .dinfo{font-size:.78rem;display:flex;flex-direction:column;gap:4px;opacity:.92;line-height:1.45}
+#dgScr .dfoot{flex:none;padding:8px 0 10px;display:flex;flex-direction:column;gap:6px}
+#dgScr .dfoot small{font-size:.66rem;opacity:.8;line-height:1.35}
+#dgScr .dgo{padding:14px;border-radius:14px;border:1px solid #ffe6ae;background:linear-gradient(180deg,#ffd983,#f0a93a);color:#3a2306;font-weight:800;font-size:1.1rem;box-shadow:0 4px 0 #9a6414;cursor:pointer}
 #dgScr .dgo:disabled{filter:grayscale(.7) brightness(.8);box-shadow:0 2px 0 #3a3a3a}`;
     document.head.append(st);
   }
@@ -7096,32 +7096,28 @@ function openDgScreen() {
 function closeDgScreen() { clearInterval(DGS.timer); const s = document.getElementById('dgScr'); if (s) s.remove(); }
 function dgScreenRender() {
   const scr = document.getElementById('dgScr'); if (!scr) return;
-  const old = scr.querySelector('.dscroll'), oldL = scr.querySelector('.dlist'), st = old ? old.scrollTop : 0, sl = oldL ? oldL.scrollLeft : 0;
+  const old = scr.querySelector('.dscroll'), oldL = scr.querySelector('.dlist'), st = old ? old.scrollTop : 0, sl = oldL ? oldL.scrollTop : 0;
   scr.textContent = '';
-  const h = S.hero;
-  scr.append(el('div', { class: 'dtop' }, el('b', { text: '🏰 ดันเจี้ยน' }), el('button', { class: 'dx', text: '✕', 'aria-label': 'ปิด', onclick: closeDgScreen })));
+  const h = S.hero, xb = el('button', { class: 'dx', text: '✕', 'aria-label': 'ปิด', onclick: closeDgScreen });
   const list = CONFIG.dungeons.filter((d) => d.on);
   if (!list.some((d) => d.id === DGX.sel)) { const f = list.filter((d) => h.level >= d.minLv).pop() || list[0]; DGX.sel = f ? f.id : ''; }
   const dg = list.find((d) => d.id === DGX.sel); if (!dg) return;
   const ps = partySize(), cp = CONFIG.party, okP = ps >= cp.min;
-  const sc = el('div', { class: 'dscroll' });
   if (isDg()) {
     const cur = dgDef(W.map.dg);
-    sc.append(el('div', { class: 'dparty ok' }, el('b', { text: 'ตอนนี้อยู่ใน ' + (cur ? cur.name : 'ดันเจี้ยน') + (DG.state === 2 ? '  (เคลียร์แล้ว)' : '') })),
-      el('button', { class: 'dgo', text: '🚪 ออกจากดันเจี้ยน', onclick: () => { closeDgScreen(); leaveDungeon(); } }));
-    scr.append(sc); return;
+    scr.append(el('div', { class: 'dtop' }, el('div', { class: 'dparty ok', text: 'ตอนนี้อยู่ใน ' + (cur ? cur.name : 'ดันเจี้ยน') + (DG.state === 2 ? '  (เคลียร์แล้ว)' : '') }), xb),
+      el('div', { style: 'padding:14px' }, el('button', { class: 'dgo', style: 'width:100%', text: '🚪 ออกจากดันเจี้ยน', onclick: () => { closeDgScreen(); leaveDungeon(); } })));
+    return;
   }
-  sc.append(el('div', { class: 'dparty' + (okP ? ' ok' : '') }, el('b', { text: (okP ? '✅ ' : '⚠️ ') + 'ปาร์ตี้ออนไลน์ ' + ps + '/' + cp.max + ' คน' }),
-    el('small', { text: 'ต้องมาเป็นปาร์ตี้ ' + cp.min + '–' + cp.max + ' คน ชวนเพื่อนได้ที่ปุ่ม 👥 ผู้เล่น หัวหน้า 👑 กดเข้า สมาชิกทุกคนต้องกดยืนยันและมีกุญแจคนละ 1 ดอก' })));
+  scr.append(el('div', { class: 'dtop' }, el('div', { class: 'dparty' + (okP ? ' ok' : ''), text: (okP ? '✅ ' : '⚠️ ') + 'ปาร์ตี้ออนไลน์ ' + ps + '/' + cp.max + ' คน (ต้อง ' + cp.min + '–' + cp.max + ' คน) หัวหน้า 👑 กดเข้า ทุกคนต้องมีกุญแจ 1 ดอก' }), xb));
   const L = el('div', { class: 'dlist' });
   for (const d of list) {
     const bt = dgBossTpl(d), u = groundArt(d.theme, 240, 90, d.id);
     L.append(el('button', { class: 'ditem' + (d.id === DGX.sel ? ' on' : ''), style: 'background-image:linear-gradient(90deg,rgba(14,12,40,.2),rgba(14,12,40,.86))' + (u ? ',url(' + u + ')' : ''), onclick: () => { DGX.sel = d.id; dgScreenRender(); } },
       portEl(bt, '👹', 'ip'), el('span', { class: 'nm', text: d.name }), el('small', { text: 'Lv.' + d.minLv + '+' + (h.level < d.minLv ? ' 🔒' : '') })));
   }
-  sc.append(L);
   const kc = keyCount(), low = h.level < dg.minLv, tot = dg.rar.reduce((x, y) => x + y, 0) || 1, bt = dgBossTpl(dg), set = DG_SETS[dg.id] ? DG_SETS[dg.id].nm : '';
-  const bgU = groundArt(dg.theme, 380, 210, dg.id);
+  const bgU = groundArt(dg.theme, 380, 210, dg.id), sc = el('div', { class: 'dscroll' });
   sc.append(el('div', { class: 'dban', style: 'background-image:linear-gradient(180deg,rgba(14,12,40,.1),rgba(14,12,40,.82))' + (bgU ? ',url(' + bgU + ')' : '') },
     el('div', { class: 'dbt' }, el('b', { text: dg.name }), el('span', { class: 'ddiff', style: 'background:' + DIFF_COL[dg.diff], text: DIFF_TH[dg.diff] })), portEl(bt, '👹', 'dbp')));
   sc.append(el('div', { class: 'dsub', text: 'ของดรอป  ชุด' + set }));
@@ -7132,12 +7128,28 @@ function dgScreenRender() {
   dg.rar.forEach((w, i) => { if (w > 0) chips.append(el('span', { class: 'dchip', style: '--rc:' + RAR[i + 1].col, text: RAR[i + 1].nm + ' ' + Math.round(w / tot * 100) + '%' })); });
   sc.append(rw, chips, el('div', { class: 'dinfo' }, el('div', { text: '👹 บอส ' + dg.boss + '  Lv.' + dg.bossLv }), el('div', { text: '⚔️ สกิลบอส: ' + dg.skills.map((x) => DG_SKILL_TH[x]).join(' · ') }),
     el('div', { text: '🗝️ กุญแจดันเจี้ยน มี ' + kc + ' ดอก (ดรอปจากมอนทุกแผนที่ ' + CONFIG.keyChance + '%)' })));
-  scr.append(sc);
   const label = low ? 'ต้อง Lv.' + dg.minLv : kc < 1 ? 'ไม่มีกุญแจ' : !okP ? 'ต้องมีปาร์ตี้ ' + cp.min + ' คน' : hasMates() && !isLeader() ? 'รอหัวหน้ากดเข้า' : hasMates() ? '👑 เรียกปาร์ตี้เข้า' : 'เข้า';
-  scr.append(el('div', { class: 'dfoot' }, el('small', { text: 'บอสเลือดเพิ่มตามจำนวนคน ของดรอปสุ่มแยกให้ทุกคน ' + dgDropN(dg) + ' ชิ้นต่อรอบ สุ่มว่าจะเป็นชิ้นไหนตามโอกาส อาวุธ 6 สายอาชีพ โอกาสเท่ากัน' }),
-    el('button', { class: 'dgo', text: label, disabled: low || kc < 1 || !okP || P.dead || (hasMates() && !isLeader()), onclick: () => { closeDgScreen(); enterDungeon(dg.id); } })));
-  const nl = scr.querySelector('.dlist'), ns = scr.querySelector('.dscroll'); if (nl) nl.scrollLeft = sl; if (ns) ns.scrollTop = st;
+  const foot = el('div', { class: 'dfoot' }, el('small', { text: 'บอสเลือดเพิ่มตามจำนวนคน ของดรอปสุ่มแยกให้ทุกคน ' + dgDropN(dg) + ' ชิ้นต่อรอบ สุ่มว่าจะเป็นชิ้นไหนตามโอกาส อาวุธ 6 สายอาชีพ โอกาสเท่ากัน' }),
+    el('button', { class: 'dgo', text: label, disabled: low || kc < 1 || !okP || P.dead || (hasMates() && !isLeader()), onclick: () => { closeDgScreen(); enterDungeon(dg.id); } }));
+  scr.append(el('div', { class: 'dcols' }, L, el('div', { class: 'ddet' }, sc, foot)));
+  const nl = scr.querySelector('.dlist'), ns = scr.querySelector('.dscroll'); if (nl) nl.scrollTop = sl; if (ns) ns.scrollTop = st;
 }
+
+/* ---------- generic full-screen host (map) ---------- */
+const FS = { body: null };
+function openFullPanel(name) {
+  closeSheet(); closeFullPanel();
+  if (!document.getElementById('fsCss')) {
+    const st = document.createElement('style'); st.id = 'fsCss';
+    st.textContent = '#fsScr{position:fixed;inset:0;z-index:8000;display:flex;flex-direction:column;background:linear-gradient(180deg,#eaf4ff,#d3e8ff);color:var(--ink,#1c2b4a);padding-bottom:env(safe-area-inset-bottom)}#fsScr .fsb{flex:1;overflow-y:auto;padding:max(12px,env(safe-area-inset-top)) 14px 24px;padding-right:66px}#fsScr .fsx{position:absolute;right:12px;top:max(10px,env(safe-area-inset-top));width:44px;height:44px;border-radius:50%;border:0;background:linear-gradient(#ffb347,#f57c00);color:#fff;font-size:1.4rem;font-weight:900;box-shadow:0 3px 0 #b55400;cursor:pointer;z-index:2}#fsScr .fsb>.wm-box,#fsScr .fsb>.wm-card{margin-right:-52px}';
+    document.head.append(st);
+  }
+  const scr = document.createElement('div'); scr.id = 'fsScr';
+  const b = el('div', { class: 'fsb' });
+  scr.append(b, el('button', { class: 'fsx', text: '✕', 'aria-label': 'ปิด', onclick: closeSheet }));
+  document.body.append(scr); FS.body = b; S.sheet = name; renderSheet();
+}
+function closeFullPanel() { const s = document.getElementById('fsScr'); if (s) s.remove(); if (FS.body) { FS.body = null; S.sheet = null; } }
 
 /* ---------- auras ---------- */
 function topRar(h) { let r = 0; for (const k of Object.keys(SLOT_TH)) { const s = h.eq && h.eq[k]; if (s && s.id) r = Math.max(r, s.r || 0); } return r; }
@@ -8738,6 +8750,7 @@ const PANELS = {
 };
 function openPanel(name) {
   if (name === 'dungeon') { openDgScreen(); return; }
+  if (name === 'map') { openFullPanel('map'); return; }
   if (name === 'npc_gacha') { openGacha(); return; }
   if (name === 'rank' || name === 'gm') loadPlayers();
   if (name === 'bag' || name === 'equip') { openEquip(name === 'bag' ? 'bag' : 'eq'); return; }
@@ -8751,12 +8764,12 @@ function openPanel(name) {
 }
 function renderSheet() {
   if (!S.sheet) return;
-  const body = $('#sheetBody'), st = body.scrollTop;
+  const body = FS.body || $('#sheetBody'), st = body.scrollTop;
   document.querySelectorAll('#sheetWrap > .skpw').forEach((n) => n.remove());
   body.textContent = ''; PANELS[S.sheet][1](body); body.scrollTop = st;
 }
 function renderSheetIfOpen() { if (S.sheet === 'stats' && STX.holding) return; if (S.sheet && S.sheet !== 'gm' && !$('#sheetWrap').hidden) renderSheet(); }
-function closeSheet() { closeDgScreen(); document.querySelectorAll('#sheetWrap > .skpw').forEach((n) => n.remove()); $('#sheetWrap').classList.remove('skl'); statCamOff(); $('#sheetWrap').classList.remove('stat'); $('#sheetWrap').hidden = true; S.sheet = null; $('#sheetWrap').classList.remove('side'); document.body.classList.remove('npctalk'); R3.focus = null; }
+function closeSheet() { closeDgScreen(); closeFullPanel(); document.querySelectorAll('#sheetWrap > .skpw').forEach((n) => n.remove()); $('#sheetWrap').classList.remove('skl'); statCamOff(); $('#sheetWrap').classList.remove('stat'); $('#sheetWrap').hidden = true; S.sheet = null; $('#sheetWrap').classList.remove('side'); document.body.classList.remove('npctalk'); R3.focus = null; }
 $('#sheetClose').addEventListener('click', closeSheet);
 $('#sheetWrap').addEventListener('pointerdown', (e) => { if (e.target === e.currentTarget) closeSheet(); });
    // the sheet is redrawn often (online list, timers): keep the "tap again" state outside the button
