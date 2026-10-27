@@ -7141,7 +7141,7 @@ function openFullPanel(name) {
   closeSheet(); closeFullPanel();
   if (!document.getElementById('fsCss')) {
     const st = document.createElement('style'); st.id = 'fsCss';
-    st.textContent = '#fsScr{position:fixed;inset:0;z-index:8000;display:flex;flex-direction:column;background:linear-gradient(180deg,#eaf4ff,#d3e8ff);color:var(--ink,#1c2b4a);padding-bottom:env(safe-area-inset-bottom)}#fsScr .fsb{flex:1;overflow-y:auto;padding:max(12px,env(safe-area-inset-top)) 14px 24px;padding-right:66px}#fsScr .fsx{position:absolute;right:12px;top:max(10px,env(safe-area-inset-top));width:44px;height:44px;border-radius:50%;border:0;background:linear-gradient(#ffb347,#f57c00);color:#fff;font-size:1.4rem;font-weight:900;box-shadow:0 3px 0 #b55400;cursor:pointer;z-index:2}#fsScr .fsb>.wm-box,#fsScr .fsb>.wm-card{margin-right:-52px}';
+    st.textContent = '#fsScr{position:fixed;inset:0;z-index:8000;display:flex;flex-direction:column;background:linear-gradient(180deg,#eaf4ff,#d3e8ff);color:var(--ink,#1c2b4a);padding-bottom:env(safe-area-inset-bottom)}#fsScr .fsb{flex:1;overflow-y:auto;padding:max(12px,env(safe-area-inset-top)) 14px 24px;padding-right:66px}#fsScr .fsx{position:absolute;right:12px;top:max(10px,env(safe-area-inset-top));width:44px;height:44px;border-radius:50%;border:0;background:linear-gradient(#ffb347,#f57c00);color:#fff;font-size:1.4rem;font-weight:900;box-shadow:0 3px 0 #b55400;cursor:pointer;z-index:2}#fsScr .fsb.wide{padding-right:14px}#fsScr .fsb>.wm-box,#fsScr .fsb>.wm-card{margin-right:-52px}';
     document.head.append(st);
   }
   const scr = document.createElement('div'); scr.id = 'fsScr';
@@ -8744,13 +8744,14 @@ $('#mmCv').addEventListener('click', (e) => {
 
 /* ---------- sheet panels ---------- */
 const PANELS = {
-  autorange: ['วงเดินออโต้', panelAutoRange], potauto: ['🧪 ตั้งค่าใช้ยาอัตโนมัติ', (b) => potAutoSection(b)], stats: ['สถานะตัวละคร', panelStats], skills: ['สกิล', panelSkills], job: ['เปลี่ยนอาชีพ', panelJob],
+  autorange: ['วงเดินออโต้', panelAutoRange], potauto: ['🧪 ตั้งค่าใช้ยาอัตโนมัติ', (b) => potAutoSection(b)], stats: ['สถานะตัวละคร', panelStatsFull], skills: ['สกิล', panelSkills], job: ['เปลี่ยนอาชีพ', panelJob],
   map: ['แผนที่', panelMap], dungeon: ['ดันเจี้ยน', panelDungeon], npc_healer: ['ซิสเตอร์ลูน่า', panelHealer], npc_smith: ['ริว ช่างตีบวก', panelSmith], market: ['ตลาดซื้อ-ขาย', panelMarket], shop: ['🛒 ร้านค้า', panelShop], npc_shop: ['🛒 ร้านค้า', panelShop], rank: ['ทำเนียบนักผจญภัย', panelRank], gm: ['ห้องควบคุม GM', panelGM],
   npc_gacha: ['🎰 ตู้กาชา', panelGacha], pvp: ['⚔️ ห้อง PVP', panelPvp], dgresult: ['🏆 ผลงานในดันเจี้ยน', panelDgResult], album: ['📖 อัลบั้มการ์ด', panelAlbum], gmgive: ['🎁 ส่งของให้ผู้เล่น', panelGmGive], offline: ['💤 ฟามออฟไลน์', panelOffline], auto: ['โหมดออโต้', panelAuto], online: ['ผู้เล่นและปาร์ตี้', panelOnline], sound: ['ตั้งค่า', panelSound], chat: ['แชท', panelChat]
 };
 function openPanel(name) {
   if (name === 'dungeon') { openDgScreen(); return; }
   if (name === 'map') { openFullPanel('map'); return; }
+  if (name === 'stats') { STX.pend = {}; STX.tab = 'up'; openFullPanel('stats'); return; }
   if (name === 'npc_gacha') { openGacha(); return; }
   if (name === 'rank' || name === 'gm') loadPlayers();
   if (name === 'bag' || name === 'equip') { openEquip(name === 'bag' ? 'bag' : 'eq'); return; }
@@ -8878,6 +8879,68 @@ function panelStats(body) {
     twoStep(rs, rs.textContent, 'แตะอีกครั้ง คืนแต้มทั้งหมด', resetStats);
     body.append(el('div', { class: 'acts', style: 'margin:6px 0' }, rs)); }
   body.append(el('div', { class: 'stfoot' }, el('div', { class: 'pts2' }, 'แต้มคงเหลือ ', ptsEl), autoBtn, okBtn));
+  upd();
+}
+
+/* ---------- full-screen character status: stat allocation + live-preview values on one page ---------- */
+function stPreview() {
+  const h = S.hero, bak = {}; for (const k of STATS) { bak[k] = h.stats[k]; h.stats[k] += STX.pend[k] || 0; }
+  try { return derived(); } finally { for (const k of STATS) h.stats[k] = bak[k]; }
+}
+function panelStatsFull(body) {
+  const h = S.hero, D = derived(), tier = JOBS[h.job].tier;
+  body.classList.add('wide');
+  if (!document.getElementById('stfCss')) {
+    const st = document.createElement('style'); st.id = 'stfCss';
+    st.textContent = '#fsScr .stp{margin-right:54px}#fsScr .stsec{font-weight:800;color:var(--title-b,#1e4f8f);margin:12px 2px 6px;font-size:.95rem}#fsScr .stv b em{font-style:normal;color:#1b9e4b;font-size:.78rem;margin-left:4px}#fsScr .ststicky{position:sticky;bottom:-24px;margin:10px -14px -24px;padding:10px 14px 14px;background:rgba(214,233,255,.96);border-top:1px solid #A9D3F5}';
+    document.head.append(st);
+  }
+  const cv = el('canvas'); paintAvatar(cv, 62);
+  const bar = (cls, lab, pct, txt) => el('div', { class: 'stbar ' + cls }, el('span', { text: lab }), el('div', { class: 'bt' }, el('i', { style: 'width:' + clamp(pct, 0, 1) * 100 + '%' })), el('span', { text: txt }));
+  const bx = h.level >= CONFIG.maxBase ? 1 : h.exp / baseNeed(h.level), jx = h.jobLv >= jobCap(tier) ? 1 : h.jobExp / jobNeed(h.jobLv, tier);
+  body.append(el('div', { class: 'stp' }, cv, el('div', { class: 'in' }, el('b', { text: h.name }), el('small', { text: jobName(h.job) }),
+    bar('hp', 'HP', P.hp / D.maxHp, fmt(P.hp) + '/' + fmt(D.maxHp)), bar('sp', 'SP', P.sp / D.maxSp, fmt(P.sp) + '/' + fmt(D.maxSp)),
+    bar('bx', 'Base', bx, 'Lv ' + h.level + ' (' + Math.floor(clamp(bx, 0, 1) * 100) + '%)'), bar('jx', 'Job', jx, 'Lv ' + h.jobLv + ' (' + Math.floor(clamp(jx, 0, 1) * 100) + '%)'))));
+  body.append(el('div', { class: 'stsec', text: '📊 อัพสเตตัส' }));
+  const rows = [], ptsEl = el('b'), okBtn = el('button', { class: 'mini pri', text: 'ยืนยัน' }), autoBtn = el('button', { class: 'mini', text: 'จัดอัตโนมัติ', onclick: () => { STX.pend = {}; autoAlloc(); } });
+  const VALS = [['ATK', (d) => d.atk, 0], ['MATK', (d) => d.matk, 0], ['DEF', (d) => d.def, 0], ['HIT', (d) => d.hit, 0], ['FLEE', (d) => d.flee, 0], ['CRIT', (d) => d.crit, 1, '%'],
+    ['ASPD', (d) => aspdOf(d.aspdMs), 0], ['ลดคูลดาวน์', (d) => d.cdr, 1, '%'], ['MAX HP', (d) => d.maxHp, 0], ['MAX SP', (d) => d.maxSp, 0]];
+  const vcells = VALS.map(([a]) => el('b'));
+  const upd = () => {
+    const left = h.statPts - stPendCost(h), PD = stPreview();
+    for (const r of rows) {
+      const k = r.k, pend = STX.pend[k] || 0, v = h.stats[k] + pend, bonus = D.st[k] - h.stats[k], cost = statCost(v);
+      r.v.textContent = String(v);
+      if (pend) r.v.append(el('u', { text: '(+' + pend + ')' })); if (bonus > 0) r.v.append(el('em', { text: '+' + bonus }));
+      r.c.textContent = v >= STAT_MAX ? 'เต็ม' : cost + ' แต้ม';
+      r.plus.disabled = v >= STAT_MAX || left < cost; r.minus.disabled = pend <= 0;
+    }
+    VALS.forEach(([, f, dec, suf], i) => {
+      const a = f(D), b = f(PD), df = Math.round((b - a) * Math.pow(10, dec)) / Math.pow(10, dec), c = vcells[i];
+      c.textContent = (dec ? a.toFixed(dec) : fmt(a)) + (suf || '');
+      if (df > 0) c.append(el('em', { text: '+' + (dec ? df.toFixed(dec) : fmt(df)) + (suf || '') }));
+    });
+    ptsEl.textContent = String(left); const sp = stPendCost(h);
+    okBtn.disabled = sp === 0; okBtn.textContent = 'ยืนยัน' + (sp ? ' (' + sp + ')' : ''); autoBtn.disabled = h.statPts < 2;
+  };
+  for (const k of STATS) {
+    const plus = el('button', { class: 'pmb', text: '+', 'aria-label': 'เพิ่ม ' + k.toUpperCase() }), minus = el('button', { class: 'pmb m', text: '−', 'aria-label': 'ลด ' + k.toUpperCase() });
+    const v = el('div', { class: 'v' }), c = el('div', { class: 'c' });
+    holdRepeat(plus, (n) => { for (let i = 0; i < n; i++) { const cur = h.stats[k] + (STX.pend[k] || 0); if (cur >= STAT_MAX || h.statPts - stPendCost(h) < statCost(cur)) break; STX.pend[k] = (STX.pend[k] || 0) + 1; } upd(); });
+    holdRepeat(minus, (n) => { STX.pend[k] = Math.max(0, (STX.pend[k] || 0) - n); upd(); });
+    rows.push({ k, v, c, plus, minus });
+    body.append(el('div', { class: 'strow2' }, el('div', { class: 'n', text: k.toUpperCase() }), v, c, el('div', { class: 'pm' }, minus, plus)));
+  }
+  body.append(el('div', { class: 'stsec', text: '📈 ค่าสถานะ' }));
+  const g = el('div', { class: 'stv' }); VALS.forEach(([a], i) => g.append(el('div', null, el('span', { text: a }), vcells[i]))); body.append(g);
+  okBtn.addEventListener('click', () => {
+    for (const k of STATS) for (let i = 0; i < (STX.pend[k] || 0); i++) { const c = statCost(h.stats[k]); if (h.statPts < c || h.stats[k] >= STAT_MAX) break; h.statPts -= c; h.stats[k]++; }
+    STX.pend = {}; P.D = derived(); S.dirty = true; hudText(); renderSheet(); toast('บันทึกสเตตัสแล้ว');
+  });
+  const rc = CONFIG.statReset || 0, used = STATS.some((k) => h.stats[k] > 1);
+  const rs = el('button', { class: 'mini', text: '↺ รีเซ็ตสเตตัส' + (rc ? ' (' + fmt(rc) + ' G)' : ''), disabled: !used });
+  twoStep(rs, rs.textContent, 'แตะอีกครั้ง คืนแต้มทั้งหมด', resetStats);
+  body.append(el('div', { class: 'ststicky' }, el('div', { class: 'stfoot' }, el('div', { class: 'pts2' }, 'แต้มคงเหลือ ', ptsEl), autoBtn, okBtn), el('div', { class: 'acts', style: 'margin-top:6px' }, rs)));
   upd();
 }
 
