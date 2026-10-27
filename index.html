@@ -5453,7 +5453,7 @@ Object.assign(GEAR, {
   g_crown: { slot: 'head', nm: 'มงกุฎนำโชค', ic: '👑', b: { str: 5, agi: 5, vit: 5, int: 5, dex: 5, luk: 5 }, pr: 2000, gacha: 1 },
   g_candy: { slot: 'mouth', nm: 'ลูกอมสายรุ้ง', ic: '🍭', b: { str: 5, agi: 5, vit: 5, int: 5, dex: 5, luk: 5 }, pr: 2000, gacha: 1 },
   g_mask: { slot: 'face', nm: 'หน้ากากนักสู้', ic: '🎭', b: { pdmg: 5, mdmg: 5 }, pr: 2000, gacha: 1 },
-  g_mask_u: { slot: 'face', nm: 'หน้ากากเทพยุทธ์ [Unique]', ic: '🎭', b: { pdmg: 12, mdmg: 12 }, pr: 5000, gacha: 1, uq: 1 },
+  g_mask_u: { slot: 'face', nm: 'หน้ากากเทพยุทธ์ [Unique]', ic: '🎭', b: { pdmg: 20, mdmg: 20 }, pr: 5000, gacha: 1, uq: 1 },
   g_wing: { slot: 'wings', nm: 'ปีกพลังวายุ', ic: '🦋', b: { pdmg: 5, mdmg: 5 }, pr: 2000, gacha: 1 },
   g_wing_u: { slot: 'wings', nm: 'ปีกเทวะ [Unique]', ic: '🌟', b: { pdmg: 20, mdmg: 20 }, pr: 5000, gacha: 1, uq: 1 }
 });
@@ -7396,12 +7396,12 @@ const GA = { last: null, t: 0 };
 function gachaRoll() { const r = Math.random() * 100; let acc = 0; for (const [id, p] of GACHA_TBL) { acc += p; if (r < acc) return id; } return null; }
 function gachaSpin() {
   const h = S.hero;
-  if (h.gold < GACHA_PRICE) { toast('ทองไม่พอ ต้องใช้ ' + fmt(GACHA_PRICE) + ' G'); return; }
+  if (h.gold < GACHA_PRICE) { toast('ทองไม่พอ ต้องใช้ ' + fmt(GACHA_PRICE) + ' G'); return false; }
   const res = []; for (let i = 0; i < GACHA_N; i++) res.push(gachaRoll());
   const wins = res.filter(Boolean), salt = res.length - wins.length;
   const gear = wins.filter((id) => id !== GACHA_BAG), tix = wins.length - gear.length;
   const free = invMax(h) - h.inv.length - (salt && !h.inv.some((x) => x.k === 'L:salt') ? 1 : 0) - (tix && !h.inv.some((x) => x.k === bagPass().k) ? 1 : 0);
-  if (free < gear.length || free < 0) { toast('กระเป๋าใกล้เต็ม เคลียร์ช่องว่างก่อนหมุน'); return; }
+  if (free < gear.length || free < 0) { toast('กระเป๋าใกล้เต็ม เคลียร์ช่องว่างก่อนหมุน'); return false; }
   h.gold -= GACHA_PRICE;
   { const gm = NPCS.find((n) => n.id === 'gacha'); gear.forEach((id, i) => later(0.3 + i * 0.4, () => lootBeam(gm.x + (i - (gear.length - 1) / 2) * 30, gm.y + 30, gachaInfo(id).uq ? 'mythic' : 'legendary', true))); }
   if (tix) { addItem(bagPass(), tix); toast('🎫 ได้บัตรขยายช่องกระเป๋า x' + tix + ' (กดใช้ได้ที่กระเป๋า)'); }
@@ -7410,7 +7410,7 @@ function gachaSpin() {
   GA.last = res; GA.t = W.t; npcAct('gacha', 'spin');
   AU.sfx(gear.some((id) => GEAR[id].uq) ? 'legend' : wins.length ? 'jobup' : 'coin');
   if (wins.length) addFx({ kind: 'pillar', x: P.x, y: P.y, color: '#ffd166', dur: 1.2, w: 40 });
-  S.dirty = true; save(); hudText(); renderSheet();
+  S.dirty = true; save(); hudText(); renderSheet(); return true;
 }
 function panelGacha(body) {
   const h = S.hero;
@@ -7427,8 +7427,95 @@ function panelGacha(body) {
   body.append(el('div', { class: 'sub', text: 'อัตราออกต่อลูก' }));
   for (const [id, p] of GACHA_TBL) body.append(el('div', { class: 'grate' }, el('span', { text: gachaInfo(id).ic + ' ' + gachaInfo(id).nm + '  (' + gachaInfo(id).type + ')' }), el('b', { text: p + '%' })));
   body.append(el('div', { class: 'grate' }, el('span', { text: '🧂 ผงเกลือ' }), el('b', { text: (100 - GACHA_TBL.reduce((a, x) => a + x[1], 0)).toFixed(2) + '%' })));
-  body.append(el('p', { class: 'note', text: 'หมวกและปาก: ทุกสเตตัส +5  ใบหน้าและปีก: ดาเมจกายภาพและดาเมจเวท +5% (Unique +12%)  บัตรขยายช่องกระเป๋า: กดใช้ในกระเป๋าเพื่อเพิ่ม +5 ช่องถาวร' }));
+  body.append(el('p', { class: 'note', text: 'หมวกและปาก: ทุกสเตตัส +5  ใบหน้าและปีก: ดาเมจกายภาพและดาเมจเวท +5% (Unique +20%)  บัตรขยายช่องกระเป๋า: กดใช้ในกระเป๋าเพื่อเพิ่ม +5 ช่องถาวร' }));
   body.append(el('p', { class: 'note', style: 'color:var(--bad);font-weight:700', text: 'ของจากตู้กาชาไม่สามารถขายลงตลาดกลางได้' }));
+}
+/* ---------- gacha full-screen UI ---------- */
+function gachaInfoText() { return 'หมวกและปาก: ทุกสเตตัส +5  ใบหน้าและปีก: ดาเมจกายภาพและดาเมจเวท +5% (Unique +20%)  บัตรขยายช่องกระเป๋า: กดใช้ในกระเป๋าเพื่อเพิ่ม +5 ช่องถาวร'; }
+const GUI = { busy: false };
+function openGacha() {
+  closeSheet(); closeGacha();
+  if (!document.getElementById('gachaCss')) {
+    const st = document.createElement('style'); st.id = 'gachaCss';
+    st.textContent = `
+#gachaScr{position:fixed;inset:0;z-index:9000;display:flex;flex-direction:column;align-items:center;justify-content:space-between;padding:max(14px,env(safe-area-inset-top)) 14px max(20px,env(safe-area-inset-bottom));background:radial-gradient(circle at 50% 38%,#5b3d9e 0%,#2d1b5e 55%,#140b33 100%);color:#fff;overflow:hidden;font-family:inherit}
+#gachaScr .gtop{width:100%;display:flex;justify-content:space-between;align-items:flex-start}
+#gachaScr .ggold{background:rgba(0,0,0,.35);border:1px solid rgba(255,255,255,.25);border-radius:999px;padding:6px 14px;font-weight:700}
+#gachaScr .gright{display:flex;flex-direction:column;align-items:flex-end;gap:8px}
+#gachaScr .gx{width:44px;height:44px;border-radius:50%;border:0;background:linear-gradient(#ffb347,#f57c00);color:#fff;font-size:1.4rem;font-weight:900;box-shadow:0 3px 0 #b55400;cursor:pointer}
+#gachaScr .ginfo{border:2px solid rgba(255,255,255,.7);background:rgba(0,0,0,.35);color:#fff;border-radius:10px;padding:6px 12px;font-weight:700;font-size:.85rem;cursor:pointer}
+#gachaScr .gmid{flex:1;display:flex;align-items:center;justify-content:center;width:100%;min-height:0}
+.gmach{position:relative;width:min(78vw,44vh);display:flex;flex-direction:column;align-items:center}
+.gmach.spin{animation:gshake .12s linear infinite}
+.gglobe{position:relative;width:100%;aspect-ratio:1;border-radius:50%;overflow:hidden;background:radial-gradient(circle at 32% 28%,rgba(255,255,255,.55),rgba(190,225,255,.22) 45%,rgba(120,170,230,.3));border:5px solid rgba(255,255,255,.8);box-shadow:inset 0 -14px 30px rgba(0,0,0,.25),0 0 40px rgba(160,200,255,.45)}
+.gglobe::after{content:'';position:absolute;left:14%;top:10%;width:30%;height:18%;border-radius:50%;background:rgba(255,255,255,.55);transform:rotate(-30deg);filter:blur(3px)}
+.gb{position:absolute;width:21%;aspect-ratio:1;border-radius:50%;left:calc(var(--l) * 1%);top:calc(var(--t) * 1%);background:radial-gradient(circle at 35% 30%,#fff,var(--c) 55%,rgba(0,0,0,.35));box-shadow:0 2px 4px rgba(0,0,0,.35);animation:gtumble var(--d) ease-in-out infinite}
+.gmach.spin .gb{animation:gwhirl .7s linear infinite}
+.gbody{position:relative;margin-top:-6%;width:62%;height:min(24vw,15vh);background:linear-gradient(#ff5a5a,#c62828);border:4px solid #8e1b1b;border-radius:14px 14px 18px 18px;display:flex;align-items:center;justify-content:center;box-shadow:0 8px 0 #6d1212,0 14px 24px rgba(0,0,0,.5)}
+.gdial{width:34%;aspect-ratio:1;border-radius:50%;background:radial-gradient(circle at 35% 30%,#fff,#ddd 60%,#999);border:3px solid #7a1515;display:grid;place-items:center}
+.gdial i{display:block;width:6px;height:46%;background:#c62828;border-radius:3px;transform-origin:50% 100%;transform:translateY(-30%) rotate(30deg)}
+.gmach.spin .gdial i{animation:gdial .6s linear infinite}
+.gslot{position:absolute;bottom:-4px;right:10%;width:22%;height:22%;background:#3a0b0b;border-radius:8px 8px 0 0}
+#gachaScr .gbtn{width:min(86vw,420px);padding:16px;border:0;border-radius:14px;font-size:1.2rem;font-weight:800;color:#fff;background:linear-gradient(#4aa8ff,#1f6fe0);box-shadow:0 5px 0 #144a9c;cursor:pointer}
+#gachaScr .gbtn:disabled{filter:grayscale(.8);opacity:.6}
+.gov{position:absolute;inset:0;z-index:2;background:rgba(0,0,0,.45);backdrop-filter:blur(3px);display:flex;align-items:center;justify-content:center;padding:16px}
+.gov .gpanel{width:100%;max-width:460px;max-height:86vh;overflow:auto;background:rgba(10,10,30,.55);border:1px solid rgba(255,255,255,.35);border-radius:16px;padding:16px;color:#fff;text-shadow:0 1px 2px #000}
+.gov h3{margin:0 0 8px;font-size:1.1rem;color:#ffe082}
+.gov .gr{display:flex;justify-content:space-between;gap:10px;padding:6px 2px;border-bottom:1px dashed rgba(255,255,255,.35);font-size:.9rem}
+.gov .gr b{color:#ffe082;white-space:nowrap}
+.gov .gn{font-size:.8rem;color:#e0e8ff;margin:10px 0 0;line-height:1.5}
+.gov .gn.bad{color:#ff9a9a;font-weight:700}
+.gov .gres2{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin:10px 0}
+.gov .gok{margin-top:10px;width:100%;padding:12px;border:0;border-radius:12px;font-weight:800;font-size:1rem;color:#fff;background:linear-gradient(#4aa8ff,#1f6fe0);cursor:pointer}
+@keyframes gtumble{0%,100%{transform:translate(0,0) rotate(0)}25%{transform:translate(var(--x1),var(--y1)) rotate(140deg)}50%{transform:translate(var(--x2),var(--y2)) rotate(-100deg)}75%{transform:translate(var(--x3),var(--y3)) rotate(200deg)}}
+@keyframes gwhirl{0%{transform:translate(0,0)}25%{transform:translate(60%,-120%)}50%{transform:translate(-40%,-200%)}75%{transform:translate(-70%,-90%)}100%{transform:translate(0,0)}}
+@keyframes gshake{0%{transform:translate(0,0) rotate(0)}25%{transform:translate(3px,-2px) rotate(.8deg)}50%{transform:translate(-3px,2px) rotate(-.8deg)}75%{transform:translate(2px,2px) rotate(.5deg)}100%{transform:translate(0,0) rotate(0)}}
+@keyframes gdial{to{transform:translateY(-30%) rotate(390deg)}}
+@keyframes gbob{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
+#gachaScr .gmach:not(.spin){animation:gbob 3s ease-in-out infinite}`;
+    document.head.append(st);
+  }
+  const scr = document.createElement('div'); scr.id = 'gachaScr';
+  const gold = el('div', { class: 'ggold' });
+  const close = el('button', { class: 'gx', text: '✕', 'aria-label': 'ปิด', onclick: closeGacha });
+  const info = el('button', { class: 'ginfo', text: '📋 รายละเอียดและ %', onclick: () => gachaShowInfo(scr) });
+  scr.append(el('div', { class: 'gtop' }, gold, el('div', { class: 'gright' }, close, info)));
+  const cols = ['#ff6b6b', '#ffd166', '#6bd6ff', '#7dff9a', '#c58bff', '#ff9ad5', '#ffa94d'];
+  const globe = el('div', { class: 'gglobe' });
+  for (let i = 0; i < 14; i++) {
+    const r = (a) => ((Math.random() * 2 - 1) * a).toFixed(0) + '%';
+    const b = el('div', { class: 'gb' });
+    b.style.cssText = '--l:' + (6 + Math.random() * 66).toFixed(0) + ';--t:' + (46 + Math.random() * 38).toFixed(0) + ';--c:' + cols[i % cols.length] + ';--d:' + (1.8 + Math.random() * 2).toFixed(2) + 's;--x1:' + r(150) + ';--y1:' + (-Math.random() * 120).toFixed(0) + '%;--x2:' + r(200) + ';--y2:' + (-Math.random() * 60).toFixed(0) + '%;--x3:' + r(150) + ';--y3:' + (-Math.random() * 140).toFixed(0) + '%;animation-delay:-' + (Math.random() * 3).toFixed(2) + 's';
+    globe.append(b);
+  }
+  const mach = el('div', { class: 'gmach' }, globe, el('div', { class: 'gbody' }, el('div', { class: 'gdial' }, el('i')), el('div', { class: 'gslot' })));
+  scr.append(el('div', { class: 'gmid' }, mach));
+  const btn = el('button', { class: 'gbtn' });
+  const refresh = () => { gold.textContent = '💰 ' + fmt(S.hero.gold) + ' G'; btn.textContent = '🎰 หมุน ' + GACHA_N + ' ครั้ง (' + fmt(GACHA_PRICE) + ' G)'; btn.disabled = GUI.busy || S.hero.gold < GACHA_PRICE; };
+  btn.onclick = () => {
+    if (GUI.busy) return;
+    if (!gachaSpin()) { refresh(); return; }
+    GUI.busy = true; refresh(); mach.classList.add('spin');
+    setTimeout(() => {
+      mach.classList.remove('spin'); GUI.busy = false; refresh();
+      const ov = el('div', { class: 'gov' }), p = el('div', { class: 'gpanel' }), g = el('div', { class: 'gres2' });
+      GA.last.forEach((id, i) => { const b = el('div', { class: 'gball' + (id ? (gachaInfo(id).uq ? ' uq' : ' win') : ''), title: id ? gachaInfo(id).nm : 'ผงเกลือ', text: id ? gachaInfo(id).ic : '🧂' }); b.style.animationDelay = (i * 0.08) + 's'; g.append(b); });
+      const wins = GA.last.filter(Boolean);
+      p.append(el('h3', { text: 'ผลการหมุน' }), g, el('p', { class: 'gn', text: wins.length ? '🎉 ได้ ' + wins.map((id) => gachaInfo(id).nm).join(', ') : 'ครั้งนี้ได้ผงเกลือ ' + GA.last.length + ' ลูก ลองใหม่นะ!' }), el('button', { class: 'gok', text: 'ตกลง', onclick: () => ov.remove() }));
+      ov.append(p); scr.append(ov);
+    }, 1500);
+  };
+  scr.append(btn); refresh();
+  document.body.append(scr);
+}
+function closeGacha() { const s = document.getElementById('gachaScr'); if (s) s.remove(); GUI.busy = false; }
+function gachaShowInfo(scr) {
+  const ov = el('div', { class: 'gov', onclick: (e) => { if (e.target === ov) ov.remove(); } }), p = el('div', { class: 'gpanel' });
+  p.append(el('h3', { text: '🎰 ตู้กาชานำโชค' }), el('p', { class: 'gn', text: 'หมุนครั้งละ ' + GACHA_N + ' ลูก ' + fmt(GACHA_PRICE) + ' G ลุ้นหมวก ปาก ใบหน้า ปีกสุดหายาก และบัตรขยายช่องกระเป๋า +5 ลูกที่ไม่ถูกรางวัลจะได้ผงเกลือ (ขายร้านได้ 100 G)' }), el('h3', { style: 'margin-top:12px', text: 'อัตราออกต่อลูก' }));
+  for (const [id, pr] of GACHA_TBL) p.append(el('div', { class: 'gr' }, el('span', { text: gachaInfo(id).ic + ' ' + gachaInfo(id).nm + ' (' + gachaInfo(id).type + ')' }), el('b', { text: pr + '%' })));
+  p.append(el('div', { class: 'gr' }, el('span', { text: '🧂 ผงเกลือ' }), el('b', { text: (100 - GACHA_TBL.reduce((a, x) => a + x[1], 0)).toFixed(2) + '%' })));
+  p.append(el('p', { class: 'gn', text: gachaInfoText() }), el('p', { class: 'gn bad', text: 'ของจากตู้กาชาไม่สามารถขายลงตลาดกลางได้' }), el('button', { class: 'gok', text: 'ปิด', onclick: () => ov.remove() }));
+  ov.append(p); scr.append(ov);
 }
 /* =================== PARTY: leader, follow, join requests, dungeon ready check =================== */
 Object.assign(PARTY, { pl: null, req: null, reqs: [], rej: [], kicked: [], dgT: 0, dgMsgT: 0, follow: false, sel: '', rc: null, myRc: null, fwT: 0 });
@@ -8544,6 +8631,7 @@ const PANELS = {
   npc_gacha: ['🎰 ตู้กาชา', panelGacha], pvp: ['⚔️ ห้อง PVP', panelPvp], dgresult: ['🏆 ผลงานในดันเจี้ยน', panelDgResult], album: ['📖 อัลบั้มการ์ด', panelAlbum], gmgive: ['🎁 ส่งของให้ผู้เล่น', panelGmGive], offline: ['💤 ฟามออฟไลน์', panelOffline], auto: ['โหมดออโต้', panelAuto], online: ['ผู้เล่นและปาร์ตี้', panelOnline], sound: ['ตั้งค่า', panelSound], chat: ['แชท', panelChat]
 };
 function openPanel(name) {
+  if (name === 'npc_gacha') { openGacha(); return; }
   if (name === 'rank' || name === 'gm') loadPlayers();
   if (name === 'bag' || name === 'equip') { openEquip(name === 'bag' ? 'bag' : 'eq'); return; }
   if (!PANELS[name]) return;
