@@ -703,7 +703,10 @@ body.lg-on .selwrap .btn-main{max-width:260px}
 .skpf{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:10px;font-size:.84rem}
 .skplus{min-width:96px;padding:10px 16px;font-size:1.15rem;font-weight:800}
 </style>
-</head>
+<style>
+#trainingMeter { position:absolute; z-index:15; top:calc(var(--pb, 100px) + 10px); left:10px; width: min(235px, 55vw); padding:10px; color:#fff4cf; background:rgba(21,29,24,.68); border:1px solid #d7c58c66; border-radius:12px; backdrop-filter:blur(5px); font-size:12px; pointer-events:auto; }
+#trainingMeter[hidden] {display:none} #trainingMeter header,#trainingMeter footer,.tr-row {display:flex;align-items:center;justify-content:space-between;gap:8px} #trainingMeter header strong{font-size:12px} #trainingMeter button {min-height:34px;padding:5px 9px;border:1px solid #ffffff35;border-radius:7px;background:#ede2b31c;color:#fff4cf;font:inherit;cursor:pointer} #trainingMeter footer{margin-top:8px} #trainingMeter footer button{flex:1} .tr-clock {display:flex;align-items:center;gap:8px;margin:7px 0} .tr-clock b{font-size:21px;font-variant-numeric:tabular-nums} .tr-clock small{font-size:10px;color:#e0d8bb} .tr-row{padding:4px 0} .tr-row span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap} .tr-row b{font-variant-numeric:tabular-nums} .tr-dps{color:#f5d478;border-bottom:1px solid #ffffff26;margin-bottom:4px} #trainingRows{max-height:110px;overflow:auto;font-size:11px}
+</style></head>
 <body>
 <div id="root">
   <section class="screen center" id="scrBoot">
@@ -775,6 +778,7 @@ body.lg-on .selwrap .btn-main{max-width:260px}
       <div class="money"><span id="goldT"></span><small id="saveT"></small></div>
       <button class="sbtn mtog" id="menuTog" aria-expanded="false" aria-controls="sideMenu"><span id="menuTogI">☰</span><small id="menuTogT">เมนู</small><span class="dot" id="dotMenu" hidden>!</span></button>
       <div class="side" id="sideMenu">
+      <button class="sbtn" data-panel="training"><span>🎯</span><small>Training Ground</small></button>
       <button class="sbtn" data-panel="skills"><span>✨</span><small>สกิล</small><span class="dot" id="dotSkill" hidden></span></button>
       <button class="sbtn" data-panel="bag"><span>🎒</span><small>กระเป๋า</small></button>
       <button class="sbtn" data-panel="job" id="btnJob"><span>🎖️</span><small>อาชีพ</small></button>
@@ -790,6 +794,13 @@ body.lg-on .selwrap .btn-main{max-width:260px}
       <button class="sbtn" data-panel="gm" id="btnGM" hidden><span>👑</span><small>GM</small></button>
       </div>
     </div>
+    <section id="trainingMeter" hidden aria-label="Training Ground damage meter">
+      <header><strong>🎯 Training Ground</strong><button id="trainingExit" aria-label="ออกจากสนามฝึก">↩ ออก</button></header>
+      <div class="tr-clock"><b id="trainingTime">00:00</b><small id="trainingStatus">ตีหุ่นเพื่อเริ่มจับเวลา</small></div>
+      <div class="tr-row"><span>ดาเมจรวม</span><b id="trainingTotal">0</b></div>
+      <div class="tr-row tr-dps"><span>ดาเมจ / วินาที</span><b id="trainingDps">0</b></div>
+      <div id="trainingRows"></div><footer><button id="trainingPause">Ⅱ หยุด</button><button id="trainingReset">↻ รีเซ็ต</button></footer>
+    </section>
     <div class="hud-bottom">
       <div class="pots">
         <button class="pot" id="chatBtn" aria-label="แชท">💬<span class="dot" id="dotChat" hidden></span></button>
@@ -1707,6 +1718,14 @@ const ARCH_DRAW = {
   }
 };
 function drawMonster(ctx, m, t) {
+  if (m.training) {
+    ctx.save(); ctx.translate(m.x,m.y); ctx.scale(m.size||1,m.size||1); if(m.hitT>0) ctx.rotate(Math.sin(t*65)*.035);
+    ctx.fillStyle='#765338'; ctx.fillRect(-16,-3,32,6); ctx.fillRect(-3,-48,6,48); ctx.fillRect(-25,-36,50,5);
+    ctx.fillStyle='#dab860'; ctx.fillRect(-13,-41,26,27); ctx.beginPath(); ctx.arc(0,-53,10,0,TAU); ctx.fill();
+    ctx.strokeStyle='#98743a'; ctx.lineWidth=2; for(let i=-10;i<=10;i+=4){ctx.beginPath();ctx.moveTo(i,-40);ctx.lineTo(i,-13);ctx.stroke();}
+    ctx.fillStyle='#423927'; ctx.fillRect(-5,-55,2,3);ctx.fillRect(3,-55,2,3);
+    for(const [r,c] of [[9,'#b94937'],[6,'#f5dfa9'],[3,'#b94937']]){ctx.fillStyle=c;ctx.beginPath();ctx.arc(0,-29,r,0,TAU);ctx.fill();} ctx.restore(); return;
+  }
   const s = m.size || 1, dir = m.dir || 1, flash = m.hitT > 0;
   const c = flash ? shade(m.color, 0.55) : m.color;
   const d = shade(m.color, flash ? 0.25 : -0.32), l = shade(m.color, flash ? 0.75 : 0.38);
@@ -1742,6 +1761,7 @@ function renderGround(theme, w, h, dpr, seed, o) {
   const g = cv.getContext('2d'); g.scale(dpr, dpr);
   const T = THEMES[theme] || THEMES.grass, R = mulberry(hashStr(seed + theme));
   g.fillStyle = T.base; g.fillRect(0, 0, w, h);
+  if (theme === 'training') { g.fillStyle = '#62764d'; g.fillRect(0, 0, w, h); g.fillStyle = '#a3946b'; g.beginPath(); g.ellipse(w/2, h/2, 145, 145, 0, 0, TAU); g.fill(); return cv; }
   if (theme === 'village') {
     const cx = w / 2, cy = h / 2;
     g.fillStyle = '#8c6b45'; g.fillRect(cx - 38, 0, 76, h); g.fillRect(0, cy - 34, w, 68);
@@ -1852,7 +1872,7 @@ const WORLD_BASE = { w: 1152, h: 1920 }, FIELD_GROW = 1.25;   // field maps are 
 const WORLD = { w: 1152, h: 1920 };
 let WSCALE = (WORLD.w * WORLD.h) / (720 * 1200);   // area vs the original 720x1200 maps
 function setWorldFor(map) {
-  const big = !!(map && !map.town && !map.dg && !map.pvp), k = big ? FIELD_GROW : 1;
+  const big = !!(map && !map.training && !map.town && !map.dg && !map.pvp), k = big ? FIELD_GROW : 1;
   WORLD.w = Math.round(WORLD_BASE.w * k); WORLD.h = Math.round(WORLD_BASE.h * k);
   WSCALE = (WORLD.w * WORLD.h) / (720 * 1200);
 }
@@ -2041,14 +2061,58 @@ const ST_GROUPS = [
 const fmtSt = (v, dec, suf) => (dec ? v.toFixed(dec) : fmt(Math.round(v))) + (suf || '');
 const spCost = (sk, lv) => Math.round(sk.sp[0] + sk.sp[1] * lv);
 
+/* ---------- Training Ground: private, reward-free damage test ---------- */
+const TRAIN = { back: 'village', elapsed: 0, total: 0, skills: {}, state: 'ready', source: null, epoch: 0, uiAt: -1 };
+const TRAIN_MAP = { id: 'training', name: 'Training Ground', training: true, theme: 'training', min: 1, max: 200, count: 0, monsters: [] };
+const inTraining = () => !!(W.map && W.map.training);
+function trainingClearCombat() {
+  setAuto(false); P.target = null; P.queued = null; P.tx = null; P.combo = null; P.dash = null; P.lockT = 0; P.invT = 0; P.air = 0;
+  W.pend = []; W.fx = []; W.nums = []; TRAIN.epoch++;
+}
+function trainingReset() {
+  trainingClearCombat(); TRAIN.elapsed = 0; TRAIN.total = 0; TRAIN.skills = {}; TRAIN.state = 'ready'; TRAIN.uiAt = -1;
+  if (inTraining()) { P.hp = P.D.maxHp; P.sp = P.D.maxSp; P.cds = {}; P.cdMax = {}; P.buffs = {}; P.bers = null; P.atkT = 0; }
+  trainingHud();
+}
+function trainingEnter() {
+  if (!S.hero || P.dead) return;
+  if (isDg() || isPvp()) { toast('ออกจากดันเจี้ยนหรือ PVP ก่อนเข้าสนามฝึก'); return; }
+  if (inTraining()) { closeSheet(); return; }
+  TRAIN.back = S.hero.mapId || 'village'; PARTY.follow = false;
+  closeSheet(); trainingClearCombat(); enterMap('training'); trainingReset();
+}
+function trainingExit() { if (inTraining()) { trainingReset(); enterMap(TRAIN.back || 'village'); } }
+function trainingPause() {
+  if (TRAIN.state === 'paused') { TRAIN.state = TRAIN.total ? 'running' : 'ready'; }
+  else { TRAIN.state = 'paused'; trainingClearCombat(); }
+  trainingHud();
+}
+function trainingHit(amount, source) {
+  if (!inTraining() || TRAIN.state === 'paused') return;
+  if (TRAIN.state === 'ready') TRAIN.state = 'running';
+  TRAIN.total += amount; const id = source || 'basic'; TRAIN.skills[id] = (TRAIN.skills[id] || 0) + amount; TRAIN.uiAt = -1;
+}
+function trainingHud() {
+  const box = $('#trainingMeter'); if (!box) return; box.hidden = !inTraining(); if (box.hidden) return;
+  const sec = TRAIN.elapsed; $('#trainingTime').textContent = String(Math.floor(sec / 60)).padStart(2, '0') + ':' + String(Math.floor(sec % 60)).padStart(2, '0');
+  $('#trainingTotal').textContent = fmt(TRAIN.total); $('#trainingDps').textContent = sec > 0 ? fmt(Math.round(TRAIN.total / sec)) : '0';
+  $('#trainingStatus').textContent = TRAIN.state === 'ready' ? 'ตีหุ่นเพื่อเริ่มจับเวลา' : TRAIN.state === 'paused' ? 'หยุดการวัดแล้ว' : 'กำลังวัดดาเมจ';
+  $('#trainingPause').textContent = TRAIN.state === 'paused' ? '▶ ต่อ' : 'Ⅱ หยุด';
+  const rows = $('#trainingRows'); rows.textContent = '';
+  for (const [id, n] of Object.entries(TRAIN.skills).sort((a,b) => b[1]-a[1])) {
+    const row = el('div', { class: 'tr-row' }); row.append(el('span', { text: id === 'basic' ? 'ตีธรรมดา' : SKILLS[id] ? SKILLS[id].name : id }), el('b', { text: fmt(n) })); rows.append(row);
+  }
+}
 /* ---------- world ---------- */
 function bounds() { return { x0: 30, x1: WORLD.w - 30, y0: W.map && W.map.theme === 'beach' ? 262 : 40, y1: WORLD.h - 30 }; }
-function currentMap() { if (S.hero.mapId === 'village' && typeof TOWN === 'object') return TOWN; return CONFIG.maps.find((m) => m.id === S.hero.mapId) || CONFIG.maps[0]; }
+function currentMap() { if (S.hero.mapId === 'training') return TRAIN_MAP; if (S.hero.mapId === 'village' && typeof TOWN === 'object') return TOWN; return CONFIG.maps.find((m) => m.id === S.hero.mapId) || CONFIG.maps[0]; }
 function buildGround() { if (!W.map) return; if (R3.on) R3.setMap(W.map); else W.ground = renderGround(W.map.theme, WORLD.w, WORLD.h, Math.min(1.5, W.dpr), W.map.id); }
 function enterMap(id, silent, dmap) {
   let map;
   if (dmap) map = dmap;
   else { S.hero.mapId = id; map = currentMap(); S.hero.mapId = map.id; }
+  if (inTraining() && !map.training) trainingClearCombat();
+  $('#trainingMeter').hidden = !map.training;
   dgReset();
   const wasPvp = !!(W.map && W.map.pvp);
   W.map = map; W.mapSig = JSON.stringify(map); setWorldFor(map);
@@ -2061,7 +2125,13 @@ function enterMap(id, silent, dmap) {
   const hostThere = activeOthers().some((o) => o.map === map.id && isLive(o));
   NET.isHost = !hostThere;
   buildSpawns(map);
+  if (map.training) {
+    NET.isHost = true;
+    const m = makeMon({ id: 'straw_dummy', name: 'หุ่นฟางฝึกซ้อม', arch: 'straw', color: '#d6ae56', lv: 1, hp: 1e12, atk: 0, def: 0, bexp: 0, jexp: 0, gold: 0, aggro: false }, 0, WORLD.w / 2, WORLD.h / 2);
+    m.training = true; m.alpha = 1; m.size = 1.5; W.mons.push(m);
+  }
   if (!hostThere) { if (W.spawns.length) fillSpawns(); else for (let i = 0; i < monCount(map); i++) spawnMon(); }
+  if (map.training) { P.x = WORLD.w / 2; P.y = WORLD.h / 2 + 90; }
   P.aax = P.x; P.aay = P.y; updAutoBadge(); bossEnterMap(map);
   addFx({ kind: 'ring', x: P.x, y: P.y, r: 46, color: '#9fe3ff', dur: 0.7 });
   if (!silent) { toast(map.name + '  Lv ' + map.min + '–' + map.max); AU.sfx('warp'); }
@@ -2265,7 +2335,7 @@ function drawCrit(ctx, n, x, baseY, t) {
 }
 function addFx(o) { if (W.fxTag === 'own' && S.fxSelf === false) return; o.t0 = W.t; W.fx.push(o); if (W.fx.length > PERF.fx()) W.fx.shift(); }
 function addNum(x, y, text, col, size, o) { W.nums.push(Object.assign({ x, y, text, col, size, t0: W.t, dur: 0.9, font: 'px' }, o || {})); if (W.nums.length > Math.min(NUM_MAX, PERF.nums())) W.nums.shift(); }
-function later(d, fn) { const tag = W.fxTag; W.pend.push({ at: W.t + d, fn: tag ? () => { const o = W.fxTag; W.fxTag = tag; try { fn(); } finally { W.fxTag = o; } } : fn }); }
+function later(d, fn) { const tag = W.fxTag, source = TRAIN.source, epoch = TRAIN.epoch; W.pend.push({ at: W.t + d, fn: () => { if (inTraining() && epoch !== TRAIN.epoch) return; const o = W.fxTag, os = TRAIN.source; W.fxTag = tag; TRAIN.source = source; try { fn(); } finally { W.fxTag = o; TRAIN.source = os; } } }); }
 function projectile(x, y, tg, speed, sub, col, w) {
   const d = Math.hypot(tg.x - x, tg.y - 14 - y), dur = Math.max(0.06, d / speed);
   addFx({ kind: 'proj', sub, x, y, tg, color: col, dur, w: w || 2 });
@@ -2293,6 +2363,7 @@ function rollMagic(mult, tg, forceCrit) {
 }
 function applyHit(tg, res, hits) {
   if (!tg || tg.state === 'dead') return;
+  const source = TRAIN.source, epoch = TRAIN.epoch;
   const s = tg.size || 1;
   if (res.miss) { addNum(tg.x, tg.y - 34 * s, 'MISS', '#c8d0dc', 12, { dmg: true, tk: tg.uid, tg, oy: -34 * s, dur: 1.2 }); AU.sfx('miss'); return; }
   hits = Math.max(1, hits | 0);
@@ -2302,6 +2373,13 @@ function applyHit(tg, res, hits) {
   for (let i = 0; i < hits; i++) {
     later(i * 0.075, () => {
       if (tg.state === 'dead' || tg.hp <= 0) return;
+      if (tg.training) {
+        if (!inTraining() || !W.mons.includes(tg) || TRAIN.state === 'paused' || epoch !== TRAIN.epoch) return;
+        trainingHit(per, source); tg.hitT = 0.12;
+        if (res.crit) myCrit(tg, per, i, res.magic);
+        else { AU.sfx('hit'); addNum(tg.x, tg.y - 32 * s, fmt(per), '#ffffff', 11, { pop: true, tk: tg.uid, dur: NUM_LIFE, dmg: true, tg, oy: -32 * s }); }
+        return;
+      }
       const dealt = Math.min(per, Math.max(0, tg.hp));
       tg.hp -= per; tg.hitT = 0.12; tg.predT = W.t; if (NET.isHost) threatHit(tg, myKey(), dealt); else { tg.angry = true; tg.state = 'chase'; tg.tgt = myKey(); } dgStat('dmg', dealt);
       if (!NET.isHost) netPushHit(tg.uid, per, res.crit ? (res.magic ? 2 : 1) : 0); else netPushHitView(tg.uid, per, res.crit ? (res.magic ? 2 : 1) : 0);
@@ -2321,11 +2399,12 @@ function berserkHit(tg) {
   const dmg = Math.max(1, Math.round(D.maxHp * (sk.m[0] + sk.m[1] * b.lv) * (0.95 + Math.random() * 0.1)));   // scales with Max HP, ignores DEF, never misses
   const s = tg.size || 1, res = { dmg, crit: false };
   P.swingT = W.t; AU.sfx('swing');
-  later(0.1, () => { addFx({ kind: 'slash', x: tg.x, y: tg.y - 14 * s, color: '#ff3b3b', dur: 0.25, dir: P.dir, big: true }); applyHit(tg, res, 1); });
+  later(0.1, () => { addFx({ kind: 'slash', x: tg.x, y: tg.y - 14 * s, color: '#ff3b3b', dur: 0.25, dir: P.dir, big: true }); const os = TRAIN.source; TRAIN.source = 'lk_rage'; try { applyHit(tg, res, 1); } finally { TRAIN.source = os; } });
   if (b.hits <= 0) { P.bers = null; toast('🩸 บ้าคลั่งสิ้นสุด'); }
   return true;
 }
 function basicAttack(tg) {
+  if (inTraining() && TRAIN.state === 'paused') return;
   const D = P.D, s = tg.size || 1;
   if (P.bers && berserkHit(tg)) return;
   P.swingT = W.t;
@@ -2345,6 +2424,7 @@ function basicAttack(tg) {
   }
 }
 function killMon(m, killer) {
+  if (m.training) return;
   if (m.state === 'dead') return;
   m.state = 'dead'; m.dieT = W.t; m.hp = 0;
   if (P.target === m) { P.target = null; P.queued = null; }
@@ -2533,7 +2613,7 @@ function reviveBy(pct, who) {
 }
 const VFX = {}; if (typeof VFX_SRC === 'object') for (const k in VFX_SRC) { const im = new Image(); im.decoding = 'async'; im.src = VFX_SRC[k]; VFX[k] = im; }
 const VFX_FR = 160, VFX_N = 15;
-function castSkill(id, fromQueue) { const ot = W.fxTag; W.fxTag = 'own'; try { return castSkillInner(id, fromQueue); } finally { W.fxTag = ot; } }
+function castSkill(id, fromQueue) { if (inTraining() && TRAIN.state === 'paused') return false; const ot = W.fxTag, os = TRAIN.source; W.fxTag = 'own'; TRAIN.source = id; try { return castSkillInner(id, fromQueue); } finally { W.fxTag = ot; TRAIN.source = os; } }
 function castSkillInner(id, fromQueue) {
   if (ccActive()) { toast(P.ccType === 'freeze' ? 'ถูกแช่แข็ง ใช้สกิลไม่ได้' : 'มึนงงอยู่ ใช้สกิลไม่ได้'); return; }
   const h = S.hero, sk = SKILLS[id], lv = h.skills[id] | 0;
@@ -2779,6 +2859,7 @@ function moveToward(x, y, dt, stop) {
   return true;
 }
 function updateMons(dt) {
+  if (inTraining()) { for (const m of W.mons) { m.hitT = Math.max(0,m.hitT-dt); m.moving=false; m.state='idle'; m.angry=false; m.tgt=null; } return; }
   const b = bounds(), pl = mapPlayers();
   for (const m of W.mons) {
     if (m.state === 'dead') { m.alpha = Math.max(0, 1 - (W.t - m.dieT) / 0.5); continue; }
@@ -2818,6 +2899,7 @@ function updateMons(dt) {
 }
 function update(dt) {
   W.t += dt;
+  if (inTraining()) { if (TRAIN.state === 'running') TRAIN.elapsed += dt; if (W.t >= TRAIN.uiAt) { trainingHud(); TRAIN.uiAt = W.t + 0.1; } }
   P.D = derived();
   const D = P.D;
   if (W.pend.length) {
@@ -3068,7 +3150,7 @@ function heroDoc() {
   const h = S.hero;
   return { name: h.name, look: h.look, job: h.job, level: h.level, exp: h.exp, jobLv: h.jobLv, jobExp: h.jobExp, stats: h.stats,
     skills: h.skills, hotbar: h.hotbar, gold: h.gold, refineW: h.refineW, refineA: h.refineA, potHp: h.potHp, potSp: h.potSp, potHpL: h.potHpL || 0, potSpL: h.potSpL || 0, potAll: h.potAll || 0, potBtn: h.potBtn || ['hp', 'sp'], potAuto: h.potAuto || { hp: 35, sp: 12, hpL: 0, spL: 0, all: 0 },
-    mapId: h.mapId, kills: h.kills, bossKills: h.bossKills || 0, fbKills: h.fbKills || 0, dgClears: h.dgClears || 0, off: h.off || null, mail: h.mail || [], mailDone: (h.mailDone || []).slice(-80), sv: SCHEMA, sid: S.sid, sidT: S.sidT || 0, wstyle: h.wstyle, gmStamp: h.gmStamp || 0, inv: h.inv, eq: h.eq, mkDone: h.mkDone || [], ref: h.ref || {}, rm: h.rm || {}, bagX: h.bagX || 0, updatedAt: Date.now() };
+    mapId: h.mapId === 'training' ? TRAIN.back : h.mapId, kills: h.kills, bossKills: h.bossKills || 0, fbKills: h.fbKills || 0, dgClears: h.dgClears || 0, off: h.off || null, mail: h.mail || [], mailDone: (h.mailDone || []).slice(-80), sv: SCHEMA, sid: S.sid, sidT: S.sidT || 0, wstyle: h.wstyle, gmStamp: h.gmStamp || 0, inv: h.inv, eq: h.eq, mkDone: h.mkDone || [], ref: h.ref || {}, rm: h.rm || {}, bagX: h.bagX || 0, updatedAt: Date.now() };
 }
 function saveLocal() { if (S.hero) lsSet(LS_SAVE + (S.uid || ''), JSON.stringify(Object.assign(heroDoc(), { savedAt: Date.now() }))); }
 // save guard: every save carries the game version (sv) and this tab's session id (sid);
@@ -4287,7 +4369,22 @@ void main(){
     if (sp.skel ? !(KK.chars && KK.chars[sp.key]) : !(KK.mobs && KK.mobs[sp.key])) return null;
     return sp;
   }
+  function drawStrawDummy(E, m, t) {
+    const fl = m.hitT > 0 ? 0.45 : 0;
+    E.push(); E.T(m.X, 0, m.Z); E.Sc(m.size || 1); E.RZ(m.hitT > 0 ? Math.sin(t * 65) * 0.035 : 0);
+    const part = (kind, x,y,z, a,b,c, col) => { E.push(); E.T(x,y,z); E.Sc(a,b,c); E.part(kind,c3(col),fl); E.pop(); };
+    part('box',0,.045,0,.75,.09,.14,'#6b492d'); part('box',0,.05,0,.14,.09,.65,'#6b492d');
+    part('cyl',0,.54,0,.075,1.08,.075,'#805637'); part('box',0,.88,0,1.05,.09,.09,'#805637');
+    part('sph',0,.79,0,.32,.43,.23,'#d6ad52'); part('sph',0,1.36,0,.23,.25,.22,'#e5c67b');
+    for (const side of [-1,1]) { part('sph',side*.43,.88,0,.21,.13,.13,'#d6ad52'); part('box',side*.49,.88,.005,.035,.26,.27,'#99733b'); part('sph',side*.075,1.39,.205,.025,.032,.016,'#493c2c'); }
+    for (let i=-3;i<=3;i++) part('box',i*.065,.73,.205,.012,.42,.012,i%2?'#eacb77':'#bb8b3c');
+    for (const y of [.56,1.01]) part('box',0,y,.02,.6,.045,.43,'#926b38');
+    part('sph',0,.83,.225,.205,.205,.03,'#b94937'); part('sph',0,.83,.25,.14,.14,.02,'#f4dfae'); part('sph',0,.83,.27,.07,.07,.015,'#b94937');
+    part('box',0,1.18,.03,.38,.065,.36,'#af4435');
+    E.pop();
+  }
   function drawMon(E, m, t) {
+    if (m.training) { drawStrawDummy(E,m,t); return; }
     if (KKON && R3.kkOn()) { const sp = mobSpec(m); if (sp && (sp.skel ? drawSkelMob(E, m, t, sp) : drawMob(E, m, t, sp))) return; }
     const sc = (m.size || 1) * clamp(m.alpha == null ? 1 : m.alpha, 0.01, 1);
     const fl = m.hitT > 0 ? 0.55 : 0, ek = m.enr ? 0.35 + 0.18 * Math.sin(t * 8) : 0, red = (q) => ek ? [q[0] * (1 - ek) + ek, q[1] * (1 - ek), q[2] * (1 - ek)] : q;
@@ -4309,6 +4406,7 @@ void main(){
     lava:   { fog: '#1f0e0b', amb: [0.66, 0.42, 0.38], rock: '#2a1d1a', leaf: '#4a3a2a' }
   };
   function genProps(map, B) {
+    if (map.training) return [];
     const R = mulberry(hashStr(map.id + '#props')), out = [], th = map.theme;
     const add = (type, x, y, s) => out.push({ type, x, y, s: s || 1, r: R() * TAU, seed: R() * 10 });
     const inside = () => [B.x0 + R() * (B.x1 - B.x0), B.y0 + R() * (B.y1 - B.y0)];
@@ -6104,7 +6202,7 @@ const isGone = (o) => !o.ok || o.dupe || performance.now() - (o.beat || 0) > 200
 const activeOthers = () => [...ONLINE.others.values()].filter((o) => !isGone(o));
 const isLive = (o) => !o.aw && !o.lite && performance.now() - (o.beat || 0) < 6000;
 function othersLive() { return othersHere().filter(isLive); }
-function othersHere() { const out = []; if (!W.map) return out; for (const o of ONLINE.others.values()) if (o.map === W.map.id && !isGone(o)) out.push(o); return out; }
+function othersHere() { const out = []; if (inTraining()) return out; if (!W.map) return out; for (const o of ONLINE.others.values()) if (o.map === W.map.id && !isGone(o)) out.push(o); return out; }
 function mapPlayers() {
   const out = []; if (!P.dead) out.push({ key: myKey(), x: P.x, y: P.y, me: true });
   for (const o of othersLive()) if (!o.dead) out.push({ key: o.key, x: o.x, y: o.y });
@@ -6114,6 +6212,7 @@ function mapPlayers() {
 
 /* ---------- shared monsters ---------- */
 function netElect() {
+  if (inTraining()) { NET.isHost = true; NET.host = myKey(); return; }
   if (!ONLINE.room || !NET.me || !W.map) { NET.host = myKey(); if (!NET.isHost) adoptMirror(); NET.isHost = true; return; }
   let best = { mt: NET.mapT, key: NET.me };
   for (const o of othersLive()) if (o.mt < best.mt || (o.mt === best.mt && o.key < best.key)) best = { mt: o.mt, key: o.key };
@@ -6251,8 +6350,8 @@ function onlineTick(dt) {
   }
   if (!S.hero || !W.map || S.screen !== 'game') return;
   netElect();
-  processOthersHits();
-  if (NET.isHost) hostApplyDamage();
+  if (!inTraining()) { processOthersHits();
+  if (NET.isHost) hostApplyDamage(); }
   pruneDamage();
   if (!NET.isHost) {
     const ho = ONLINE.others.get(NET.host);
@@ -6263,7 +6362,7 @@ function onlineTick(dt) {
   const now = performance.now();
   if (now - ONLINE.lastSend < (isPvp() ? 150 : NET.isHost ? Math.min(window.__NET_RATE || 160, 400) : (window.__NET_RATE || 160))) return;   // host streams monsters, so it sends a bit faster
   const h = S.hero, D = P.D || derived();
-  const pr = { v: 1, n: h.name, j: h.job, l: h.level, jl: h.jobLv, m: W.map.id,
+  const pr = { v: 1, n: h.name, j: h.job, l: h.level, jl: h.jobLv, m: inTraining() ? 'training:' + myKey() : W.map.id,
     x: Math.round(P.x / WORLD.w * 1000) / 1000, y: Math.round(P.y / WORLD.h * 1000) / 1000,
     g: h.look.g, h: h.look.hair, c: h.look.hc, ws: h.wstyle, sw: ONLINE.swc, d: P.dead ? 1 : 0, hp: Math.round(clamp(P.hp / D.maxHp, 0, 1) * 100),
     mt: NET.mapT, pk: PARTY.key, pi: PARTY.invited.slice(-4), hit: NET.hits, dg: [...NET.dmg].slice(-30), bb: NET.bb, wv: (h.eq && h.eq.weapon && h.eq.weapon.id) || '', au: [topRar(h), weaponRar(h), h.refineW], cc: ccActive() ? (P.ccType === 'freeze' ? 2 : 1) : 0, ev: (() => { const v = eqVis(h); return [v.head || '', v.face || '', v.mouth || '', v.wings || '']; })() };
@@ -6592,6 +6691,7 @@ function bossAnnounce(kind, t, extra) {
 }
 let bossLastTick = 0;
 function bossTick() {
+  if (inTraining()) return;
   if (!S.hero || !W.map || S.screen !== 'game' || !BOSS.loaded) return;
   const pn = performance.now(); if (pn - bossLastTick < 250) return; bossLastTick = pn;
   const now = nowMs(), st = bossState(W.map.id);
@@ -8278,6 +8378,7 @@ function offSkillsOf(job) {
 }
 // the visible fight: walk to the nearest monster, swing, cast now and then (pictures only, no damage)
 function botsTick(dt) {
+  if (inTraining()) return;
   const list = botsHere(); if (!list.length) return;
   const t = W.t, bd = bounds();
   for (const b of list) {
@@ -8688,6 +8789,9 @@ function hudLayout() {
 if (window.ResizeObserver) { const ro = new ResizeObserver(hudLayout); ro.observe($('#scrGame').querySelector('.plate')); ro.observe($('#raidBar')); }
 addEventListener('resize', hudLayout);
 R3.onKKTex = () => { if (S.hero && S.screen === 'game') drawAvatar(); try { renderSheetIfOpen(); } catch (e) {} };
+$('#trainingExit').addEventListener('click', trainingExit);
+$('#trainingPause').addEventListener('click', trainingPause);
+$('#trainingReset').addEventListener('click', trainingReset);
 $('#dgExit').addEventListener('click', () => leaveDungeon());
 $('#rwExit').addEventListener('click', () => leaveDungeon());
 $('#rwAgain').addEventListener('click', () => dgAgain());
@@ -8788,6 +8892,7 @@ const PANELS = {
   npc_gacha: ['🎰 ตู้กาชา', panelGacha], pvp: ['⚔️ ห้อง PVP', panelPvp], dgresult: ['🏆 ผลงานในดันเจี้ยน', panelDgResult], album: ['📖 อัลบั้มการ์ด', panelAlbum], gmgive: ['🎁 ส่งของให้ผู้เล่น', panelGmGive], offline: ['💤 ฟามออฟไลน์', panelOffline], auto: ['โหมดออโต้', panelAuto], online: ['ผู้เล่นและปาร์ตี้', panelOnline], sound: ['ตั้งค่า', panelSound], chat: ['แชท', panelChat]
 };
 function openPanel(name) {
+  if (name === 'training') { trainingEnter(); return; }
   if (name === 'dungeon') { openDgScreen(); return; }
   if (name === 'map') { openFullPanel('map'); return; }
   if (name === 'stats') { STX.pend = {}; STX.tab = 'up'; openFullPanel('stats'); return; }
