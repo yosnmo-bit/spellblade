@@ -1377,12 +1377,14 @@ defSkill('hw_mind', 'highwizard', 'จิตอนันต์', '🔯', 'buff',
 defSkill('ar_double', 'archer', 'ศรคู่', '🏹', 'atk', { m: [1.4, 0.2], hits: 2, sp: [6, 0.5], cd: 1.2, color: '#ffe08a', fx: 'arrow' });
 defSkill('ar_rain', 'archer', 'ห่าศร', '🌧️', 'aoe', { aboom: 1, m: [1.2, 0.2], r: 100, hits: 3, sp: [15, 1], cd: 4, color: '#f5d76e', fx: 'pillars' });
 defSkill('ar_eye', 'archer', 'ตาเหยี่ยว', '👁️', 'passive', { p: { atkPct: 2, dex: 1 }, color: '#e8d27a' });
+defSkill('ar_scope', 'archer', 'สายตาพิชิตไกล', '🔭', 'passive', { maxLv: 5, p: { rangeM: 1 }, color: '#bfe3ff' });   // +1 m range per level, Lv5 = +5 m, permanent
 defSkill('hu_trap', 'hunter', 'กับดักระเบิด', '💣', 'aoe', { boom: 1, m: [2.0, 0.3], r: 110, sp: [20, 1.5], cd: 5, color: '#ff8c42', fx: 'quake' });
 defSkill('hu_falcon', 'hunter', 'เหยี่ยวจู่โจม', '🦅', 'atk', { m: [2.5, 0.4], hits: 2, sp: [15, 1], cd: 2.5, color: '#d4f1ff', fx: 'arrow' });
 defSkill('hu_focus', 'hunter', 'สมาธิพราน', '🎯', 'buff', { b: { atk: 3, crit: 1 }, dur: 90, sp: [25, 2], cd: 30, color: '#fff0a8' });
 defSkill('sn_heart', 'sniper', 'ศรทะลวงใจ', '💘', 'atk', { m: [5.0, 0.3], crit: true, sp: [30, 2], cd: 3, color: '#ffffff', fx: 'arrow' });
 defSkill('sn_storm', 'sniper', 'พายุศรพันดอก', '🌪️', 'aoe', { aboom: 1, m: [3.0, 0.4], r: 150, hits: 4, sp: [40, 3], cd: 6, color: '#ffe7a3', fx: 'pillars' });
-defSkill('sn_wind', 'sniper', 'ย่างก้าวสายลม', '🌬️', 'buff', { b: { aspd: 4, flee: 3 }, dur: 90, sp: [30, 2], cd: 30, color: '#c7ffd8' });
+defSkill('sn_resolve', 'sniper', 'จิตมุ่งมั่น', '🧿', 'buff', { b: { crit: 1, critDmg: 2 }, dur: 90, sp: [30, 2], cd: 30, color: '#ffd6a5' });   // Lv10: CRIT +10%, CRIT DMG +20%
+defSkill('sn_wind', 'sniper', 'ย่างก้าวสายลม', '🌬️', 'buff', { b: { aspd: 1, flee: 6 }, dur: 90, sp: [30, 2], cd: 30, color: '#c7ffd8' });   // Lv10: ASPD +10, FLEE +60
 // Thief line
 defSkill('th_stab', 'thief', 'แทงสองคม', '🗡️', 'atk', { m: [1.2, 0.2], hits: 2, sp: [5, 0.4], cd: 1, color: '#e0e0e0', fx: 'slash' });
 defSkill('th_venom', 'thief', 'คมพิษ', '🐍', 'atk', { m: [1.5, 0.25], sp: [8, 0.6], cd: 2, color: '#9be564', fx: 'slash' });
@@ -1392,8 +1394,8 @@ defSkill('as_shade', 'assassin', 'เงาสังหาร', '🌘', 'aoe', {
 defSkill('as_poison', 'assassin', 'อาบยาพิษ', '☠️', 'buff', { b: { atk: 3, crit: 1 }, dur: 90, sp: [25, 2], cd: 30, color: '#a6ff7a' });
 defSkill('ax_doom', 'assassincross', 'มีดเงาโลกันต์', '🌑', 'atk', { m: [5.0, 0.7], hits: 6, sp: [35, 2.5], cd: 3, color: '#c8a2ff', fx: 'slash' });
 defSkill('ax_storm', 'assassincross', 'พายุใบมีด', '🌀', 'aoe', { m: [3.0, 0.45], r: 130, self: true, hits: 3, sp: [40, 3], cd: 6, color: '#e0e0ff', fx: 'quake' });
-defSkill('ax_sonic', 'assassincross', 'Sonic Slash', '⚡', 'combo', { combo: 'sonic', req: 'katar', m: [3.2, 0], hits: 10, proc: 30, sp: [45, 2], cd: 5, color: '#8b3dff', sfx: 'sonicCharge' });
-defSkill('ax_star', 'assassincross', 'Star Slash', '🌟', 'combo', { combo: 'star', req: 'dual', m: [6.4, 0], hits: 5, proc: 30, sp: [55, 3], cd: 5, color: '#a855ff', sfx: 'starCharge' });
+defSkill('ax_sonic', 'assassincross', 'Sonic Slash', '⚡', 'combo', { combo: 'sonic', req: 'katar', m: [0.22, 0], hits: 10, proc: 30, sp: [45, 2], cd: 5, color: '#8b3dff', sfx: 'sonicCharge' });
+defSkill('ax_star', 'assassincross', 'Star Slash', '🌟', 'combo', { combo: 'star', req: 'dual', m: [0.44, 0], hits: 5, proc: 30, sp: [55, 3], cd: 5, color: '#a855ff', sfx: 'starCharge' });
 defSkill('ax_edge', 'assassincross', 'คมมรณะ', '🩸', 'buff', { b: { atk: 5, crit: 2 }, dur: 90, sp: [35, 2], cd: 30, color: '#ff5f7e' });
 // Merchant line
 defSkill('me_cleave', 'merchant', 'ขวานผ่าศิลา', '🪓', 'atk', { m: [1.5, 0.3], sp: [6, 0.6], cd: 1.6, color: '#ffc078', fx: 'slash' });
@@ -1406,7 +1408,7 @@ defSkill('ws_execute', 'whitesmith', 'ประหารเหล็กกล้
 defSkill('ws_quake', 'whitesmith', 'ขวานถล่มปฐพี', '🌋', 'aoe', { boom: 1, m: [3.2, 0.45], r: 150, self: true, hits: 3, sp: [42, 3], cd: 6, color: '#ff8f3d', fx: 'quake' });
 defSkill('ws_titan', 'whitesmith', 'พลังไททัน', '💪', 'buff', { b: { atk: 6, def: 3 }, dur: 90, sp: [35, 2], cd: 30, color: '#fff3c4' });
 
-const BUFF_TH = { bowPct: 'พลังธนู', critDmg: 'ความแรงคริ', pdmg: 'ดาเมจกายภาพ', mdmg: 'ดาเมจเวท', hit: 'HIT', msp: 'SP สูงสุด', cdr: 'ลดคูลดาวน์สกิล', watk: 'P.ATK', wmatk: 'M.ATK', mdef: 'M.DEF', defPct: 'P.DEF', mdefPct: 'M.DEF', spPct: 'SP สูงสุด', critRes: 'CRIT RES', critDmgRes: 'CRIT DMG RES', bossDmg: 'ดาเมจต่อบอส', hpRegen: 'ฟื้นฟู HP', spRegen: 'SP Recovery', str: 'STR', agi: 'AGI', vit: 'VIT', int: 'INT', luk: 'LUK', matkPct: 'M.ATK', atk: 'P.ATK', matk: 'M.ATK', aspd: 'ASPD%', def: 'P.DEF', crit: 'คริ', flee: 'หลบ', hpPct: 'HP สูงสุด', mspd: 'ความเร็วเดิน', atkPct: 'P.ATK', aspdPct: 'ASPD%', discount: 'ส่วนลดร้าน', dex: 'DEX' };
+const BUFF_TH = { rangeM: 'ระยะโจมตี (เมตร)', bowPct: 'พลังธนู', critDmg: 'ความแรงคริ', pdmg: 'ดาเมจกายภาพ', mdmg: 'ดาเมจเวท', hit: 'HIT', msp: 'SP สูงสุด', cdr: 'ลดคูลดาวน์สกิล', watk: 'P.ATK', wmatk: 'M.ATK', mdef: 'M.DEF', defPct: 'P.DEF', mdefPct: 'M.DEF', spPct: 'SP สูงสุด', critRes: 'CRIT RES', critDmgRes: 'CRIT DMG RES', bossDmg: 'ดาเมจต่อบอส', hpRegen: 'ฟื้นฟู HP', spRegen: 'SP Recovery', str: 'STR', agi: 'AGI', vit: 'VIT', int: 'INT', luk: 'LUK', matkPct: 'M.ATK', atk: 'P.ATK', matk: 'M.ATK', aspd: 'ASPD%', def: 'P.DEF', crit: 'คริ', flee: 'หลบ', hpPct: 'HP สูงสุด', mspd: 'ความเร็วเดิน', atkPct: 'P.ATK', aspdPct: 'ASPD%', discount: 'ส่วนลดร้าน', dex: 'DEX' };
 const PCT_KEYS = { mspd: 1, bowPct: 1, critDmg: 1, pdmg: 1, mdmg: 1, cdr: 1, matkPct: 1, atk: 1, matk: 1, aspd: 1, hpPct: 1, atkPct: 1, aspdPct: 1, discount: 1, crit: 1, defPct: 1, mdefPct: 1, spPct: 1, critDmgRes: 1, bossDmg: 1 };
 
 /* ---------- monsters & maps ---------- */
@@ -2228,6 +2230,7 @@ function buffSum() {
 /* ASPD: 193 (the cap) = 12 attacks per second. attacks/s = 84 / (200 - ASPD) */
 const ASPD_MAX = 193, ASPD_K = 84, ASPD_MIN_MS = 1000 / (ASPD_K / (200 - ASPD_MAX));
 const aspdOf = (ms) => Math.min(ASPD_MAX, Math.round(200 - ASPD_K * ms / 1000));
+const PX_PER_M = 30;   // 1 metre of bonus range = 30 px
 const PVP_HP = 5;   // everyone has 5x HP inside a PVP arena (own hero only)
 function derived(h) {
   h = h || S.hero;
@@ -2269,7 +2272,7 @@ function derived(h) {
   const critPct = st.luk * 0.3 + L.crit + (w === 'katar' ? 8 : 0) + (pa.crit || 0) + (bu.crit || 0);   // crit chance %
   const mspdGear = pa.mspd || 0;
   return {
-    st, jb, w, atkType: L.atk, range: L.range,
+    st, jb, w, atkType: L.atk, range: L.range + (pa.rangeM || 0) * PX_PER_M, rangeBonus: (pa.rangeM || 0) * PX_PER_M,
     atk: Math.round(atk), matk: Math.round(matk), maxHp: maxHpF, maxSp, def: pdef, pdef, mdef, aspdMs,
     rPatk, rMatk, rPdef, rMdef, hpPct, spPct, eqPatkPct, eqMatkPct, eqPdefPct, eqMdefPct, bossDmg: pa.bossDmg || 0,
     hpRegen: maxHpF * 0.006 + st.vit * 0.08 + (pa.hpRegen || 0), spRegen: maxSp * 0.012 + st.int * 0.05 + (pa.spRegen || 0),
@@ -2277,7 +2280,7 @@ function derived(h) {
     crit: critPct,
     critRes: Math.round(st.luk * 0.5 + h.level * 0.2 + (pa.critRes || 0)), critDmgRes: pa.critDmgRes || 0,
     mspdGear, mspd: Math.round((115 + Math.min(40, st.agi * 0.4)) / 115 * (1 + ((bu.mspd || 0) + mspdGear) / 100) * 100),
-    discount: Math.min(40, pa.discount || 0), pdmg: pa.pdmg || 0, mdmg: pa.mdmg || 0, critDmg: pa.critDmg || 0,
+    discount: Math.min(40, pa.discount || 0), pdmg: pa.pdmg || 0, mdmg: pa.mdmg || 0, critDmg: (pa.critDmg || 0) + (bu.critDmg || 0),
     // skill cooldown reduction: DEX 0.15% per point + buffs/passives, capped at 60%
     cdr: Math.min(60, Math.round((st.dex * 0.15 + (pa.cdr || 0) + (bu.cdr || 0)) * 100) / 100)
   };
@@ -2811,8 +2814,8 @@ function pickTarget() {
 function skillRange(sk) {
   const D = P.D;
   if (!sk) return D.range;
-  if (sk.type === 'atk') return (sk.dmg === 'magic' || D.atkType !== 'melee') ? 210 : D.range + 8;
-  if (sk.type === 'aoe') return sk.self ? Math.max(D.range, sk.r * 0.7) : 210;
+  if (sk.type === 'atk') return (sk.dmg === 'magic' || D.atkType !== 'melee') ? 210 + (D.rangeBonus || 0) : D.range + 8;
+  if (sk.type === 'aoe') return sk.self ? Math.max(D.range, sk.r * 0.7) : 210 + (D.rangeBonus || 0);
   if (sk.type === 'combo') return sk.combo === 'sonic' ? D.range + 8 : 9999;
   return 9999;
 }
