@@ -5823,6 +5823,8 @@ function slotBtn(h, key) {
 function renderEquip() {
   if (!EQ.open || !S.hero) return;
   const h = S.hero, body = $('#eqBody'), st = body.scrollTop, D = derived();
+  // the bag's item list (.eqbagR) and character column (.eqbagL) scroll on their own and are rebuilt every render: remember their scroll position
+  const stR = (body.querySelector('.eqbagR') || {}).scrollTop || 0, stL = (body.querySelector('.eqbagL') || {}).scrollTop || 0;
   body.textContent = '';
   const mode = 'bag';   // one combined view: character + gear on the left, items on the right
   EQ.cat = EQ.cat || 'all';
@@ -5947,6 +5949,7 @@ function renderEquip() {
   for (let i = shown.length; i < (EQ.cat === 'all' ? invMax(h) + 2 : Math.max(9, Math.ceil(shown.length / 3) * 3)); i++) g.append(el('div', { class: 'tile empty' }));
   invHost.append(g);
   body.scrollTop = st; fitEqCv();
+  { const R = body.querySelector('.eqbagR'), L = body.querySelector('.eqbagL'); if (R) R.scrollTop = stR; if (L) L.scrollTop = stL; }
 }
 function drawEquipPreview(now) {
   if (!EQ.open || !EQ.cv || !S.hero) return;
