@@ -1177,8 +1177,8 @@ defSkill('ws_execute', 'whitesmith', 'ประหารเหล็กกล้
 defSkill('ws_quake', 'whitesmith', 'ขวานถล่มปฐพี', '🌋', 'aoe', { boom: 1, m: [3.2, 0.45], r: 150, self: true, hits: 3, sp: [42, 3], cd: 6, color: '#ff8f3d', fx: 'quake' });
 defSkill('ws_titan', 'whitesmith', 'พลังไททัน', '💪', 'buff', { b: { atk: 6, def: 3 }, dur: 90, sp: [35, 2], cd: 30, color: '#fff3c4' });
 
-const BUFF_TH = { bowPct: 'พลังธนู', critDmg: 'ความแรงคริ', pdmg: 'ดาเมจกายภาพ', mdmg: 'ดาเมจเวท', hit: 'HIT', msp: 'SP สูงสุด', cdr: 'ลดคูลดาวน์สกิล', watk: 'ATK', wmatk: 'MATK', str: 'STR', agi: 'AGI', vit: 'VIT', int: 'INT', luk: 'LUK', matkPct: 'MATK', atk: 'ATK', matk: 'MATK', aspd: 'ASPD%', def: 'DEF', crit: 'คริ', flee: 'หลบ', hpPct: 'HP สูงสุด', mspd: 'ความเร็วเดิน', atkPct: 'ATK', aspdPct: 'ASPD%', discount: 'ส่วนลดร้าน', dex: 'DEX' };
-const PCT_KEYS = { mspd: 1, bowPct: 1, critDmg: 1, pdmg: 1, mdmg: 1, cdr: 1, matkPct: 1, atk: 1, matk: 1, aspd: 1, hpPct: 1, atkPct: 1, aspdPct: 1, discount: 1, crit: 1 };
+const BUFF_TH = { bowPct: 'พลังธนู', critDmg: 'ความแรงคริ', pdmg: 'ดาเมจกายภาพ', mdmg: 'ดาเมจเวท', hit: 'HIT', msp: 'SP สูงสุด', cdr: 'ลดคูลดาวน์สกิล', watk: 'P.ATK', wmatk: 'M.ATK', mdef: 'M.DEF', defPct: 'P.DEF', mdefPct: 'M.DEF', spPct: 'SP สูงสุด', critRes: 'CRIT RES', critDmgRes: 'CRIT DMG RES', bossDmg: 'ดาเมจต่อบอส', hpRegen: 'ฟื้นฟู HP', spRegen: 'SP Recovery', str: 'STR', agi: 'AGI', vit: 'VIT', int: 'INT', luk: 'LUK', matkPct: 'M.ATK', atk: 'P.ATK', matk: 'M.ATK', aspd: 'ASPD%', def: 'P.DEF', crit: 'คริ', flee: 'หลบ', hpPct: 'HP สูงสุด', mspd: 'ความเร็วเดิน', atkPct: 'P.ATK', aspdPct: 'ASPD%', discount: 'ส่วนลดร้าน', dex: 'DEX' };
+const PCT_KEYS = { mspd: 1, bowPct: 1, critDmg: 1, pdmg: 1, mdmg: 1, cdr: 1, matkPct: 1, atk: 1, matk: 1, aspd: 1, hpPct: 1, atkPct: 1, aspdPct: 1, discount: 1, crit: 1, defPct: 1, mdefPct: 1, spPct: 1, critDmgRes: 1, bossDmg: 1 };
 
 /* ---------- monsters & maps ---------- */
 const ARCHES = ['blob', 'shroom', 'beast', 'bat', 'plant', 'bones', 'ghost', 'brute', 'drake'];
@@ -1981,31 +1981,64 @@ function derived(h) {
   for (const k of STATS) st[k] = h.stats[k] + (jb[k] || 0) + (pa[k] || 0) + (bu[k] || 0);
   const w = weaponOf(h.job, h.wstyle);
   const twoH = w === 'staff' || w === 'bow' || w === 'axe' || w === 'katar';
-  const watk = [12, 28, 52, 82][tier] * (twoH ? 1.25 : 1) + h.refineW * 5;
-  const base = L.atk === 'ranged'
+  const watk = [12, 28, 52, 82][tier] * (twoH ? 1.25 : 1);
+  const ranged = L.atk === 'ranged';
+  const base = ranged
     ? st.dex * 2 + Math.pow(Math.floor(st.dex / 10), 2) + st.str * 0.4 + st.luk * 0.3
     : st.str * 2 + Math.pow(Math.floor(st.str / 10), 2) + st.dex * 0.4 + st.luk * 0.3;
-  const atk = (base + watk + (pa.watk || 0) + h.level) * L.atkMod * (1 + ((pa.atkPct || 0) + (bu.atk || 0) + (L.atk === 'ranged' ? (pa.bowPct || 0) : 0)) / 100);
-  const wm = w === 'staff' ? [14, 34, 64, 98][tier] * 1.2 + h.refineW * 5 : w === 'mace' ? [8, 24, 46, 72][tier] + h.refineW * 4 : 0;
-  const matk = (st.int * 2 + Math.pow(Math.floor(st.int / 7), 2) + wm + (pa.wmatk || 0) + h.level) * (1 + ((pa.matkPct || 0) + (bu.matk || 0)) / 100);
+  // ---- Refine bonuses (shown separately, added on top of the stat/gear value) ----
+  const rPatk = h.refineW * 5 + (pa.rpatk || 0);
+  const rMatk = (w === 'staff' ? h.refineW * 5 : w === 'mace' ? h.refineW * 4 : 0) + (pa.rmatk || 0);
+  const rPdef = h.refineA * 3 + (pa.rpdef || 0), rMdef = pa.rmdef || 0;
+  // ---- % bonuses ----
+  const eqPatkPct = (pa.atkPct || 0) + (bu.atk || 0) + (ranged ? (pa.bowPct || 0) : 0), eqMatkPct = (pa.matkPct || 0) + (bu.matk || 0);
+  const eqPdefPct = pa.defPct || 0, eqMdefPct = pa.mdefPct || 0;
+  const hpPct = (pa.hpPct || 0) + h.refineA * 2, spPct = pa.spPct || 0;
+  // P.ATK / M.ATK = (stat + weapon + level + refine) x (1 + equipment%)
+  const atk = (((base + watk + (pa.watk || 0) + h.level) * L.atkMod) + rPatk) * (1 + eqPatkPct / 100);
+  const wm = w === 'staff' ? [14, 34, 64, 98][tier] * 1.2 : w === 'mace' ? [8, 24, 46, 72][tier] : 0;
+  const matk = (st.int * 2 + Math.pow(Math.floor(st.int / 7), 2) + wm + (pa.wmatk || 0) + h.level + rMatk) * (1 + eqMatkPct / 100);
   const hpMod = tier === 0 ? 1 : L.hp[ti], spMod = tier === 0 ? 1 : L.sp[ti];
-  const maxHp = Math.round((70 + 12 * h.level + 0.35 * h.level * h.level) * hpMod * (1 + st.vit / 100) * (1 + ((pa.hpPct || 0) + h.refineA * 2) / 100));
-  const maxSp = Math.round((20 + 4 * h.level) * spMod * (1 + st.int / 100) + (pa.msp || 0));
-  const def = Math.round(st.vit * 0.5 + h.refineA * 3 + (L.shield ? 5 * (tier + 1) : 0) + (pa.def || 0) + (bu.def || 0));
-  // ASPD = base ASPD (from AGI/job/weapon) + ASPD% bonuses added directly as points, capped at ASPD_MAX
+  const maxHp = Math.round((70 + 12 * h.level + 0.35 * h.level * h.level) * hpMod * (1 + st.vit / 100) * (1 + hpPct / 100));
+  const maxSp = Math.round(((20 + 4 * h.level) * spMod * (1 + st.int / 100) + (pa.msp || 0)) * (1 + spPct / 100));
+  // P.DEF cuts physical damage, M.DEF is the magic counterpart
+  const pdef = Math.round((st.vit * 0.5 + rPdef + (L.shield ? 5 * (tier + 1) : 0) + (pa.def || 0) + (bu.def || 0)) * (1 + eqPdefPct / 100));
+  const mdef = Math.round((st.int * 0.4 + st.vit * 0.2 + h.level * 0.3 + rMdef + (pa.mdef || 0) + (bu.mdef || 0)) * (1 + eqMdefPct / 100));
+  // ASPD = base ASPD (from AGI/job/weapon) + ASPD% bonuses added directly as points, capped at ASPD_MAX   (unchanged)
   const aspdBaseMs = Math.max(260, (1500 - st.agi * 7) * L.aspd * (w === 'katar' ? 1.08 : w === 'dual' ? 0.95 : 1));
   const aspdTot = Math.min(ASPD_MAX, 200 - ASPD_K * aspdBaseMs / 1000 + (pa.aspdPct || 0) + (bu.aspd || 0));
   const aspdMs = Math.max(ASPD_MIN_MS, (200 - aspdTot) / ASPD_K * 1000);
+  const maxHpF = Math.round(maxHp * ((W.map && W.map.pvp && h === S.hero) ? PVP_HP : 1));
+  const critPct = st.luk * 0.3 + L.crit + (w === 'katar' ? 8 : 0) + (pa.crit || 0) + (bu.crit || 0);   // crit chance %
+  const mspdGear = pa.mspd || 0;
   return {
     st, jb, w, atkType: L.atk, range: L.range,
-    atk: Math.round(atk), matk: Math.round(matk), maxHp: Math.round(maxHp * ((W.map && W.map.pvp && h === S.hero) ? PVP_HP : 1)), maxSp, def, aspdMs,
+    atk: Math.round(atk), matk: Math.round(matk), maxHp: maxHpF, maxSp, def: pdef, pdef, mdef, aspdMs,
+    rPatk, rMatk, rPdef, rMdef, hpPct, spPct, eqPatkPct, eqMatkPct, eqPdefPct, eqMdefPct, bossDmg: pa.bossDmg || 0,
+    hpRegen: maxHpF * 0.006 + st.vit * 0.08 + (pa.hpRegen || 0), spRegen: maxSp * 0.012 + st.int * 0.05 + (pa.spRegen || 0),
     hit: h.level + st.dex + 10 + (pa.hit || 0), flee: h.level + st.agi + L.flee + (pa.flee || 0) + (bu.flee || 0),
-    crit: st.luk * 0.3 + L.crit + (w === 'katar' ? 8 : 0) + (pa.crit || 0) + (bu.crit || 0),
+    crit: critPct,
+    critRes: Math.round(st.luk * 0.5 + h.level * 0.2 + (pa.critRes || 0)), critDmgRes: pa.critDmgRes || 0,
+    mspdGear, mspd: Math.round((115 + Math.min(40, st.agi * 0.4)) / 115 * (1 + ((bu.mspd || 0) + mspdGear) / 100) * 100),
     discount: Math.min(40, pa.discount || 0), pdmg: pa.pdmg || 0, mdmg: pa.mdmg || 0, critDmg: pa.critDmg || 0,
     // skill cooldown reduction: DEX 0.15% per point + buffs/passives, capped at 60%
-    cdr: Math.min(60, Math.round((st.dex * 0.15 + (pa.cdr || 0) + (bu.cdr || 0)) * 10) / 10)
+    cdr: Math.min(60, Math.round((st.dex * 0.15 + (pa.cdr || 0) + (bu.cdr || 0)) * 100) / 100)
   };
 }
+/* DMG_K: every hit on a monster/boss is multiplied by this, and every monster/boss spawns with the same multiple of its base HP.
+   Time-to-kill stays the same as before, but hits are in the reference-game range (crit ~ P.ATK x skill% x 1.69 x DMG_K).
+   PVP hits are NOT multiplied. Base HP values in the config/admin editor stay unscaled. */
+const DMG_K = 8.6;
+/* status panel layout: [group title, [label, getter(D), decimals, suffix]] */
+const ST_GROUPS = [
+  ['General Attribute', [['HP', (d) => d.maxHp, 0], ['SP', (d) => d.maxSp, 0], ['P.ATK', (d) => d.atk, 0], ['P.DEF', (d) => d.pdef, 0], ['M.ATK', (d) => d.matk, 0], ['M.DEF', (d) => d.mdef, 0],
+    ['Refine P.ATK', (d) => d.rPatk, 0], ['Refine P.DEF', (d) => d.rPdef, 0], ['Refine M.ATK', (d) => d.rMatk, 0], ['Refine M.DEF', (d) => d.rMdef, 0],
+    ['ฟื้นฟู HP', (d) => d.hpRegen, 0], ['SP Recovery', (d) => d.spRegen, 0], ['HIT', (d) => d.hit, 0], ['FLEE', (d) => d.flee, 0]]],
+  ['Attribute ระดับสูง', [['ASPD', (d) => aspdOf(d.aspdMs), 0], ['MSPD%', (d) => d.mspd, 0, '%'], ['ลดคูลดาวน์', (d) => d.cdr, 2, '%'], ['CRIT', (d) => d.crit, 1, '%'], ['CRIT RES', (d) => d.critRes, 0], ['CRIT DMG', (d) => d.critDmg, 2, '%'], ['CRIT DMG RES', (d) => d.critDmgRes, 2, '%']]],
+  ['Attribute พิเศษ', [['Max HP%', (d) => d.hpPct, 2, '%'], ['Max SP%', (d) => d.spPct, 2, '%'], ['Equipment P.ATK%', (d) => d.eqPatkPct, 2, '%'], ['Equipment M.ATK%', (d) => d.eqMatkPct, 2, '%'],
+    ['Equipment P.DEF%', (d) => d.eqPdefPct, 2, '%'], ['Equipment M.DEF%', (d) => d.eqMdefPct, 2, '%'], ['สร้าง DMG ต่อ BOSS เพิ่มขึ้น %', (d) => d.bossDmg, 2, '%']]]
+];
+const fmtSt = (v, dec, suf) => (dec ? v.toFixed(dec) : fmt(Math.round(v))) + (suf || '');
 const spCost = (sk, lv) => Math.round(sk.sp[0] + sk.sp[1] * lv);
 
 /* ---------- world ---------- */
@@ -2038,7 +2071,7 @@ function enterMap(id, silent, dmap) {
 }
 function makeMon(tpl, ti, x, y) {
   const size = tpl.raid ? 3.1 : tpl.boss ? 1.7 : (tpl.arch === 'brute' || tpl.arch === 'drake') ? 1.15 : 1.05;
-  return { uid: W.uid++, ti, id: tpl.id, name: tpl.name, arch: tpl.arch, color: tpl.color, lv: tpl.lv, hp: tpl.hp, maxHp: tpl.hp,
+  return { uid: W.uid++, ti, id: tpl.id, name: tpl.name, arch: tpl.arch, color: tpl.color, lv: tpl.lv, hp: Math.round(tpl.hp * DMG_K), maxHp: Math.round(tpl.hp * DMG_K),
     atk: tpl.atk, def: tpl.def, bexp: tpl.bexp, jexp: tpl.jexp, gold: tpl.gold, aggro: tpl.aggro, boss: tpl.boss, raid: !!tpl.raid, mdl: tpl.mdl || '', size,
     x, y, dir: Math.random() < 0.5 ? -1 : 1, state: 'idle', wx: x, wy: y, idleT: Math.random() * 2, atkT: 1.2, hitT: 0, lungeT: 0,
     angry: false, tgt: null, atkN: 0, seed: Math.random() * 10, alpha: 0, moving: false, dieT: 0 };
@@ -2246,6 +2279,7 @@ function rollPhys(mult, tg, forceCrit) {
   let dmg = D.atk * mult * (0.9 + Math.random() * 0.2);
   dmg = crit ? dmg * (1.5 + (D.critDmg || 0) / 100) : dmg * 100 / (100 + tg.def);
   dmg *= 1 + (D.pdmg || 0) / 100;
+  if (tg.boss) dmg *= 1 + (D.bossDmg || 0) / 100;
   return { dmg: Math.max(1, Math.round(dmg)), crit };
 }
 function rollMagic(mult, tg, forceCrit) {
@@ -2254,6 +2288,7 @@ function rollMagic(mult, tg, forceCrit) {
   let dmg = D.matk * mult * (0.92 + Math.random() * 0.16);
   dmg = crit ? dmg * (1.5 + (D.critDmg || 0) / 100) : dmg * 100 / (100 + tg.def * 0.6);
   dmg *= 1 + (D.mdmg || 0) / 100;
+  if (tg.boss) dmg *= 1 + (D.bossDmg || 0) / 100;
   return { dmg: Math.max(1, Math.round(dmg)), crit, magic: true };
 }
 function applyHit(tg, res, hits) {
@@ -2262,6 +2297,7 @@ function applyHit(tg, res, hits) {
   if (res.miss) { addNum(tg.x, tg.y - 34 * s, 'MISS', '#c8d0dc', 12, { dmg: true, tk: tg.uid, tg, oy: -34 * s, dur: 1.2 }); AU.sfx('miss'); return; }
   hits = Math.max(1, hits | 0);
   if (tg.pvp) { pvpHit(tg, res, hits); return; }
+  res = Object.assign({}, res, { dmg: Math.round(res.dmg * DMG_K) });   // monsters/bosses: scaled damage vs scaled HP
   const per = Math.max(1, Math.round(res.dmg / hits));
   for (let i = 0; i < hits; i++) {
     later(i * 0.075, () => {
@@ -2736,7 +2772,7 @@ function autoAct() {
 function moveToward(x, y, dt, stop) {
   const dx = x - P.x, dy = y - P.y, d = Math.hypot(dx, dy);
   if (d <= stop) return false;
-  const sp = (115 + Math.min(40, P.D.st.agi * 0.4)) * (1 + (buffSum().mspd || 0) / 100) * ((P.slowUntil || 0) > W.t ? 0.55 : 1), k = Math.min(d - stop, sp * dt) / d;
+  const sp = (115 + Math.min(40, P.D.st.agi * 0.4)) * (1 + ((buffSum().mspd || 0) + (P.D.mspdGear || 0)) / 100) * ((P.slowUntil || 0) > W.t ? 0.55 : 1), k = Math.min(d - stop, sp * dt) / d;
   P.x += dx * k; P.y += dy * k; P.dir = dx >= 0 ? 1 : -1;
   const b = bounds(); P.x = clamp(P.x, b.x0, b.x1); P.y = clamp(P.y, b.y0, b.y1);
   if (isTown()) [P.x, P.y] = townPush(P.x, P.y, 12);
@@ -2792,8 +2828,8 @@ function update(dt) {
   if (NET.isHost) updateMons(dt); else mirrorMons(dt);
   dgTick();
   if (P.dead) { $('#deadT').textContent = Math.max(1, Math.ceil(P.deadUntil - W.t)); if (W.t >= P.deadUntil) respawn(); return; }
-  P.hp = Math.min(D.maxHp, P.hp + (D.maxHp * 0.006 + D.st.vit * 0.08) * dt);
-  P.sp = Math.min(D.maxSp, P.sp + (D.maxSp * 0.012 + D.st.int * 0.05) * dt);
+  P.hp = Math.min(D.maxHp, P.hp + D.hpRegen * dt);
+  P.sp = Math.min(D.maxSp, P.sp + D.spRegen * dt);
   P.atkT -= dt;
   if (P.combo && P.combo.kind === 'star') { const el = W.t - P.combo.t0; P.air = 1.2 * clamp(Math.min((el - 0.05) / 0.25, (P.combo.total - el) / 0.15), 0, 1); } else P.air = 0;   // rises into the air for Star Slash
   if (P.dash) { const d = P.dash, k = clamp((W.t - d.t0) / d.dur, 0, 1); P.x = d.x1 + (d.x2 - d.x1) * k; P.y = d.y1 + (d.y2 - d.y1) * k; if (k >= 1) P.dash = null; }
@@ -5674,11 +5710,11 @@ function gearSum(h) {
   }
   for (const sid in sets) { const b = setBonus(DG_SETS[sid].t, sets[sid]); if (b) add(b); }
   const R = h.ref || {}, on = (k) => h.eq && h.eq[k] ? R[k] || 0 : 0;
-  for (const k of ['ring1', 'ring2']) { const r = on(k); if (r) add({ watk: 3 * r, wmatk: 3 * r }); }
-  for (const k of ['head', 'face', 'mouth']) { const r = on(k); if (r) add({ def: r }); }
-  { const r = on('shoes'); if (r) add({ def: r, flee: r }); }
-  { const r = on('wings'); if (r) add({ def: r, hpPct: r }); }
-  { const r = R.off || 0; if (r && dualNow(h)) add({ watk: 4 * r }); else if (r && shieldUser(h)) add({ def: 2 * r }); }
+  for (const k of ['ring1', 'ring2']) { const r = on(k); if (r) add({ rpatk: 3 * r, rmatk: 3 * r }); }
+  for (const k of ['head', 'face', 'mouth']) { const r = on(k); if (r) add({ rpdef: r }); }
+  { const r = on('shoes'); if (r) add({ rpdef: r, flee: r }); }
+  { const r = on('wings'); if (r) add({ rpdef: r, hpPct: r }); }
+  { const r = R.off || 0; if (r && dualNow(h)) add({ rpatk: 4 * r }); else if (r && shieldUser(h)) add({ rpdef: 2 * r }); }
   return o;
 }
 function setInfo(h, sid) { let n = 0; for (const k of Object.keys(SLOT_TH)) { const s = h.eq && h.eq[k]; if (s && s.id && GEAR[s.id] && GEAR[s.id].set === sid) n++; } return n; }
@@ -5803,7 +5839,7 @@ function eqStats(h, D) {
   const six = el('div', { class: 'eqsix' });
   for (const k of STATS) { const v = h.stats[k], b = D.st[k] - v; six.append(el('div', null, k.toUpperCase(), el('b', null, String(v), b > 0 ? el('em', { text: '+' + b }) : null))); }
   const kv = el('div', { class: 'eqkv' });
-  [['ATK', fmt(D.atk)], ['MATK', fmt(D.matk)], ['DEF', fmt(D.def)], ['HIT', fmt(D.hit)], ['FLEE', fmt(D.flee)], ['CRIT', D.crit.toFixed(1) + '%'], ['ASPD', String(aspdOf(D.aspdMs))], ['ลดคูลดาวน์', D.cdr.toFixed(1) + '%']]
+  [['P.ATK', fmt(D.atk)], ['M.ATK', fmt(D.matk)], ['P.DEF', fmt(D.pdef)], ['M.DEF', fmt(D.mdef)], ['HIT', fmt(D.hit)], ['FLEE', fmt(D.flee)], ['CRIT', D.crit.toFixed(1) + '%'], ['ASPD', String(aspdOf(D.aspdMs))], ['ลดคูลดาวน์', D.cdr.toFixed(1) + '%']]
     .forEach(([a, b]) => kv.append(el('div', null, el('span', { text: a }), el('b', { text: b }))));
   return el('div', { class: 'eqstats' },
     el('div', { class: 'eqst-h' }, el('b', { text: h.name }), el('small', { text: jobName(h.job) + '  Base ' + h.level + '  Job ' + h.jobLv })),
@@ -8844,11 +8880,12 @@ function panelStats(body) {
     el('button', { class: 'mini' + (STX.tab === 'up' ? ' on' : ''), text: '📊 อัพสเตตัส', onclick: () => { STX.tab = 'up'; renderSheet(); } }),
     el('button', { class: 'mini' + (STX.tab === 'val' ? ' on' : ''), text: '📈 ค่าสถานะ', onclick: () => { STX.tab = 'val'; renderSheet(); } })));
   if (STX.tab === 'val') {
-    const g = el('div', { class: 'stv' });
-    [['ATK', fmt(D.atk)], ['MATK', fmt(D.matk)], ['DEF', fmt(D.def)], ['HIT', fmt(D.hit)], ['FLEE', fmt(D.flee)], ['CRIT', D.crit.toFixed(1) + '%'],
-     ['ASPD', aspdOf(D.aspdMs) + (aspdOf(D.aspdMs) >= ASPD_MAX ? ' (MAX)' : '')], ['ลดคูลดาวน์', D.cdr.toFixed(1) + '%'], ['MAX HP', fmt(D.maxHp)], ['MAX SP', fmt(D.maxSp)]]
-      .forEach(([a, b]) => g.append(el('div', null, el('span', { text: a }), el('b', { text: b }))));
-    body.append(g);
+    for (const [title, rowsG] of ST_GROUPS) {
+      body.append(el('div', { class: 'stsec', text: title }));
+      const g = el('div', { class: 'stv' });
+      for (const [lab, f, dec, suf] of rowsG) g.append(el('div', null, el('span', { text: lab }), el('b', { text: fmtSt(f(D), dec || 0, suf) })));
+      body.append(g);
+    }
     return;
   }
   const rows = [];
@@ -8906,8 +8943,7 @@ function panelStatsFull(body) {
     bar('bx', 'Base', bx, 'Lv ' + h.level + ' (' + Math.floor(clamp(bx, 0, 1) * 100) + '%)'), bar('jx', 'Job', jx, 'Lv ' + h.jobLv + ' (' + Math.floor(clamp(jx, 0, 1) * 100) + '%)'))));
   body.append(el('div', { class: 'stsec', text: '📊 อัพสเตตัส' }));
   const rows = [], ptsEl = el('b'), okBtn = el('button', { class: 'mini pri', text: 'ยืนยัน' }), autoBtn = el('button', { class: 'mini', text: 'จัดอัตโนมัติ', onclick: () => { STX.pend = {}; autoAlloc(); } });
-  const VALS = [['ATK', (d) => d.atk, 0], ['MATK', (d) => d.matk, 0], ['DEF', (d) => d.def, 0], ['HIT', (d) => d.hit, 0], ['FLEE', (d) => d.flee, 0], ['CRIT', (d) => d.crit, 1, '%'],
-    ['ASPD', (d) => aspdOf(d.aspdMs), 0], ['ลดคูลดาวน์', (d) => d.cdr, 1, '%'], ['MAX HP', (d) => d.maxHp, 0], ['MAX SP', (d) => d.maxSp, 0]];
+  const VALS = ST_GROUPS.flatMap((g) => g[1]);
   const vcells = VALS.map(([a]) => el('b'));
   const upd = () => {
     const left = h.statPts - stPendCost(h), PD = stPreview();
@@ -8919,9 +8955,9 @@ function panelStatsFull(body) {
       r.plus.disabled = v >= STAT_MAX || left < cost; r.minus.disabled = pend <= 0;
     }
     VALS.forEach(([, f, dec, suf], i) => {
-      const a = f(D), b = f(PD), df = Math.round((b - a) * Math.pow(10, dec)) / Math.pow(10, dec), c = vcells[i];
-      c.textContent = (dec ? a.toFixed(dec) : fmt(a)) + (suf || '');
-      if (df > 0) c.append(el('em', { text: '+' + (dec ? df.toFixed(dec) : fmt(df)) + (suf || '') }));
+      const dc = dec || 0, a = f(D), b = f(PD), df = Math.round((b - a) * Math.pow(10, dc)) / Math.pow(10, dc), c = vcells[i];
+      c.textContent = fmtSt(a, dc, suf);
+      if (df > 0) c.append(el('em', { text: '+' + fmtSt(df, dc, suf) }));
     });
     ptsEl.textContent = String(left); const sp = stPendCost(h);
     okBtn.disabled = sp === 0; okBtn.textContent = 'ยืนยัน' + (sp ? ' (' + sp + ')' : ''); autoBtn.disabled = h.statPts < 2;
@@ -8934,8 +8970,7 @@ function panelStatsFull(body) {
     rows.push({ k, v, c, plus, minus });
     body.append(el('div', { class: 'strow2' }, el('div', { class: 'n', text: k.toUpperCase() }), v, c, el('div', { class: 'pm' }, minus, plus)));
   }
-  body.append(el('div', { class: 'stsec', text: '📈 ค่าสถานะ' }));
-  const g = el('div', { class: 'stv' }); VALS.forEach(([a], i) => g.append(el('div', null, el('span', { text: a }), vcells[i]))); body.append(g);
+  { let vi = 0; for (const [title, rowsG] of ST_GROUPS) { body.append(el('div', { class: 'stsec', text: '📈 ' + title })); const g = el('div', { class: 'stv' }); for (const [a] of rowsG) g.append(el('div', null, el('span', { text: a }), vcells[vi++])); body.append(g); } }
   okBtn.addEventListener('click', () => {
     for (const k of STATS) for (let i = 0; i < (STX.pend[k] || 0); i++) { const c = statCost(h.stats[k]); if (h.statPts < c || h.stats[k] >= STAT_MAX) break; h.statPts -= c; h.stats[k]++; }
     STX.pend = {}; P.D = derived(); S.dirty = true; hudText(); renderSheet(); toast('บันทึกสเตตัสแล้ว');
@@ -8975,7 +9010,7 @@ function skillDetail(sk) {
   const rows = [];
   rows.push(['ผลของสกิล', lv ? skillDesc(sk, lv) : 'ยังไม่ได้เรียน'], ['ขั้นต่อไป (Lv ' + Math.min(sk.maxLv, lv + 1) + ')', lv >= sk.maxLv ? 'เลเวลสูงสุดแล้ว' : skillDesc(sk, lv + 1)]);
   if (sk.m && (sk.type === 'atk' || sk.type === 'aoe' || sk.type === 'combo')) {
-    const base = sk.dmg === 'magic' ? D.matk : D.atk, one = (l) => Math.round((sk.m[0] + sk.m[1] * l) * base * (sk.hits > 1 && sk.type !== 'combo' ? sk.hits : 1));
+    const base = (sk.dmg === 'magic' ? D.matk : D.atk) * DMG_K, one = (l) => Math.round((sk.m[0] + sk.m[1] * l) * base * (sk.hits > 1 && sk.type !== 'combo' ? sk.hits : 1));
     const hits = sk.type === 'combo' ? sk.hits : 1;
     rows.push(['ดาเมจโดยประมาณ', (lv ? fmt(one(lv) * hits) : '-') + (lv < sk.maxLv ? '  →  ' + fmt(one(lv + 1) * hits) : '') + ' (ไม่รวมป้องกัน/คริ)']);
   }
