@@ -6640,6 +6640,22 @@ function rollDgItem(dg, forceR, forceId, forceSk) {
   const sk = id.startsWith('r_') && (forceSk != null ? forceSk === 2 : Math.random() * 100 < CONFIG.dgRing2) ? { sk: 2 } : {};
   return Object.assign(gearItem(id), { r, o }, vs ? { v: vs[(Math.random() * vs.length) | 0] } : {}, sk);
 }
+/* ---------- dungeon drop chances (each slot rolls on its own) ---------- */
+const DG_DROP = [['w', '🗡️', 50], ['a', '🧥', 50], ['s', '👢', 50], ['sh', '🛡️', 50], ['r', '💍', 15]];
+function rollDgSlot(dg, k) {
+  const WK = DG_LINES.concat('katar');
+  return rollDgItem(dg, 0, k === 'w' ? 'w_' + dg.id + '_' + WK[(Math.random() * WK.length) | 0] : k + '_' + dg.id);
+}
+function dgDropN(dg) { return dg.minLv >= 100 ? 2 : 1; }
+function rollDgLoot(dg) {
+  const out = [], tot = DG_DROP.reduce((x, d) => x + d[2], 0);
+  for (let i = 0; i < dgDropN(dg); i++) {
+    let r = Math.random() * tot, k = DG_DROP[0][0];
+    for (const d of DG_DROP) { if (r < d[2]) { k = d[0]; break; } r -= d[2]; }
+    const it = rollDgSlot(dg, k); if (it) out.push(it);
+  }
+  return out;
+}
 // field bosses: a set ring matching the boss level
 function fieldBossRing(tpl, sk) {
   const list = CONFIG.dungeons.filter((d) => GEAR['r_' + d.id]).sort((a, b) => a.minLv - b.minLv); if (!list.length) return null;
@@ -6859,8 +6875,7 @@ function raidVictory(tpl) {
   DG.state = 2;
   const dg = dgDef(W.map.dg); if (!dg) return;
   const h = S.hero, got = [];
-  const n = 1 + (Math.random() < 0.35 ? 1 : 0);
-  for (let i = 0; i < n; i++) { const it = rollDgItem(dg); if (it && addItem(it, 1)) got.push(it); }
+  for (const it of rollDgLoot(dg)) if (addItem(it, 1)) got.push(it);
   if (Math.random() * 100 < CONFIG.dgBossCard) { const c = dropCard(tpl); if (addItem(c, 1)) got.push(c); }
   const g = Math.round(1500 * dg.diff * dg.diff * CONFIG.rates.gold); h.gold += g;
   const no = dg.diff + 1 + (Math.random() * 2 | 0); if (addItem(oreItem('ori'), no)) got.push(Object.assign(oreItem('ori'), { n: no })); if (addItem(oreItem('elu'), no)) got.push(Object.assign(oreItem('elu'), { n: no }));
@@ -6988,7 +7003,7 @@ function monPortrait(tpl) {
     }
   } catch (e) { /* fall through to the emoji */ }
   ART.tries[k] = (ART.tries[k] || 0) + 1;   // the model may still be loading: look again shortly
-  if (ART.tries[k] < 12 && !ART.retry) ART.retry = setTimeout(() => { ART.retry = 0; renderSheetIfOpen(); }, 500);
+  if (ART.tries[k] < 12 && !ART.retry) ART.retry = setTimeout(() => { ART.retry = 0; renderSheetIfOpen(); if (document.getElementById('dgScr')) dgScreenRender(); }, 500);
   return '';
 }
 const portEl = (tpl, fb, cls) => { const u = monPortrait(tpl); return u ? el('img', { class: cls || 'port', src: u, alt: '' }) : el('span', { class: (cls || 'port') + ' ph', text: fb || '👾' }); };
@@ -7018,7 +7033,7 @@ function panelDungeon(body) {
   const chips = el('div', { class: 'rchips' });
   dg.rar.forEach((w, i) => { if (w > 0) chips.append(el('span', { class: 'rchip', style: '--rc:' + RAR[i + 1].col, text: RAR[i + 1].nm + ' ' + Math.round(w / tot * 100) + '%' })); });
   const rw = el('div', { class: 'dgx-rw' });
-  for (const [ic, nm, pc] of [['🗡️', 'อาวุธ' + set, '30%'], ['🧥', 'เกราะ', '20%'], ['👢', 'รองเท้า', '17%'], ['💍', 'แหวน', '17%'], ['🛡️', 'โล่', '16%'], ['🃏', 'การ์ดบอส', CONFIG.dgBossCard + '%']])
+  for (const [ic, nm, pc] of [['🗡️', 'อาวุธ' + set, '50%'], ['🧥', 'เกราะ', '50%'], ['👢', 'รองเท้า', '50%'], ['🛡️', 'โล่', '50%'], ['💍', 'แหวน', '15%'], ['🃏', 'การ์ดบอส', CONFIG.dgBossCard + '%']])
     rw.append(el('div', { class: 'dgx-r' }, el('span', { class: 'ic', text: ic }), el('b', { text: pc }), el('small', { text: nm })));
   const bgU = groundArt(dg.theme, 380, 210, dg.id);
   const ban = el('div', { class: 'dgx-ban', style: 'background-image:linear-gradient(180deg,rgba(14,12,40,.1),rgba(14,12,40,.82))' + (bgU ? ',url(' + bgU + ')' : '') },
@@ -7031,6 +7046,97 @@ function panelDungeon(body) {
       el('div', { text: '🗝️ กุญแจดันเจี้ยน มี ' + kc + ' ดอก (ดรอปจากมอนทุกแผนที่ ' + CONFIG.keyChance + '%)' })),
     el('div', { class: 'dgx-foot' }, el('small', { text: 'บอสเลือดเพิ่มตามจำนวนคน ของดรอปสุ่มแยกให้ทุกคน อาวุธ 6 สายอาชีพ โอกาสเท่ากัน' }), go));
   body.append(el('div', { class: 'dgx' }, L, det));
+}
+
+/* ---------- dungeon full-screen UI ---------- */
+const DGS = { timer: 0 };
+function openDgScreen() {
+  closeSheet(); closeDgScreen();
+  if (!document.getElementById('dgsCss')) {
+    const st = document.createElement('style'); st.id = 'dgsCss';
+    st.textContent = `
+#dgScr{position:fixed;inset:0;z-index:8000;display:flex;flex-direction:column;background:linear-gradient(180deg,#1b1747,#0f0c2c);color:#fff;padding-top:env(safe-area-inset-top);padding-bottom:env(safe-area-inset-bottom)}
+#dgScr .dtop{display:flex;align-items:center;justify-content:space-between;padding:12px 14px;background:linear-gradient(#62b8ff,#2a7fe6);box-shadow:0 3px 0 rgba(0,0,0,.3)}
+#dgScr .dtop b{font-size:1.2rem}
+#dgScr .dx{width:44px;height:44px;border-radius:50%;border:0;background:linear-gradient(#ffb347,#f57c00);color:#fff;font-size:1.4rem;font-weight:900;box-shadow:0 3px 0 #b55400;cursor:pointer}
+#dgScr .dscroll{flex:1;overflow-y:auto;padding:12px 14px;display:flex;flex-direction:column;gap:12px}
+#dgScr .dparty{padding:10px 12px;border-radius:12px;background:rgba(255,160,60,.18);border:1px solid #ffb347;display:flex;flex-direction:column;gap:3px;font-size:.85rem}
+#dgScr .dparty.ok{background:rgba(80,200,120,.18);border-color:#6bdc8b}
+#dgScr .dparty small{opacity:.85;font-size:.72rem;line-height:1.4}
+#dgScr .dlist{display:flex;gap:10px;overflow-x:auto;padding:4px 2px 8px;flex:none}
+#dgScr .ditem{position:relative;flex:0 0 150px;height:96px;border-radius:14px;border:2px solid #514ca8;background-size:cover;background-position:center;color:#fff;text-align:left;padding:8px;display:flex;flex-direction:column;align-items:flex-start;gap:2px;overflow:hidden;cursor:pointer}
+#dgScr .ditem .nm{font-weight:700;font-size:.85rem;line-height:1.2;z-index:1;text-shadow:0 2px 4px #000}
+#dgScr .ditem small{font-size:.7rem;z-index:1;opacity:.9}
+#dgScr .ditem .ip{position:absolute;right:-6px;bottom:-8px;width:64px;height:64px;object-fit:contain}
+#dgScr .ditem .ip.ph{font-size:2rem;text-align:center;line-height:64px}
+#dgScr .ditem.on{border-color:#ffd983;box-shadow:0 0 0 2px #f0b24a,0 0 18px rgba(240,178,74,.5)}
+#dgScr .dban{position:relative;height:min(38vh,260px);flex:none;border-radius:16px;border:2px solid #514ca8;background-size:cover;background-position:center;overflow:hidden}
+#dgScr .dbt{position:absolute;left:14px;top:12px;display:flex;flex-direction:column;gap:6px;z-index:1}
+#dgScr .dbt b{font-size:1.4rem;text-shadow:0 2px 6px #000}
+#dgScr .ddiff{align-self:flex-start;padding:2px 10px;border-radius:999px;font-size:.75rem;font-weight:700;color:#241406}
+#dgScr .dbp{position:absolute;right:4px;bottom:-4px;height:92%;max-width:60%;object-fit:contain;filter:drop-shadow(0 6px 8px rgba(0,0,0,.6))}
+#dgScr .dbp.ph{font-size:5rem;text-align:center;line-height:1}
+#dgScr .dsub{font-weight:700;color:#ffd983;font-size:.95rem}
+#dgScr .drw{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+#dgScr .dr{display:flex;flex-direction:column;align-items:center;padding:8px 2px;border-radius:12px;background:linear-gradient(180deg,#38347c,#2a2758);border:1px solid #4d48a6}
+#dgScr .dr .ic{font-size:1.6rem}#dgScr .dr b{color:#ffd983;font-size:.95rem}#dgScr .dr small{font-size:.68rem;opacity:.85;text-align:center}
+#dgScr .dchips{display:flex;flex-wrap:wrap;gap:6px}
+#dgScr .dchip{padding:3px 10px;border-radius:999px;border:1px solid var(--rc);color:var(--rc);font-weight:700;font-size:.8rem;background:rgba(0,0,0,.3)}
+#dgScr .dinfo{font-size:.82rem;display:flex;flex-direction:column;gap:4px;opacity:.92;line-height:1.45}
+#dgScr .dfoot{padding:10px 14px 14px;display:flex;flex-direction:column;gap:6px;background:rgba(0,0,0,.35)}
+#dgScr .dfoot small{font-size:.7rem;opacity:.8}
+#dgScr .dgo{padding:15px;border-radius:14px;border:1px solid #ffe6ae;background:linear-gradient(180deg,#ffd983,#f0a93a);color:#3a2306;font-weight:800;font-size:1.15rem;box-shadow:0 4px 0 #9a6414;cursor:pointer}
+#dgScr .dgo:disabled{filter:grayscale(.7) brightness(.8);box-shadow:0 2px 0 #3a3a3a}`;
+    document.head.append(st);
+  }
+  const scr = document.createElement('div'); scr.id = 'dgScr';
+  document.body.append(scr); dgScreenRender();
+  DGS.timer = setInterval(() => { if (!document.getElementById('dgScr')) { clearInterval(DGS.timer); return; } dgScreenRender(); }, 2500);
+}
+function closeDgScreen() { clearInterval(DGS.timer); const s = document.getElementById('dgScr'); if (s) s.remove(); }
+function dgScreenRender() {
+  const scr = document.getElementById('dgScr'); if (!scr) return;
+  const old = scr.querySelector('.dscroll'), oldL = scr.querySelector('.dlist'), st = old ? old.scrollTop : 0, sl = oldL ? oldL.scrollLeft : 0;
+  scr.textContent = '';
+  const h = S.hero;
+  scr.append(el('div', { class: 'dtop' }, el('b', { text: '🏰 ดันเจี้ยน' }), el('button', { class: 'dx', text: '✕', 'aria-label': 'ปิด', onclick: closeDgScreen })));
+  const list = CONFIG.dungeons.filter((d) => d.on);
+  if (!list.some((d) => d.id === DGX.sel)) { const f = list.filter((d) => h.level >= d.minLv).pop() || list[0]; DGX.sel = f ? f.id : ''; }
+  const dg = list.find((d) => d.id === DGX.sel); if (!dg) return;
+  const ps = partySize(), cp = CONFIG.party, okP = ps >= cp.min;
+  const sc = el('div', { class: 'dscroll' });
+  if (isDg()) {
+    const cur = dgDef(W.map.dg);
+    sc.append(el('div', { class: 'dparty ok' }, el('b', { text: 'ตอนนี้อยู่ใน ' + (cur ? cur.name : 'ดันเจี้ยน') + (DG.state === 2 ? '  (เคลียร์แล้ว)' : '') })),
+      el('button', { class: 'dgo', text: '🚪 ออกจากดันเจี้ยน', onclick: () => { closeDgScreen(); leaveDungeon(); } }));
+    scr.append(sc); return;
+  }
+  sc.append(el('div', { class: 'dparty' + (okP ? ' ok' : '') }, el('b', { text: (okP ? '✅ ' : '⚠️ ') + 'ปาร์ตี้ออนไลน์ ' + ps + '/' + cp.max + ' คน' }),
+    el('small', { text: 'ต้องมาเป็นปาร์ตี้ ' + cp.min + '–' + cp.max + ' คน ชวนเพื่อนได้ที่ปุ่ม 👥 ผู้เล่น หัวหน้า 👑 กดเข้า สมาชิกทุกคนต้องกดยืนยันและมีกุญแจคนละ 1 ดอก' })));
+  const L = el('div', { class: 'dlist' });
+  for (const d of list) {
+    const bt = dgBossTpl(d), u = groundArt(d.theme, 240, 90, d.id);
+    L.append(el('button', { class: 'ditem' + (d.id === DGX.sel ? ' on' : ''), style: 'background-image:linear-gradient(90deg,rgba(14,12,40,.2),rgba(14,12,40,.86))' + (u ? ',url(' + u + ')' : ''), onclick: () => { DGX.sel = d.id; dgScreenRender(); } },
+      portEl(bt, '👹', 'ip'), el('span', { class: 'nm', text: d.name }), el('small', { text: 'Lv.' + d.minLv + '+' + (h.level < d.minLv ? ' 🔒' : '') })));
+  }
+  sc.append(L);
+  const kc = keyCount(), low = h.level < dg.minLv, tot = dg.rar.reduce((x, y) => x + y, 0) || 1, bt = dgBossTpl(dg), set = DG_SETS[dg.id] ? DG_SETS[dg.id].nm : '';
+  const bgU = groundArt(dg.theme, 380, 210, dg.id);
+  sc.append(el('div', { class: 'dban', style: 'background-image:linear-gradient(180deg,rgba(14,12,40,.1),rgba(14,12,40,.82))' + (bgU ? ',url(' + bgU + ')' : '') },
+    el('div', { class: 'dbt' }, el('b', { text: dg.name }), el('span', { class: 'ddiff', style: 'background:' + DIFF_COL[dg.diff], text: DIFF_TH[dg.diff] })), portEl(bt, '👹', 'dbp')));
+  sc.append(el('div', { class: 'dsub', text: 'ของดรอป  ชุด' + set }));
+  const rw = el('div', { class: 'drw' }), nmOf = { w: 'อาวุธ' + set, a: 'เกราะ', s: 'รองเท้า', sh: 'โล่', r: 'แหวน' };
+  for (const [k, ic, pc] of DG_DROP) rw.append(el('div', { class: 'dr' }, el('span', { class: 'ic', text: ic }), el('b', { text: pc + '%' }), el('small', { text: nmOf[k] })));
+  rw.append(el('div', { class: 'dr' }, el('span', { class: 'ic', text: '🃏' }), el('b', { text: CONFIG.dgBossCard + '%' }), el('small', { text: 'การ์ดบอส' })));
+  const chips = el('div', { class: 'dchips' });
+  dg.rar.forEach((w, i) => { if (w > 0) chips.append(el('span', { class: 'dchip', style: '--rc:' + RAR[i + 1].col, text: RAR[i + 1].nm + ' ' + Math.round(w / tot * 100) + '%' })); });
+  sc.append(rw, chips, el('div', { class: 'dinfo' }, el('div', { text: '👹 บอส ' + dg.boss + '  Lv.' + dg.bossLv }), el('div', { text: '⚔️ สกิลบอส: ' + dg.skills.map((x) => DG_SKILL_TH[x]).join(' · ') }),
+    el('div', { text: '🗝️ กุญแจดันเจี้ยน มี ' + kc + ' ดอก (ดรอปจากมอนทุกแผนที่ ' + CONFIG.keyChance + '%)' })));
+  scr.append(sc);
+  const label = low ? 'ต้อง Lv.' + dg.minLv : kc < 1 ? 'ไม่มีกุญแจ' : !okP ? 'ต้องมีปาร์ตี้ ' + cp.min + ' คน' : hasMates() && !isLeader() ? 'รอหัวหน้ากดเข้า' : hasMates() ? '👑 เรียกปาร์ตี้เข้า' : 'เข้า';
+  scr.append(el('div', { class: 'dfoot' }, el('small', { text: 'บอสเลือดเพิ่มตามจำนวนคน ของดรอปสุ่มแยกให้ทุกคน ' + dgDropN(dg) + ' ชิ้นต่อรอบ สุ่มว่าจะเป็นชิ้นไหนตามโอกาส อาวุธ 6 สายอาชีพ โอกาสเท่ากัน' }),
+    el('button', { class: 'dgo', text: label, disabled: low || kc < 1 || !okP || P.dead || (hasMates() && !isLeader()), onclick: () => { closeDgScreen(); enterDungeon(dg.id); } })));
+  const nl = scr.querySelector('.dlist'), ns = scr.querySelector('.dscroll'); if (nl) nl.scrollLeft = sl; if (ns) ns.scrollTop = st;
 }
 
 /* ---------- auras ---------- */
@@ -8631,6 +8737,7 @@ const PANELS = {
   npc_gacha: ['🎰 ตู้กาชา', panelGacha], pvp: ['⚔️ ห้อง PVP', panelPvp], dgresult: ['🏆 ผลงานในดันเจี้ยน', panelDgResult], album: ['📖 อัลบั้มการ์ด', panelAlbum], gmgive: ['🎁 ส่งของให้ผู้เล่น', panelGmGive], offline: ['💤 ฟามออฟไลน์', panelOffline], auto: ['โหมดออโต้', panelAuto], online: ['ผู้เล่นและปาร์ตี้', panelOnline], sound: ['ตั้งค่า', panelSound], chat: ['แชท', panelChat]
 };
 function openPanel(name) {
+  if (name === 'dungeon') { openDgScreen(); return; }
   if (name === 'npc_gacha') { openGacha(); return; }
   if (name === 'rank' || name === 'gm') loadPlayers();
   if (name === 'bag' || name === 'equip') { openEquip(name === 'bag' ? 'bag' : 'eq'); return; }
@@ -8649,7 +8756,7 @@ function renderSheet() {
   body.textContent = ''; PANELS[S.sheet][1](body); body.scrollTop = st;
 }
 function renderSheetIfOpen() { if (S.sheet === 'stats' && STX.holding) return; if (S.sheet && S.sheet !== 'gm' && !$('#sheetWrap').hidden) renderSheet(); }
-function closeSheet() { document.querySelectorAll('#sheetWrap > .skpw').forEach((n) => n.remove()); $('#sheetWrap').classList.remove('skl'); statCamOff(); $('#sheetWrap').classList.remove('stat'); $('#sheetWrap').hidden = true; S.sheet = null; $('#sheetWrap').classList.remove('side'); document.body.classList.remove('npctalk'); R3.focus = null; }
+function closeSheet() { closeDgScreen(); document.querySelectorAll('#sheetWrap > .skpw').forEach((n) => n.remove()); $('#sheetWrap').classList.remove('skl'); statCamOff(); $('#sheetWrap').classList.remove('stat'); $('#sheetWrap').hidden = true; S.sheet = null; $('#sheetWrap').classList.remove('side'); document.body.classList.remove('npctalk'); R3.focus = null; }
 $('#sheetClose').addEventListener('click', closeSheet);
 $('#sheetWrap').addEventListener('pointerdown', (e) => { if (e.target === e.currentTarget) closeSheet(); });
    // the sheet is redrawn often (online list, timers): keep the "tap again" state outside the button
