@@ -989,6 +989,27 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
 #preload button[hidden]{display:none}
 @media (orientation:landscape) and (max-height:480px){#preload{padding-bottom:5vh}#preload .pt{font-size:2rem}}
 </style>
+<style id="trainingLandscapeCss">
+/* Only the training HUD: keep the game's landscape layout and touch hotbar. */
+@media (orientation:landscape){
+  #scrGame.training-scene #trainingMeter{top:calc(var(--pb,100px) + 8px);left:calc(8px + env(safe-area-inset-left,0px));width:222px;padding:8px 10px;max-height:calc(100dvh - var(--pb,100px) - 88px)}
+  #scrGame.training-scene #trainingRows{max-height:clamp(26px,calc(100dvh - var(--pb,100px) - 260px),104px)}
+  #scrGame.training-scene #trainingMeter .tr-header{padding-bottom:5px;margin-bottom:3px}
+  #scrGame.training-scene #trainingMeter .tr-metric{min-height:28px}
+  #scrGame.training-scene #trainingMeter .tr-metric b{font-size:24px}
+  #scrGame.training-scene #trainingExit{position:static;margin-top:6px;width:100%;height:30px;border-radius:8px;padding:6px;display:flex;gap:8px}
+  #scrGame.training-scene #trainingExit svg{width:18px;height:18px}
+  #scrGame.training-scene #trainingExit span{position:static;transform:none;font:600 11px TGText,Arial,sans-serif}
+  #scrGame.training-scene .chatfeed{display:none}
+}
+@media (orientation:landscape) and (max-height:400px){
+  #scrGame.training-scene #trainingMeter{top:calc(70px + env(safe-area-inset-top,0px));width:210px;max-height:calc(100dvh - 142px)}
+  #scrGame.training-scene #trainingMeter .tr-metric{min-height:23px}
+  #scrGame.training-scene #trainingMeter .tr-metric b{font-size:20px}
+  #scrGame.training-scene #trainingMeter .tr-status{display:none}
+  #scrGame.training-scene #trainingRows{max-height:26px}
+}
+</style>
 </head>
 <body>
 <div id="preload" role="status" aria-live="polite">
@@ -1190,9 +1211,18 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
     <div class="mb"><p id="patchBody"></p><button class="btn-main" id="patchOk">ออกผจญภัยต่อ</button></div>
   </div>
 </div>
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+<script>
+window.__LOCAL_TEST = ['localhost','127.0.0.1','[::1]'].includes(location.hostname);
+window.__TRAIN_QA = window.__LOCAL_TEST && new URLSearchParams(location.search).get('trainingQA') === '1';
+window.__TRAIN_QA_STORAGE = new Map();
+if (window.__LOCAL_TEST) {
+  addEventListener('error', e => { (window.__TEST_ERRORS ||= []).push(String(e.message)); });
+  addEventListener('unhandledrejection', e => { (window.__TEST_ERRORS ||= []).push(String(e.reason)); });
+} else {
+  for (const name of ['app','auth','database']) document.write('<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-'+name+'-compat.js"><\/script>');
+}
+</script>
+<script src="training-arena.js"></script>
 <script>
 /* ===== ใส่ค่า Firebase ของคุณตรงนี้ ===== */
 const FIREBASE_CONFIG = {
@@ -1207,7 +1237,7 @@ const FIREBASE_CONFIG = {
 /* ===== ตัวเชื่อมเกมกับ Firebase (ไม่ต้องแก้) ===== */
 window.__NET_RATE = 500;
 (function () {
-  const cfgOk = !!(window.firebase && FIREBASE_CONFIG && FIREBASE_CONFIG.apiKey && FIREBASE_CONFIG.databaseURL);
+  const cfgOk = !window.__LOCAL_TEST && !!(window.firebase && FIREBASE_CONFIG && FIREBASE_CONFIG.apiKey && FIREBASE_CONFIG.databaseURL);
   let resolveReady; const ready = new Promise((r) => { resolveReady = r; });
   let auth = null;
   const ERR = {
@@ -2222,8 +2252,8 @@ function renderGround(theme, w, h, dpr, seed, o) {
 const $ = (s) => document.querySelector(s);
 const fmt = (n) => Math.floor(Math.max(0, n)).toLocaleString('en-US');
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
-function lsGet(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
-function lsSet(k, v) { try { localStorage.setItem(k, v); } catch (e) {} }
+function lsGet(k) { if (window.__TRAIN_QA) return window.__TRAIN_QA_STORAGE.get(k) ?? null; try { return localStorage.getItem(k); } catch (e) { return null; } }
+function lsSet(k, v) { if (window.__TRAIN_QA) { window.__TRAIN_QA_STORAGE.set(k,String(v)); return; } try { localStorage.setItem(k, v); } catch (e) {} }
 const LS_SAVE = 'spellblade_hero_v2', LS_SEEN = 'spellblade_seen_v2';
 
 let CONFIG = sanitizeConfig(DEFAULT_CONFIG);
@@ -2238,7 +2268,7 @@ const WORLD = { w: 1152, h: 1920 };
 let WSCALE = (WORLD.w * WORLD.h) / (720 * 1200);   // area vs the original 720x1200 maps
 function setWorldFor(map) {
   const big = !!(map && !map.training && !map.town && !map.dg && !map.pvp), k = big ? FIELD_GROW : 1;
-  WORLD.w = Math.round(WORLD_BASE.w * k); WORLD.h = Math.round(WORLD_BASE.h * k);
+  WORLD.w = map && map.training ? 2100 : Math.round(WORLD_BASE.w * k); WORLD.h = map && map.training ? 2100 : Math.round(WORLD_BASE.h * k);
   WSCALE = (WORLD.w * WORLD.h) / (720 * 1200);
 }
 const monCount = (map) => Math.round(map.count * 4);
@@ -2428,32 +2458,66 @@ const fmtSt = (v, dec, suf) => (dec ? v.toFixed(dec) : fmt(Math.round(v))) + (su
 const spCost = (sk, lv) => Math.round(sk.sp[0] + sk.sp[1] * lv);
 
 /* ---------- Training Ground: private, reward-free damage test ---------- */
-const TRAIN = { back: 'village', elapsed: 0, total: 0, skills: {}, state: 'ready', source: null, epoch: 0, uiAt: -1, softLook: true };
+const TRAIN = { back: 'village', elapsed: 0, total: 0, skills: {}, state: 'ready', source: null, epoch: 0, uiAt: -1, softLook: true, loading: false, request: 0, returnState: null, groundH: 0 };
 const TRAIN_MAP = { id: 'training', name: 'Training Ground', training: true, theme: 'training', min: 1, max: 200, count: 0, monsters: [] };
 const inTraining = () => !!(W.map && W.map.training);
 function trainingClearCombat() {
-  setAuto(false); P.target = null; P.queued = null; P.tx = null; P.combo = null; P.dash = null; P.lockT = 0; P.invT = 0; P.air = 0;
+  setAuto(false); P.target = null; P.queued = null; P.tx = null; P.combo = null; P.dash = null; P.lockT = 0; P.air = 0;
   W.pend = []; W.fx = []; W.nums = []; TRAIN.epoch++;
 }
-function trainingReset() {
-  trainingClearCombat(); TRAIN.elapsed = 0; TRAIN.total = 0; TRAIN.skills = {}; TRAIN.state = 'ready'; TRAIN.uiAt = -1;
-  if (inTraining()) { P.hp = P.D.maxHp; P.sp = P.D.maxSp; P.cds = {}; P.cdMax = {}; P.buffs = {}; P.bers = null; P.atkT = 0; }
+function trainingResetStats() {
+  TRAIN.elapsed = 0; TRAIN.total = 0; TRAIN.skills = {}; TRAIN.state = 'ready'; TRAIN.uiAt = -1;
   trainingHud();
 }
-function trainingEnter() {
-  if (!S.hero || P.dead) return;
+function trainingReset() { trainingResetStats(); }
+async function trainingEnter() {
+  if (!S.hero || P.dead || TRAIN.loading) return;
   if (isDg() || isPvp()) { toast('ออกจากดันเจี้ยนหรือ PVP ก่อนเข้าสนามฝึก'); return; }
   if (inTraining()) { closeSheet(); return; }
-  TRAIN.back = S.hero.mapId || 'village'; PARTY.follow = false;
-  closeSheet(); trainingClearCombat(); enterMap('training'); trainingReset();
+  if (!R3.on || !window.TrainingArena) { toast('สนามประลองต้องใช้ WebGL2 และไฟล์ training-arena.js'); return; }
+  const hero = S.hero, map = W.map, request = ++TRAIN.request;
+  TRAIN.loading = true; toast('กำลังโหลดสนามประลอง…');
+  try {
+    await TrainingArena.load(R3.eng);
+    if (request !== TRAIN.request || S.hero !== hero || W.map !== map || P.dead || S.screen !== 'game') return;
+    TRAIN.back = S.hero.mapId || 'village';
+    TRAIN.returnState = { x: P.x, y: P.y, dir: P.dir, fa: P._fa, auto: S.auto, follow: PARTY.follow,
+      yaw: R3.yaw, pitch: R3.pitch, zoom: S.zoom, cd: R3.cd };
+    PARTY.follow = false; closeSheet(); trainingClearCombat();
+    R3.focus = null; R3.statCam = false; R3.yaw = 0; R3.pitch = 35 * Math.PI / 180; R3.cd = null;
+    enterMap('training'); trainingResetStats();
+  } catch (e) { console.error('Training Ground load failed', e); toast('โหลดสนามไม่สำเร็จ กรุณาลองเข้าใหม่: ' + e.message); }
+  finally { TRAIN.loading = false; }
 }
-function trainingLookToggle() {
-  TRAIN.softLook = !TRAIN.softLook; buildGround(); trainingHud();
+function trainingLookToggle() { /* Arena uses the approved material set. */ }
+function trainingExit() {
+  ++TRAIN.request;
+  if (!inTraining()) return;
+  const ret = TRAIN.returnState;
+  trainingClearCombat(); enterMap(TRAIN.back || 'village');
+  if (ret) {
+    P.x = ret.x; P.y = ret.y; P.dir = ret.dir; P._fa = ret.fa; P._px = ret.x; P._py = ret.y;
+    P.aax = ret.x; P.aay = ret.y; P.walking = false;
+    R3.yaw = ret.yaw; R3.pitch = ret.pitch; S.zoom = ret.zoom; R3.cd = ret.cd;
+    R3.focus = null; R3.statCam = false; R3.camSnap = true;
+    PARTY.follow = ret.follow; setAuto(ret.auto);
+  }
+  TRAIN.returnState = null; TRAIN.groundH = 0;
 }
-function trainingExit() { if (inTraining()) { trainingReset(); enterMap(TRAIN.back || 'village'); } }
+function trainingMoveTo(x, y) {
+  const r = TrainingArena.move((P.x-WORLD.w/2)/R3.U, (P.y-WORLD.h/2)/R3.U,
+    (x-WORLD.w/2)/R3.U, (y-WORLD.h/2)/R3.U, TRAIN.groundH);
+  const moved = Math.hypot(r.x*R3.U+WORLD.w/2-P.x,r.z*R3.U+WORLD.h/2-P.y) > .01;
+  P.x = r.x*R3.U+WORLD.w/2; P.y = r.z*R3.U+WORLD.h/2; TRAIN.groundH = r.h;
+  return moved;
+}
+function trainingHeight(x,y) {
+  if (!inTraining()) return 0;
+  return TrainingArena.height((x-WORLD.w/2)/R3.U,(y-WORLD.h/2)/R3.U,TRAIN.groundH) ?? 0;
+}
 function trainingPause() {
   if (TRAIN.state === 'paused') { TRAIN.state = TRAIN.total ? 'running' : 'ready'; }
-  else { TRAIN.state = 'paused'; trainingClearCombat(); }
+  else { TRAIN.state = 'paused'; }
   trainingHud();
 }
 function trainingHit(amount, source) {
@@ -2466,6 +2530,7 @@ function trainingHud() {
   const sec = TRAIN.elapsed; $('#trainingTime').textContent = String(Math.floor(sec / 60)).padStart(2, '0') + ':' + String(Math.floor(sec % 60)).padStart(2, '0');
   $('#trainingTotal').textContent = fmt(TRAIN.total); $('#trainingDps').textContent = sec > 0 ? fmt(Math.round(TRAIN.total / sec)) : '0';
   $('#trainingStatus').textContent = TRAIN.state === 'ready' ? 'ตีหุ่นเพื่อเริ่มจับเวลา' : TRAIN.state === 'paused' ? 'หยุดการวัดแล้ว' : 'กำลังวัดดาเมจ';
+  $('#trainingLook').hidden = true;
   $('#trainingLook').textContent = TRAIN.softLook ? '◐ Original look' : '☀ Warm look';
   $('#trainingLook').setAttribute('aria-pressed', String(TRAIN.softLook));
   $('#trainingPause').innerHTML = TRAIN.state === 'paused' ? '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M7 3v18l15-9Z"/></svg>' : '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 5v14M16 5v14" stroke-width="5"/></svg>';
@@ -2505,7 +2570,7 @@ function enterMap(id, silent, dmap) {
     m.training = true; m.alpha = 1; m.size = 1.5; W.mons.push(m);
   }
   if (!hostThere) { if (W.spawns.length) fillSpawns(); else for (let i = 0; i < monCount(map); i++) spawnMon(); }
-  if (map.training) { P.x = WORLD.w / 2; P.y = WORLD.h / 2 + 90; }
+  if (map.training) { P.x = WORLD.w / 2; P.y = WORLD.h / 2 + 2.3 * R3.U; TRAIN.groundH = TrainingArena.height(0,2.3,0) ?? .03; }
   P.aax = P.x; P.aay = P.y; updAutoBadge(); bossEnterMap(map);
   addFx({ kind: 'ring', x: P.x, y: P.y, r: 46, color: '#9fe3ff', dur: 0.7 });
   if (!silent) { toast(map.name + '  Lv ' + map.min + '–' + map.max); AU.sfx('warp'); }
@@ -2748,7 +2813,7 @@ function applyHit(tg, res, hits) {
     later(i * 0.075, () => {
       if (tg.state === 'dead' || tg.hp <= 0) return;
       if (tg.training) {
-        if (!inTraining() || !W.mons.includes(tg) || TRAIN.state === 'paused' || epoch !== TRAIN.epoch) return;
+        if (!inTraining() || !W.mons.includes(tg) || epoch !== TRAIN.epoch) return;
         trainingHit(per, source); tg.hitT = 0.12;
         if (res.crit) myCrit(tg, per, i, res.magic);
         else { AU.sfx('hit'); addNum(tg.x, tg.y - 32 * s, fmt(per), '#ffffff', 11, { pop: true, tk: tg.uid, dur: NUM_LIFE, dmg: true, tg, oy: -32 * s }); }
@@ -3152,7 +3217,7 @@ function startCombo(sk, lv, tg, mult) {
       });
       later(t0 + STAR_DASH, () => { if (alive()) starCut(A, B, mult, sk, done); });
     }
-    later(CH + 5 * STAR_DASH + 0.02, () => { if (alive()) { P.x = x0; P.y = y0; P.dash = null; } });
+    later(CH + 5 * STAR_DASH + 0.02, () => { if (alive()) { if (inTraining()) trainingMoveTo(x0,y0); else { P.x = x0; P.y = y0; } P.dash = null; } });
     later(total, () => comboEnd(id));
   }
 }
@@ -3227,6 +3292,7 @@ function moveToward(x, y, dt, stop) {
   const dx = x - P.x, dy = y - P.y, d = Math.hypot(dx, dy);
   if (d <= stop) return false;
   const sp = (115 + Math.min(40, P.D.st.agi * 0.4)) * (1 + ((buffSum().mspd || 0) + (P.D.mspdGear || 0)) / 100) * ((P.slowUntil || 0) > W.t ? 0.55 : 1), k = Math.min(d - stop, sp * dt) / d;
+  if (inTraining()) { P.dir = dx >= 0 ? 1 : -1; return trainingMoveTo(P.x + dx*k, P.y + dy*k); }
   P.x += dx * k; P.y += dy * k; P.dir = dx >= 0 ? 1 : -1;
   const b = bounds(); P.x = clamp(P.x, b.x0, b.x1); P.y = clamp(P.y, b.y0, b.y1);
   if (isTown()) [P.x, P.y] = townPush(P.x, P.y, 12);
@@ -3288,7 +3354,7 @@ function update(dt) {
   P.sp = Math.min(D.maxSp, P.sp + D.spRegen * dt);
   P.atkT -= dt;
   if (P.combo && P.combo.kind === 'star') { const el = W.t - P.combo.t0; P.air = 1.2 * clamp(Math.min((el - 0.05) / 0.25, (P.combo.total - el) / 0.15), 0, 1); } else P.air = 0;   // rises into the air for Star Slash
-  if (P.dash) { const d = P.dash, k = clamp((W.t - d.t0) / d.dur, 0, 1); P.x = d.x1 + (d.x2 - d.x1) * k; P.y = d.y1 + (d.y2 - d.y1) * k; if (k >= 1) P.dash = null; }
+  if (P.dash) { const d = P.dash, k = clamp((W.t - d.t0) / d.dur, 0, 1); const nx = d.x1 + (d.x2 - d.x1) * k, ny = d.y1 + (d.y2 - d.y1) * k; if (inTraining()) trainingMoveTo(nx,ny); else { P.x = nx; P.y = ny; } if (k >= 1) P.dash = null; }
   if (ccActive()) { P.walking = false; return; }
   if (W.t < (P.lockT || 0)) { P.walking = false; npcTick(); pvpSync(); fxTick(); botsTick(dt); return; }   // busy with a combo skill: no walking, no auto attack
   if (P.target && (P.target.state === 'dead' || P.target.hp <= 0 || !(W.mons.includes(P.target) || (W.pvp && W.pvp.includes(P.target))))) { P.target = null; P.queued = null; }
@@ -4786,6 +4852,7 @@ void main(){
     E.pop();
   }
   function drawMon(E, m, t) {
+    if (m.training && TrainingArena.ready) { TrainingArena.draw(E,'dummy',[m.X,0,m.Z],m.hitT>0?.25:0); return; }
     if (m.training) { drawStrawDummy(E,m,t); return; }
     if (KKON && R3.kkOn()) { const sp = mobSpec(m); if (sp && (sp.skel ? drawSkelMob(E, m, t, sp) : drawMob(E, m, t, sp))) return; }
     const sc = (m.size || 1) * clamp(m.alpha == null ? 1 : m.alpha, 0.01, 1);
@@ -4943,7 +5010,7 @@ void main(){
     const E = R3.eng, cv = E.cv, d = W.dpr;
     cv.width = Math.round(W.w * d); cv.height = Math.round(W.h * d);
     R3.aspect = W.w / W.h; R3.camSnap = true;
-    R3.ray = (sx, sy) => { const r = E.ray(sx / W.w * 2 - 1, 1 - sy / W.h * 2); return r ? { x: r[0] * R3.U + WORLD.w / 2, y: r[1] * R3.U + WORLD.h / 2 } : null; };
+    R3.ray = (sx, sy) => { const nx=sx/W.w*2-1, ny=1-sy/W.h*2; if (inTraining() && TrainingArena.ready) { const p=TrainingArena.pick(E,nx,ny); return p ? {x:p.x*R3.U+WORLD.w/2,y:p.z*R3.U+WORLD.h/2}:null; } const r = E.ray(nx,ny); return r ? { x: r[0] * R3.U + WORLD.w / 2, y: r[1] * R3.U + WORLD.h / 2 } : null; };
   };
   R3.cam = function (dt) {
     const E = R3.eng, fovy = 38 * Math.PI / 180, elev = 54 * Math.PI / 180, ty = Math.tan(fovy / 2), aspect = R3.aspect || 0.5;
@@ -4957,11 +5024,11 @@ void main(){
     R3.cd = R3.cd == null ? Dz : R3.cd + (Dz - R3.cd) * Math.min(1, dt * 4);
     const k = Math.min(1, dt * 6); R3.cx += (px - R3.cx) * k; R3.cz += (tz - R3.cz) * k;
     const sh = R3.shakeUntil > performance.now() ? R3.shakeAmp : 0;
-    const tgt = [R3.cx + (Math.random() - 0.5) * sh, 0, R3.cz + (Math.random() - 0.5) * sh];
+    const tgt = [R3.cx + (Math.random() - 0.5) * sh, inTraining() ? TRAIN.groundH : 0, R3.cz + (Math.random() - 0.5) * sh];
     const Dc = R3.cd || D;
     const yw = R3.yaw || 0, ev = R3.pitch || elev, hd = Dc * Math.cos(ev);   // yaw = spin around the hero, pitch = camera height angle
-    E.setCam([tgt[0] + hd * Math.sin(yw), Dc * Math.sin(ev), tgt[2] + hd * Math.cos(yw)], tgt, fovy, aspect, 0.5, D * 4);
-    E.fogR = [D * 1.08, D * 2.0];
+    E.setCam([tgt[0] + hd * Math.sin(yw), tgt[1] + Dc * Math.sin(ev), tgt[2] + hd * Math.cos(yw)], tgt, fovy, aspect, 0.5, Math.max(D * 4, inTraining() ? 160 : 0));
+    E.fogR = inTraining() ? [35,150] : [D * 1.08, D * 2.0];
   };
   function ccVis(E, X, Z, type, t) {
     if (type === 'stun') for (let i = 0; i < 4; i++) { const a = t * 4.5 + i * 1.57; E.push(); E.T(X + Math.cos(a) * 0.24, 1.78 + Math.sin(t * 6 + i) * 0.03, Z + Math.sin(a) * 0.24); E.Sc(0.055); E.part('sphL', c3(i % 2 ? '#ffe14d' : '#fff6b0'), 0, { emit: true, outline: false }); E.pop(); }
@@ -4971,6 +5038,11 @@ void main(){
   R3.setMap = function (map) {
     if (!R3.on) return;
     const E = R3.eng, gl = E.gl, T3 = THEME3[map.theme] || THEME3.grass;
+    if (map.training && TrainingArena.ready) {
+      E.softLook = true; E.light = [-.608,.669,.426]; E.amb = [.46,.43,.40]; E.fog = [.83,.75,.70];
+      R3.T3 = T3; R3.fogCol = [.72,.77,.79]; R3.props = []; E.cur = null;
+      if (R3.vignette) R3.vignette.style.opacity = '0'; return;
+    }
     if (R3.gTex) gl.deleteTexture(R3.gTex);
     R3.gTex = makeTex(gl, renderGround(map.theme, WORLD.w, WORLD.h, 1.25, map.id, { flat: true }), 'mirror');
     E.softLook = !!(map.training && TRAIN.softLook);
@@ -4990,7 +5062,8 @@ void main(){
     const vis = (X, Z) => { const p = E.project(X, 0.5, Z); return p.w > 0 && p.x > -0.3 && p.x < 1.3 && p.y > -0.4 && p.y < 1.35; };
     E.begin(E.cv.width, E.cv.height, R3.fogCol || [0.1, 0.1, 0.1]);
     // ground
-    E.useFx(); E.push(); E.Sc(WORLD.w / R3.U * 3, 1, WORLD.h / R3.U * 3); E.flat('plane', [1, 1, 1, 1], { tex: R3.gTex, uvT: [3, 3, -1, -1], fog: true }); E.pop();
+    if (inTraining() && TrainingArena.ready) { E.trainingPlayer=[(P.x-WORLD.w/2)/R3.U,TRAIN.groundH,(P.y-WORLD.h/2)/R3.U]; TrainingArena.draw(E); }
+    else { E.useFx(); E.push(); E.Sc(WORLD.w / R3.U * 3, 1, WORLD.h / R3.U * 3); E.flat('plane', [1, 1, 1, 1], { tex: R3.gTex, uvT: [3, 3, -1, -1], fog: true }); E.pop(); }
     // facings & positions
     const ents = [];
     for (const m of W.mons) {
@@ -5008,14 +5081,14 @@ void main(){
     // decals: shadows
     E.blend('alpha');
     const shadow = (X, Z, r) => {
-      if (!E.softLook) { E.push(); E.T(X, 0.012, Z); E.Sc(r, 1, r * 0.8); E.flat('disc', [0, 0, 0, 0.5], { fade: 2 }); E.pop(); return; }
+      if (!E.softLook) { E.push(); E.T(X, trainingHeight(X*R3.U+WORLD.w/2,Z*R3.U+WORLD.h/2) + 0.012, Z); E.Sc(r, 1, r * 0.8); E.flat('disc', [0, 0, 0, 0.5], { fade: 2 }); E.pop(); return; }
       // Layered ground decals approximate a soft sun shadow; no shadow map allocation.
       for (let i = 0; i < 4; i++) {
         const q = i / 3, dx = q * r * 1.4, dz = -q * r * 0.90;
         E.push(); E.T(X + dx, 0.012 + i * 0.001, Z + dz); E.RY(0.5); E.Sc(r * (1.25 - q * 0.4), 1, r * (0.9 - q * 0.22));
         E.flat('disc', [0.20, 0.18, 0.12, 0.15 - q * 0.045], { fade: 2 }); E.pop();
       }
-      E.push(); E.T(X, 0.019, Z); E.Sc(r * 0.66, 1, r * 0.48); E.flat('disc', [0.16, 0.14, 0.10, 0.32], { fade: 2 }); E.pop();
+      E.push(); E.T(X, trainingHeight(X*R3.U+WORLD.w/2,Z*R3.U+WORLD.h/2) + 0.019, Z); E.Sc(r * 0.66, 1, r * 0.48); E.flat('disc', [0.16, 0.14, 0.10, 0.32], { fade: 2 }); E.pop();
     };
     for (const m of ents) m._vis = vis(m.X, m.Z);
     for (const p of R3.props) p._vis = vis(p.X, p.Z);
@@ -5034,11 +5107,11 @@ void main(){
     const myA = myAura();
     const auraDecal = (X, Z, A, sd) => {
       if (A.lv99) {
-        E.push(); E.T(X, 0.017, Z); E.Sc(0.66 + Math.sin(t * 3 + sd) * 0.03); E.flat('disc', [0.7, 0.88, 1, 0.45], { fade: 2 }); E.pop();
-        E.push(); E.T(X, 0.021, Z); E.RY(t * 1.4); E.Sc(0.6); E.flat('ring', [0.8, 0.95, 1, 0.9], { fade: 4, dash: t * 0.8 }); E.pop();
-        E.push(); E.T(X, 0.022, Z); E.RY(-t * 1.1); E.Sc(0.44); E.flat('ring', [1, 1, 1, 0.6], { fade: 4 }); E.pop();
+        E.push(); E.T(X, trainingHeight(X*R3.U+WORLD.w/2,Z*R3.U+WORLD.h/2) + 0.017, Z); E.Sc(0.66 + Math.sin(t * 3 + sd) * 0.03); E.flat('disc', [0.7, 0.88, 1, 0.45], { fade: 2 }); E.pop();
+        E.push(); E.T(X, trainingHeight(X*R3.U+WORLD.w/2,Z*R3.U+WORLD.h/2) + 0.021, Z); E.RY(t * 1.4); E.Sc(0.6); E.flat('ring', [0.8, 0.95, 1, 0.9], { fade: 4, dash: t * 0.8 }); E.pop();
+        E.push(); E.T(X, trainingHeight(X*R3.U+WORLD.w/2,Z*R3.U+WORLD.h/2) + 0.022, Z); E.RY(-t * 1.1); E.Sc(0.44); E.flat('ring', [1, 1, 1, 0.6], { fade: 4 }); E.pop();
       }
-      if (A.aura) { const c = c3(A.aura); E.push(); E.T(X, 0.016, Z); E.Sc(0.8 + Math.sin(t * 4 + sd) * 0.05); E.flat('disc', [c[0], c[1], c[2], 0.9], { fade: 1.6 }); E.pop(); E.push(); E.T(X, 0.02, Z); E.RY(-t * 1.8); E.Sc(0.72); E.flat('ring', [c[0], c[1], c[2], 1], { fade: 4, dash: t }); E.pop(); }
+      if (A.aura) { const c = c3(A.aura); E.push(); E.T(X, trainingHeight(X*R3.U+WORLD.w/2,Z*R3.U+WORLD.h/2) + 0.016, Z); E.Sc(0.8 + Math.sin(t * 4 + sd) * 0.05); E.flat('disc', [c[0], c[1], c[2], 0.9], { fade: 1.6 }); E.pop(); E.push(); E.T(X, trainingHeight(X*R3.U+WORLD.w/2,Z*R3.U+WORLD.h/2) + 0.02, Z); E.RY(-t * 1.8); E.Sc(0.72); E.flat('ring', [c[0], c[1], c[2], 1], { fade: 4, dash: t }); E.pop(); }
     };
     auraDecal(P.X, P.Z, myA, 0);
     for (const o of oth) { o._A = auraArgs(o.au ? o.au[0] : 0, o.au ? o.au[1] : 0, o.au ? o.au[2] : 0, o.lv); auraDecal(o.X, o.Z, o._A, o.X); }
@@ -5048,8 +5121,8 @@ void main(){
       const p = clamp((W.t - tl.t0) / Math.max(0.01, tl.t1 - tl.t0), 0, 1), col = tl.type === 'breath' ? [0.35, 0.8, 1] : [1, 0.16, 0.1];
       for (const c of tl.cs) {
         const [X, Z] = L2W(c[0], c[1]), r = c[2] / R3.U;
-        E.push(); E.T(X, 0.026, Z); E.Sc(r); E.flat('disc', [col[0], col[1], col[2], 0.16 + 0.34 * p], { fade: 1.2 }); E.flat('ring', [col[0], col[1], col[2], 0.95], { fade: 7 }); E.pop();
-        E.push(); E.T(X, 0.028, Z); E.Sc(Math.max(0.01, r * p)); E.flat('ring', [1, 1, 1, 0.7], { fade: 5 }); E.pop();
+        E.push(); E.T(X, trainingHeight(X*R3.U+WORLD.w/2,Z*R3.U+WORLD.h/2) + 0.026, Z); E.Sc(r); E.flat('disc', [col[0], col[1], col[2], 0.16 + 0.34 * p], { fade: 1.2 }); E.flat('ring', [col[0], col[1], col[2], 0.95], { fade: 7 }); E.pop();
+        E.push(); E.T(X, trainingHeight(X*R3.U+WORLD.w/2,Z*R3.U+WORLD.h/2) + 0.028, Z); E.Sc(Math.max(0.01, r * p)); E.flat('ring', [1, 1, 1, 0.7], { fade: 5 }); E.pop();
       }
     }
     if (Object.keys(P.buffs).length) { E.push(); E.T(P.X, 0.02, P.Z); E.Sc(0.7 + Math.sin(t * 4) * 0.04); E.flat('disc', [1, 0.88, 0.5, 0.45], { fade: 2 }); E.pop(); }
@@ -5060,11 +5133,11 @@ void main(){
     for (const f of W.fx) {
       const p = (t - f.t0) / f.dur; if (p < 0 || p > 1) continue;
       const [X, Z] = L2W(f.x, f.y), col = c3(f.color || '#ffffff');
-      if (f.kind === 'circle') { const a = p < 0.2 ? p / 0.2 : 1 - (p - 0.2) / 0.8; E.push(); E.T(X, 0.025, Z); E.RY(t * 1.7); E.Sc(1.35 * (f.r ? f.r / 34 : 1)); E.flat('plane', [col[0], col[1], col[2], a], { tex: texOf(E, 'circle', circleCanvas) }); E.pop(); }
-      else if (f.kind === 'ring') { const r = (f.r / R3.U) * easeOut(p); E.push(); E.T(X, 0.03, Z); E.Sc(Math.max(0.01, r)); E.flat('ring', [col[0], col[1], col[2], 1 - p], { fade: 3 }); E.flat('disc', [col[0], col[1], col[2], (1 - p) * 0.25], { fade: 2 }); E.pop(); }
-      else if (f.kind === 'quake') { for (let k = 0; k < 3; k++) { const r = (f.r / R3.U) * (0.35 + 0.65 * easeOut(clamp(p * 1.4 - k * 0.15, 0, 1))); E.push(); E.T(X, 0.03, Z); E.Sc(r); E.flat('ring', [col[0], col[1], col[2], (1 - p) * 0.9], { fade: 3 }); E.pop(); } }
-      else if (f.kind === 'tap') { E.push(); E.T(X, 0.03, Z); E.Sc(0.15 + 0.35 * p); E.flat('ring', [col[0], col[1], col[2], 1 - p], { fade: 3 }); E.pop(); }
-      else if (f.kind === 'meteor' && p > 0.55) { const q = (p - 0.55) / 0.45; E.push(); E.T(X, 0.03, Z); E.Sc(0.4 + 1.1 * q); E.flat('disc', [col[0], col[1] * 0.7, col[2] * 0.4, 1 - q], { fade: 2 }); E.pop(); }
+      if (f.kind === 'circle') { const a = p < 0.2 ? p / 0.2 : 1 - (p - 0.2) / 0.8; E.push(); E.T(X, trainingHeight(X*R3.U+WORLD.w/2,Z*R3.U+WORLD.h/2) + 0.025, Z); E.RY(t * 1.7); E.Sc(1.35 * (f.r ? f.r / 34 : 1)); E.flat('plane', [col[0], col[1], col[2], a], { tex: texOf(E, 'circle', circleCanvas) }); E.pop(); }
+      else if (f.kind === 'ring') { const r = (f.r / R3.U) * easeOut(p); E.push(); E.T(X, trainingHeight(X*R3.U+WORLD.w/2,Z*R3.U+WORLD.h/2) + 0.03, Z); E.Sc(Math.max(0.01, r)); E.flat('ring', [col[0], col[1], col[2], 1 - p], { fade: 3 }); E.flat('disc', [col[0], col[1], col[2], (1 - p) * 0.25], { fade: 2 }); E.pop(); }
+      else if (f.kind === 'quake') { for (let k = 0; k < 3; k++) { const r = (f.r / R3.U) * (0.35 + 0.65 * easeOut(clamp(p * 1.4 - k * 0.15, 0, 1))); E.push(); E.T(X, trainingHeight(X*R3.U+WORLD.w/2,Z*R3.U+WORLD.h/2) + 0.03, Z); E.Sc(r); E.flat('ring', [col[0], col[1], col[2], (1 - p) * 0.9], { fade: 3 }); E.pop(); } }
+      else if (f.kind === 'tap') { E.push(); E.T(X, trainingHeight(X*R3.U+WORLD.w/2,Z*R3.U+WORLD.h/2) + 0.03, Z); E.Sc(0.15 + 0.35 * p); E.flat('ring', [col[0], col[1], col[2], 1 - p], { fade: 3 }); E.pop(); }
+      else if (f.kind === 'meteor' && p > 0.55) { const q = (p - 0.55) / 0.45; E.push(); E.T(X, trainingHeight(X*R3.U+WORLD.w/2,Z*R3.U+WORLD.h/2) + 0.03, Z); E.Sc(0.4 + 1.1 * q); E.flat('disc', [col[0], col[1] * 0.7, col[2] * 0.4, 1 - q], { fade: 2 }); E.pop(); }
       else if (FX2G[f.kind]) { try { E.push(); FX2G[f.kind](E, f, p, t, X, Z); } catch (e) {} finally { E.pop(); } }
     }
     // opaque
@@ -5074,14 +5147,14 @@ void main(){
     const fadeQ = R3.fadeQ; R3.fadeQ = null;
     if (W.map && W.map.town && KKON && KK.village) { E.push(); kkStatics(E, KK.village); E.pop(); }
     if (W.map && W.map.town && typeof NPCS === 'object') for (const n of NPCS) {
-      const [X, Z] = L2W(n.x, n.y); E.push(); E.T(X, 0, Z);
+      const [X, Z] = L2W(n.x, n.y); E.push(); E.T(X, trainingHeight(X*R3.U+WORLD.w/2,Z*R3.U+WORLD.h/2), Z);
       if (n.machine) drawGachaMachine(E, t, n);
       else drawChar(E, n.look, n.job, 'dual', { t, ent: n.ent, spec: n.spec, swingId: n.actT, swing: (t - n.actT) / 0.3, castId: n.actKind === 'heal' ? n.actT : null, castKind: n.actKind });
       E.pop();
     }
     for (const m of ents) if (m.alpha > 0.02 && m._vis) { const fz = monFrozen(m); if (fz && !m._ft) m._ft = t; if (!fz) m._ft = 0; drawMon(E, m, fz ? m._ft : t); }
     const h = S.hero;
-    E.push(); E.T(P.X, P.air || 0, P.Z); E.RY(P._fa || 0);
+    E.push(); E.T(P.X, (inTraining() ? TRAIN.groundH : 0) + (P.air || 0), P.Z); E.RY(P._fa || 0);
     drawChar(E, h.look, h.job, h.wstyle, { t, walking: P.walking, swing: (t - P.swingT) / 0.3, flash: t - P.hurtT < 0.1 ? 0.45 : 0, dead: P.dead, eq: eqVis(h), wg: myA.wg, ent: P, swingId: P.swingT, hurtId: P.hurtT, castId: P.castT, castKind: P.castKind, cheerId: P.cheerT, atkDur: P.D ? P.D.aspdMs / 1000 : 0.55, wv: h.eq && h.eq.weapon && h.eq.weapon.id, flash: ccActive() && P.ccType === 'freeze' ? 0.32 : (t - P.hurtT < 0.1 ? 0.45 : 0) });
     E.pop();
     if (ccActive()) ccVis(E, P.X, P.Z, P.ccType, t);
@@ -5096,13 +5169,14 @@ void main(){
     }
     // additive volumetric fx
     E.blend('add');
+    if (inTraining() && TrainingArena.ready) TrainingArena.drawTorches(E,t);
     for (const p of R3.props) if (p.type === 'brazier') {
       for (let i = 0; i < 3; i++) { const fl = 0.85 + Math.sin(t * (11 + i * 3) + p.seed + i) * 0.15; E.push(); E.T(p.X + (i - 1) * 0.05, 0.66 * p.s, p.Z); E.Sc(0.14 * fl * (1 - i * 0.2), 0.5 * fl * (1 - i * 0.18), 0.14 * fl); E.flat('cone', i === 0 ? [1, 0.45, 0.1, 0.8] : [1, 0.8, 0.3, 0.7], {}); E.pop(); }
     }
     const auraVol = (X, Z, A, sd) => {
       if (A.aura) {
         const c = c3(A.aura);
-        E.push(); E.T(X, 0, Z); E.Sc(0.38, 1.5 + Math.sin(t * 3 + sd) * 0.12, 0.38); E.flat('pillar', [c[0], c[1], c[2], 0.5], { fade: 1 }); E.pop();
+        E.push(); E.T(X, trainingHeight(X*R3.U+WORLD.w/2,Z*R3.U+WORLD.h/2), Z); E.Sc(0.38, 1.5 + Math.sin(t * 3 + sd) * 0.12, 0.38); E.flat('pillar', [c[0], c[1], c[2], 0.5], { fade: 1 }); E.pop();
         for (let i = 0; i < 9; i++) { const ph = (t * 0.55 + i / 9 + sd) % 1, a = i * 0.7 + t * 1.3; E.push(); E.T(X + Math.cos(a) * 0.34, ph * 1.8, Z + Math.sin(a) * 0.34); E.Sc(0.032, 0.17, 0.032); E.flat('pillar', [c[0], c[1], c[2], 0.95 * (1 - ph)], { fade: 1 }); E.pop(); }
       }
       if (A.lv99) for (let i = 0; i < 5; i++) { const ph = (t * 0.4 + i / 5 + sd * 0.3) % 1, a = i * 1.26 - t; E.push(); E.T(X + Math.cos(a) * 0.5, ph * 0.9, Z + Math.sin(a) * 0.5); E.Sc(0.018, 0.1, 0.018); E.flat('pillar', [0.8, 0.95, 1, 0.9 * (1 - ph)], { fade: 1 }); E.pop(); }
@@ -5115,16 +5189,16 @@ void main(){
       const [X, Z] = L2W(f.x, f.y), col = c3(f.color || '#ffffff');
       const a = f.kind === 'meteor' ? 1 - (p - 0.55) / 0.45 : (p < 0.15 ? p / 0.15 : 1 - (p - 0.15) / 0.85);
       const r = ((f.w || 20) / R3.U) * 0.55 * (1 - p * 0.5) * (f.kind === 'meteor' ? 1.4 : 1);
-      E.push(); E.T(X, 0, Z); E.Sc(r, f.kind === 'meteor' ? 1.5 : 7, r); E.flat('pillar', [col[0], col[1], col[2], 0.85 * a], { fade: 1 }); E.pop();
-      E.push(); E.T(X, 0, Z); E.Sc(r * 0.38, f.kind === 'meteor' ? 1.2 : 6.5, r * 0.38); E.flat('pillar', [1, 1, 1, 0.9 * a], { fade: 1 }); E.pop();
-      E.push(); E.T(X, 0.03, Z); E.Sc(r * 3); E.flat('disc', [col[0], col[1], col[2], 0.7 * a], { fade: 2 }); E.pop();
+      E.push(); E.T(X, trainingHeight(X*R3.U+WORLD.w/2,Z*R3.U+WORLD.h/2), Z); E.Sc(r, f.kind === 'meteor' ? 1.5 : 7, r); E.flat('pillar', [col[0], col[1], col[2], 0.85 * a], { fade: 1 }); E.pop();
+      E.push(); E.T(X, trainingHeight(X*R3.U+WORLD.w/2,Z*R3.U+WORLD.h/2), Z); E.Sc(r * 0.38, f.kind === 'meteor' ? 1.2 : 6.5, r * 0.38); E.flat('pillar', [1, 1, 1, 0.9 * a], { fade: 1 }); E.pop();
+      E.push(); E.T(X, trainingHeight(X*R3.U+WORLD.w/2,Z*R3.U+WORLD.h/2) + 0.03, Z); E.Sc(r * 3); E.flat('disc', [col[0], col[1], col[2], 0.7 * a], { fade: 2 }); E.pop();
     }
     E.blend(null);
     R3.overlay(t);
   };
 
   /* ---------- 2D overlay (numbers, bars, slashes, lightning) ---------- */
-  function proj(x, y, hgt) { const [X, Z] = L2W(x, y), p = R3.eng.project(X, hgt || 0, Z); return { x: p.x * W.w, y: p.y * W.h, w: p.w }; }
+  function proj(x, y, hgt) { const [X, Z] = L2W(x, y), p = R3.eng.project(X, trainingHeight(x,y) + (hgt || 0), Z); return { x: p.x * W.w, y: p.y * W.h, w: p.w }; }
   function lightning(ctx, x, y, col, seed) {
     const R = mulberry((seed * 1000 + (W.t * 30 | 0)) | 0);
     const pts = [[x + (R() - 0.5) * 60, y - 330]];
@@ -9209,7 +9283,7 @@ addEventListener('resize', hudLayout);
 R3.onKKTex = () => { if (S.hero && S.screen === 'game') drawAvatar(); try { renderSheetIfOpen(); } catch (e) {} };
 $('#trainingExit').addEventListener('click', trainingExit);
 $('#trainingPause').addEventListener('click', trainingPause);
-$('#trainingReset').addEventListener('click', trainingReset);
+$('#trainingReset').addEventListener('click', trainingResetStats);
 $('#trainingLook').addEventListener('click', trainingLookToggle);
 $('#dgExit').addEventListener('click', () => leaveDungeon());
 $('#rwExit').addEventListener('click', () => leaveDungeon());
@@ -10161,7 +10235,7 @@ const docSig = (d) => { const s = docSum(d); return [s.lv, s.jl, s.kills, s.ref,
 const docScore = (d) => { const s = docSum(d); return s.lv * 1e6 + s.jl * 1e3 + s.kills; };
 function bkAdd() {}   // local backups removed (exploitable to undo failed refines)
 const bkNow = () => (S.hero ? Object.assign(heroDoc(), { savedAt: Date.now() }) : null);
-try { Object.keys(localStorage).filter((k) => k.indexOf('sb_bk_') === 0).forEach((k) => localStorage.removeItem(k)); } catch (e) {}   // wipe backups saved by older versions
+try { if (!window.__TRAIN_QA) Object.keys(localStorage).filter((k) => k.indexOf('sb_bk_') === 0).forEach((k) => localStorage.removeItem(k)); } catch (e) {}   // wipe backups saved by older versions
 async function loadServerHero() {
   for (let i = 0; i < 3; i++) {
     try {
@@ -10420,6 +10494,7 @@ requestAnimationFrame(frame);
   const getWl = () => { try { if (navigator.wakeLock && !document.hidden) navigator.wakeLock.request('screen').then((l) => { wl = l; }).catch(() => {}); } catch (e) {} };
   document.addEventListener('visibilitychange', getWl); getWl();
 })();
+if (window.__LOCAL_TEST) window.__SB_TEST = {S,P,W,WORLD,R3,TRAIN,SKILLS,newHero,sanitizeHero,startGame,trainingEnter,trainingExit,trainingResetStats,trainingPause,trainingMoveTo,applyHit,basicAttack,castSkill,update,heroDoc,setAuto,openPanel,resize,AU,moveToward};
 init().catch((e) => { console.error(e); if (!S.hero) setupCreate(); });
 /* =================== Title / login scene =================== *
  * The hero art as a living picture (hair, grass and water move in the wind, from painted masks),
